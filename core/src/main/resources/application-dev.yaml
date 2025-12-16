@@ -9,7 +9,7 @@ spring:
       hibernate:
         format_sql: true
         hbm2ddl:
-          auto: create-drop # alias for spring.jpa.hibernate.ddl-auto
+          auto: update # alias for spring.jpa.hibernate.ddl-auto
           create_output: ddl.sql
 logging:
   level:
