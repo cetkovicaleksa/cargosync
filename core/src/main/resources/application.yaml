@@ -23,3 +23,11 @@ spring:
       max-lifetime: 1800000 # ms [30 min]
       connection-timeout: 20000 # ms [20 s]
       transaction-isolation: TRANSACTION_READ_COMMITTED # read commited is default
+security:
+  auth:
+    jwt:
+      issuer: https://team15.nvt.ftn.uns.ac.rs
+      algorithm: HS256
+      access-token:
+        secret: ${CARGOSYNC_AT_SECRET}
+        ttl: 1h

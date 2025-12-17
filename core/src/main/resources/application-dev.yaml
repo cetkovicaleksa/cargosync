@@ -16,3 +16,7 @@ logging:
     root: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+security:
+  cors:
+    allowed-origins:
+      - http://localhost:4200/
