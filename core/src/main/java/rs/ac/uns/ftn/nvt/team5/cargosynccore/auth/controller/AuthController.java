@@ -11,7 +11,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.service.AuthService;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/auth")
+@RequestMapping({"/auth", ""})
 class AuthController {
 
     private final AuthService authService;

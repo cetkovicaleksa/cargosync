@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,6 +20,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.filter.AuthFilter;
 
 import java.util.List;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @EnableMethodSecurity
 @Configuration
@@ -56,15 +59,12 @@ class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/login"
+                                "/login", "/auth/login"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
-                .formLogin(fl -> fl
-                        .loginProcessingUrl("/auth/login")
-                        .permitAll()
-                );
+                .formLogin(withDefaults());
 
         return http.build();
     }
