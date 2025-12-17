@@ -1,10 +1,10 @@
 server:
   port: 8080
-  servlet:
-    context-path: /api
 spring:
   application:
     name: CargoSyncCore
+  autoconfigure:
+    exclude: org.springframework.boot.amqp.autoconfigure.RabbitAutoConfiguration
   jpa:
     open-in-view: false
     properties:
@@ -23,3 +23,17 @@ spring:
       max-lifetime: 1800000 # ms [30 min]
       connection-timeout: 20000 # ms [20 s]
       transaction-isolation: TRANSACTION_READ_COMMITTED # read commited is default
+security:
+  public-endpoints:
+    - /login
+    - /auth/login
+  cors:
+    allowed-headers: ["Authorization", "Content-Type", "Accept"]
+    allowed-methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  auth:
+    jwt:
+      issuer: https://team15.nvt.ftn.uns.ac.rs
+      algorithm: HS256
+      access-token:
+        secret: ${CARGOSYNC_AT_SECRET}
+        ttl: 1h
