@@ -1,14 +1,13 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.config;
 
-import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,11 +17,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.filter.AuthFilter;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.config.properties.CorsProperties;
 
-import java.util.List;
+import java.util.Set;
 
+import static java.util.function.Predicate.not;
 import static org.springframework.security.config.Customizer.withDefaults;
 
+@EnableWebSecurity
 @EnableMethodSecurity
 @Configuration
 class SecurityConfig {
@@ -39,13 +41,13 @@ class SecurityConfig {
 
     @Bean
     CorsConfigurationSource corsConfigurationSource(
-            @Value("${security.cors.allowed-origins:}") @Nullable List<String> allowedOrigins
+            CorsProperties corsProperties
     ) {
         var config = new CorsConfiguration();
 
-        config.setAllowedOrigins(allowedOrigins);
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedOrigins(corsProperties.allowedOrigins());
+        config.setAllowedMethods(corsProperties.allowedMethods());
+        config.setAllowedHeaders(corsProperties.allowedHeaders());
         config.setAllowCredentials(true);
 
         var source = new UrlBasedCorsConfigurationSource();
@@ -54,13 +56,20 @@ class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthFilter authFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            AuthFilter authFilter,
+            @Value("${security.public-endpoints:}") Set<String> publicEndpoints
+            ) throws Exception
+    {
+        var publicMatchers = publicEndpoints.stream()
+                .filter(not(String::isBlank))
+                .toArray(String[]::new);
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/login", "/auth/login"
-                        ).permitAll()
+                        .requestMatchers(publicMatchers).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
