@@ -19,7 +19,6 @@ import java.util.*;
 @Table(
         name = "accounts",
         indexes = {
-                @Index(name = "idx_accounts_username", columnList = "username"),
                 @Index(name = "idx_accounts_role", columnList = "role"),
         }
 )
