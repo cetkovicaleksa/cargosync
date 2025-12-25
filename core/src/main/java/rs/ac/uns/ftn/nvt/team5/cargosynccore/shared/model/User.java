@@ -5,20 +5,18 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.UUID;
 
 @Getter
 @Setter
+@ToString
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Entity
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false, updatable = false)
-    private UUID id;
+public abstract class User extends AbstractPersistable<UUID> {
 
     @NotBlank
     @Email
