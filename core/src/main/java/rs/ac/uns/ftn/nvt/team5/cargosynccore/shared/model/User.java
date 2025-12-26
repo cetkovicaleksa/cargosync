@@ -1,18 +1,21 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.UUID;
 
+import static lombok.AccessLevel.PROTECTED;
+
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor(access = PROTECTED)
+@AllArgsConstructor(access = PROTECTED)
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Entity
