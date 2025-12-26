@@ -27,6 +27,9 @@ security:
   public-endpoints:
     - /login
     - /auth/login
+    - /swagger-ui/**
+    - /swagger-ui.html
+    - /v3/api-docs/**
   cors:
     allowed-headers: ["Authorization", "Content-Type", "Accept"]
     allowed-methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
