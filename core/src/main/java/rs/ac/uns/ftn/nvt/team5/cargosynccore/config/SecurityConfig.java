@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,21 +14,27 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.filter.AuthFilter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.config.properties.CorsProperties;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.config.properties.SecurityProperties;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import static java.util.function.Predicate.not;
 import static org.springframework.security.config.Customizer.withDefaults;
 
+@Slf4j
 @EnableWebSecurity
 @EnableMethodSecurity
 @Configuration
 class SecurityConfig {
+    private static final String TAG = "SecurityConfig";
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -59,21 +66,18 @@ class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             AuthFilter authFilter,
-            @Value("${security.public-endpoints:}") Set<String> publicEndpoints
+            SecurityProperties sp
             ) throws Exception
     {
-        var publicMatchers = publicEndpoints.stream()
-                .filter(not(String::isBlank))
-                .toArray(String[]::new);
+        log.info("Exposing endpoints matching {}", Arrays.toString(sp.publicEndpoints()));
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(publicMatchers).permitAll()
+                        .requestMatchers(sp.publicEndpoints()).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
-                .formLogin(withDefaults());
+                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

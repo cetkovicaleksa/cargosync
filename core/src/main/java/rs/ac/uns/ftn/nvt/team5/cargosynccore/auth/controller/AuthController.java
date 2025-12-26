@@ -9,9 +9,11 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.dto.TokenResponseDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.service.AuthService;
 
+import static org.springframework.http.MediaType.*;
+
 @RequiredArgsConstructor
 @RestController
-@RequestMapping({"/auth", ""})
+@RequestMapping(value = {"/auth", ""}, produces = APPLICATION_JSON_VALUE)
 class AuthController {
 
     private final AuthService authService;
