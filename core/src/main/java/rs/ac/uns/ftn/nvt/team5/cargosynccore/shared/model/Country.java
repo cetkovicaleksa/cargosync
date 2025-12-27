@@ -1,7 +1,6 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -46,6 +45,8 @@ public class Country implements Comparable<Country> {
         this.name = name;
         this.cities = cities.stream()
                 .collect(Collectors.toMap(City::getCode, Function.identity()));
+
+        cities.forEach(c -> c.setCountry(this));
     }
 
 
@@ -59,42 +60,19 @@ public class Country implements Comparable<Country> {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null)
-            return false;
-
-        if (this == obj)
-            return true;
-
-        if (obj instanceof Country other)
-            return Objects.equals(code, other.code);
-
-        return false;
+    public boolean equals(Object o) {
+        if (!(o instanceof Country country)) return false;
+        return Objects.equals(code, country.code);
     }
 
     @Override
     public int hashCode() {
-
-        int hashCode = 17;
-
-        hashCode += null == code ? 0 : code.hashCode() * 31;
-
-        return hashCode;
+        return Objects.hashCode(code);
     }
 
     @Override
     public int compareTo(Country o) {
         return code.compareToIgnoreCase(o.code);
     }
-
-    //region Should've made a dto
-
-    @JsonProperty("cities")
-    @Transient
-    private Object getCities4Json() {
-        return cities.values().stream().sorted();
-    }
-
-    //endregion
 
 }
