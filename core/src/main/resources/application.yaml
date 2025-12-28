@@ -10,6 +10,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+#        id.new_generator_mappings: true
+#        uuid.generator: org.hibernate.id.UUIDGenerator
   datasource:
     url: ${CARGOSYNC_DB_URL}
     username: ${CARGOSYNC_DB_USERNAME}
@@ -23,6 +25,14 @@ spring:
       max-lifetime: 1800000 # ms [30 min]
       connection-timeout: 20000 # ms [20 s]
       transaction-isolation: TRANSACTION_READ_COMMITTED # read commited is default
+  content:
+    store:
+      type: fs
+      location: ${CARGOSYNC_CONTENT_ROOT}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
 security:
   public-endpoints:
     - /login

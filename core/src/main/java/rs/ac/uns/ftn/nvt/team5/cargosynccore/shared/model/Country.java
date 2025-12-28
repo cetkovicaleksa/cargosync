@@ -1,6 +1,5 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -30,7 +29,6 @@ public class Country implements Comparable<Country> {
     @Column(name = "name")
     private String name;
 
-    @JsonIgnore
     @MapKey(name = "code")
     @OneToMany(mappedBy = "country", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Map<String, City> cities = new HashMap<>();

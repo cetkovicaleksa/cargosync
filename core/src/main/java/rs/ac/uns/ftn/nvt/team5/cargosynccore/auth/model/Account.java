@@ -4,17 +4,19 @@ import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.AbstractPersistable;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.User;
 
 import java.util.*;
 
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(
         name = "accounts",
@@ -22,7 +24,7 @@ import java.util.*;
                 @Index(name = "idx_accounts_role", columnList = "role"),
         }
 )
-public class Account extends AbstractPersistable<UUID> implements UserDetails {
+public class Account extends AbstractPersistable implements UserDetails {
 
     @NotBlank
     @Column(name = "username", nullable = false, unique = true)
@@ -56,12 +58,6 @@ public class Account extends AbstractPersistable<UUID> implements UserDetails {
         return "admin".equalsIgnoreCase(username)
                 ? List.of(role, new SimpleGrantedAuthority("MANAGE_MANAGERS"))
                 : List.of(role);
-    }
-
-    @ToString.Include(name = "id")
-    @SuppressWarnings("unused")
-    private Object _idForToString() {
-        return getId();
     }
 
 }
