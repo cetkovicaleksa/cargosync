@@ -14,7 +14,7 @@ import java.util.*;
 
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -58,12 +58,6 @@ public class Account extends AbstractPersistable implements UserDetails {
         return "admin".equalsIgnoreCase(username)
                 ? List.of(role, new SimpleGrantedAuthority("MANAGE_MANAGERS"))
                 : List.of(role);
-    }
-
-    @ToString.Include(name = "id")
-    @SuppressWarnings("unused")
-    private Object _idForToString() {
-        return getId();
     }
 
 }
