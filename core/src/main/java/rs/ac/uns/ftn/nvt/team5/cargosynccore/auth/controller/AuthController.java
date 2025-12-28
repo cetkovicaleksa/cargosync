@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.dto.AccountDto;

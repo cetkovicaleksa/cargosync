@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.dto;
 
+import lombok.Data;
 import lombok.Value;
 import org.springframework.security.core.GrantedAuthority;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.AccountRole;
@@ -11,7 +12,7 @@ import java.util.List;
 /**
  * DTO for {@link rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account}
  */
-@Value
+@Data
 public class AccountDto implements Serializable {
     String username;
     UserDto owner;

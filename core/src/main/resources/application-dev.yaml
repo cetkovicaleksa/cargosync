@@ -19,7 +19,9 @@ logging:
     root: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.security: DEBUG
 security:
   cors:
+    allowed-headers: ["*"]
     allowed-origins:
-      - http://localhost:4200/
+      - "*"

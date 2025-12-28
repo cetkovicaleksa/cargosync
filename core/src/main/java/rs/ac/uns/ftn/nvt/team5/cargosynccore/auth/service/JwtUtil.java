@@ -43,7 +43,8 @@ public class JwtUtil {
                 .issuer(properties.issuer())
                 .issuedAt(now)
                 .subject(userDetails.getUsername())
-                .claim("roles", authorities)
+//                .claim("roles", authorities)
+                .claim("authorities", authorities)
                 .expiration(notAfter)
                 .signWith(signingKey)
                 .compact();

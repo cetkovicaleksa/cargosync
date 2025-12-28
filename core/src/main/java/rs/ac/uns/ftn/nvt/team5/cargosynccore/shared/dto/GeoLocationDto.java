@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 /**
  * DTO for {@link rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.GeoLocation}
  */
-@Value
+@Data
 public class GeoLocationDto implements Serializable {
 
     @NotNull
