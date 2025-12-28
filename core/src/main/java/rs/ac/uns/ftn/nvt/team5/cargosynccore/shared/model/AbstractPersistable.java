@@ -8,10 +8,13 @@ import org.springframework.data.domain.Persistable;
 import java.util.Objects;
 import java.util.UUID;
 
+import static lombok.AccessLevel.PROTECTED;
+
 @Getter
-@Setter
+@Setter(PROTECTED)
+@ToString
 @MappedSuperclass
-public class AbstractPersistable implements Persistable<UUID> {
+public abstract class AbstractPersistable implements Persistable<UUID> {
 
     @Id
     @UuidGenerator(style = UuidGenerator.Style.TIME)
