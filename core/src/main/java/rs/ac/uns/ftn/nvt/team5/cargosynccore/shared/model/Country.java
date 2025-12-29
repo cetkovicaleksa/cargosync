@@ -13,7 +13,7 @@ import static lombok.AccessLevel.PROTECTED;
 
 @Getter
 @Setter
-@ToString(exclude = "cities")
+@ToString
 @NoArgsConstructor(access = PROTECTED)
 @Entity
 @Table(name = "countries")

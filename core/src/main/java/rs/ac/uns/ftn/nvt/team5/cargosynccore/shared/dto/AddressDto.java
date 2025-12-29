@@ -9,8 +9,9 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.City;
 import java.io.Serializable;
 
 /**
- * DTO for {@link rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Address}
+ * DTO for rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Address
  */
+@Deprecated
 @Data
 public class AddressDto {
 

@@ -9,32 +9,24 @@ import lombok.*;
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
 
-import static lombok.AccessLevel.NONE;
 import static lombok.AccessLevel.PROTECTED;
 
 @Getter
 @Setter
-@ToString(exclude = "countryCode")
+@ToString(exclude = {"country"})
 @NoArgsConstructor(access = PROTECTED)
 @Entity
 @Table(name = "cities")
-@IdClass(City.Key.class)
+@IdClass(City.CityPK.class)
 public class City implements Comparable<City> {
 
+    @Id
     @ManyToOne
-    @MapsId("countryCode")
-    @JoinColumn(name = "country_code", nullable = false)
+    @JoinColumn(name = "country_code", nullable = false, updatable = false)
     private Country country;
 
     @Id
-    @Getter(NONE)
-    @Setter(NONE)
-    protected String countryCode;
-
-    @Id
-    @NotNull
     @Pattern(regexp = "^[A-Z2-9]{3}$")
     @Column(name = "code", nullable = false, updatable = false, length = 3)
     private String code;
@@ -63,17 +55,13 @@ public class City implements Comparable<City> {
     }
 
 
+    @ToString.Include
     @Transient
     public String getLocode() {
         return "%s %s".formatted(country.getCode(), name);
     }
 
     @PrePersist
-    private void prePersist() {
-        countryCode = Optional.ofNullable(country).map(Country::getCode).orElse(null);
-        normalizeCode();
-    }
-
     @PreUpdate
     private void normalizeCode() {
         if (code != null) {
@@ -87,7 +75,7 @@ public class City implements Comparable<City> {
         return code.compareToIgnoreCase(o.code);
     }
 
-    protected record Key(String countryCode, String code) implements Serializable {}
+    protected record CityPK(Country country, String code) implements Serializable {}
 
     @Override
     public boolean equals(Object o) {
