@@ -28,7 +28,7 @@ public class Model {
 
     @MapsId("wmi")
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "world_manufacturer_identifier")
+    @JoinColumn(name = "world_manufacturer_identifier", referencedColumnName = "world_manufacturer_identifier")
     private Make make;
 
     @NotBlank
@@ -58,8 +58,6 @@ public class Model {
 
     @Embeddable
     public record ModelPK(
-
-            @Column(nullable = false, length = 3)
             String wmi,
 
             @NotNull
