@@ -14,7 +14,7 @@ import static lombok.AccessLevel.PROTECTED;
 
 @Getter
 @Setter
-@ToString(exclude = {"country"})
+@ToString
 @NoArgsConstructor(access = PROTECTED)
 @Entity
 @Table(name = "cities")
@@ -23,6 +23,7 @@ public class City implements Comparable<City> {
 
     @Id
     @ManyToOne
+    @ToString.Exclude
     @JoinColumn(name = "country_code", nullable = false, updatable = false)
     private Country country;
 
