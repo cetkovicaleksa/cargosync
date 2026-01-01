@@ -25,3 +25,4 @@ security:
     allowed-headers: ["*"]
     allowed-origins:
       - "*"
+  public-endpoints: ["/**"]
