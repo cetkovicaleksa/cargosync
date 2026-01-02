@@ -19,7 +19,7 @@ class VanService {
     private final VanRepository vans;
 
     static VanPK parseVanVin(String vin) {
-        Pattern pattern = Pattern.compile("([^-]+)-([^-]+)-([^-]+)"); // maybe add stricter pattern
+        var pattern = Pattern.compile("([^-]{3})-([^-]{6})-([^-]?.+)");
         var matcher = pattern.matcher(vin);
 
         if (!matcher.matches()) {

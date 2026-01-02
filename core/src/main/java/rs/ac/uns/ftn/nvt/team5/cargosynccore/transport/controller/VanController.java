@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.dto.*;
@@ -33,11 +34,16 @@ class VanController {
     }
 
     @GetMapping("/{id}")
-    VanDto getAVan(
+    ResponseEntity<VanDto> getAVan(
             @PathVariable String id
     ) {
         var van = queryVansUc.getVan(id);
-        return modelMapper.map(van, VanDto.class);
+        String etag = Integer.toHexString(van.getVersion());
+
+        return ResponseEntity.ok()
+                .eTag(etag)
+                // NOTE: Not sure what cache properties
+                .body(modelMapper.map(van, VanDto.class));
     }
 
     @PostMapping

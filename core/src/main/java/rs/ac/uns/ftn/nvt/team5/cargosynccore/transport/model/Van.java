@@ -5,26 +5,39 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 import org.hibernate.annotations.Nationalized;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serializable;
-
 import static jakarta.persistence.FetchType.*;
+import static org.hibernate.annotations.UuidGenerator.Style.TIME;
 
 @Getter
 @Setter
 @Entity
 @NoArgsConstructor
+@ToString(exclude = "model")
 @Table(
         name = "vans",
         indexes = {
                 @Index(name = "idx_vans_wmi", columnList = "wmi")
         }
 )
+@IdClass(Van.VanPK.class)
 public class Van {
 
-    private @EmbeddedId VanPK id;
+    @Id
+    @Column(name = "wmi", insertable = false, updatable = false, length = 3)
+    private String wmi;
 
-    @MapsId("model")
+    @Id
+    @Column(name = "vd", insertable = false, updatable = false, length = 6)
+    private String vd;
+
+    @Id
+    @UuidGenerator(style = TIME)
+    @Column(name = "vi", nullable = false)
+    private String vi;
+
     @ManyToOne(fetch = LAZY)
     @JoinColumns({
             @JoinColumn(name = "wmi", referencedColumnName = "world_manufacturer_identifier"),
@@ -41,22 +54,15 @@ public class Van {
     @Column(name = "max_payload_kg")
     private int maxPayload;
 
+    @Version
+    @Column(name = "revision")
+    private int version;
+
     @Transient
     public String getVin() {
-        return "%s-%s-%s".formatted(id.model.wmi(), id.model.vd(), id.vi);
+        return String.join("-", wmi, vd, vi);
     }
 
-    @Embeddable
-    public record VanPK(
-            @Embedded
-            Model.ModelPK model,
-
-            @Column(name = "vi", nullable = false)
-            String vi
-    ) implements Serializable {
-        public VanPK(String wmi, String vd, String vi) {
-            this(new Model.ModelPK(wmi, vd), vi);
-        }
-    }
+    public record VanPK(String wmi, String vd, String vi) implements Serializable {}
 
 }
