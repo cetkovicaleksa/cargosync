@@ -18,7 +18,7 @@ class VanService {
 
     private final VanRepository vans;
 
-    static VanPK parseVanVin(String vin) {
+    VanPK parseVanVin(String vin) {
         var pattern = Pattern.compile("([^-]{3})-([^-]{6})-([^-]?.+)");
         var matcher = pattern.matcher(vin);
 
@@ -35,8 +35,13 @@ class VanService {
 
     @Transactional(readOnly = true)
     public Van getVan(String vin) {
-        var id = VanService.parseVanVin(vin);
+        var id = this.parseVanVin(vin);
         return getVan(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Van getVan(String wmi, Model model) {
+        return getVan(new VanPK(wmi, model));
     }
 
     @Transactional(readOnly = true)

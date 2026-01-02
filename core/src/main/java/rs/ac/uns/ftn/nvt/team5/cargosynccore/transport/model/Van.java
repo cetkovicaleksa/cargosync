@@ -9,6 +9,7 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serializable;
 
+import static jakarta.persistence.CascadeType.*;
 import static jakarta.persistence.FetchType.*;
 
 @Getter
@@ -32,7 +33,7 @@ public class Van {
     private String vi;
 
     @Id
-    @ManyToOne(fetch = LAZY)
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, REFRESH, DETACH})
     @JoinColumns({
             @JoinColumn(name = "wmi", referencedColumnName = "world_manufacturer_identifier"),
             @JoinColumn(name = "vd", referencedColumnName = "vehicle_descriptor")
@@ -56,6 +57,10 @@ public class Van {
     public Van(String vi, Model model) {
         this.vi = vi;
         this.model = model;
+    }
+
+    public Van(VanPK id) {
+        this(id.vi, id.model);
     }
 
 

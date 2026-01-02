@@ -20,6 +20,7 @@ import static org.springframework.http.MediaType.*;
 class VanController {
 
     private final QueryVansUC queryVansUc;
+    private final DeleteVanUC deleteVanUc;
     private final ModelMapper modelMapper;
 
     @GetMapping
@@ -55,11 +56,11 @@ class VanController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER')")
-    @ResponseStatus(NOT_IMPLEMENTED)
+    @ResponseStatus(NO_CONTENT)
     void deleteAVan(
             @PathVariable String id
     ) {
-
+        deleteVanUc.deleteVan(id);
     }
 
 }
