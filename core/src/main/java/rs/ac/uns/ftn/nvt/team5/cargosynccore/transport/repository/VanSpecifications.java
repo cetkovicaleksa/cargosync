@@ -17,14 +17,14 @@ public final class VanSpecifications {
         return (root, query, cb) ->
                 makes == null || makes.isEmpty()
                         ? null
-                        : root.get("wmi").in(makes.stream().map(String::toUpperCase).toList());
+                        : root.get("model").get("id").get("wmi").in(makes.stream().map(String::toUpperCase).toList());
     }
 
     public static Specification<Van> modelIn(Collection<String> models) {
         return (root, query, cb) ->
                 models == null || models.isEmpty()
                         ? null
-                        : root.get("vd").in(models.stream().map(String::toUpperCase).toList());
+                        : root.get("model").get("id").get("vd").in(models.stream().map(String::toUpperCase).toList());
     }
 
     public static Specification<Van> maxPayloadGte(Integer weightKg) {

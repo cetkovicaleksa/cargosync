@@ -37,6 +37,10 @@ public class Model {
     private String name;
 
 
+    public Model(String wmi, String vd) {
+        this(wmi, vd, null);
+    }
+
     public Model(String wmi, String vd, String name) {
         this(new Make(wmi, null, null), vd, name);
     }

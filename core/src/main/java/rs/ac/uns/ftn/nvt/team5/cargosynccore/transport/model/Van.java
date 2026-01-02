@@ -8,13 +8,14 @@ import org.hibernate.annotations.Nationalized;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serializable;
+
 import static jakarta.persistence.FetchType.*;
-import static org.hibernate.annotations.UuidGenerator.Style.TIME;
 
 @Getter
 @Setter
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @ToString(exclude = "model")
 @Table(
         name = "vans",
@@ -26,18 +27,11 @@ import static org.hibernate.annotations.UuidGenerator.Style.TIME;
 public class Van {
 
     @Id
-    @Column(name = "wmi", insertable = false, updatable = false, length = 3)
-    private String wmi;
-
-    @Id
-    @Column(name = "vd", insertable = false, updatable = false, length = 6)
-    private String vd;
-
-    @Id
-    @UuidGenerator(style = TIME)
+    @UuidGenerator
     @Column(name = "vi", nullable = false)
     private String vi;
 
+    @Id
     @ManyToOne(fetch = LAZY)
     @JoinColumns({
             @JoinColumn(name = "wmi", referencedColumnName = "world_manufacturer_identifier"),
@@ -58,11 +52,22 @@ public class Van {
     @Column(name = "revision")
     private int version;
 
-    @Transient
-    public String getVin() {
-        return String.join("-", wmi, vd, vi);
+
+    public Van(String vi, Model model) {
+        this.vi = vi;
+        this.model = model;
     }
 
-    public record VanPK(String wmi, String vd, String vi) implements Serializable {}
+
+    @Transient
+    public String getVin() {
+        return String.join("-", model.getId().wmi(), model.getId().vd(), vi);
+    }
+
+    public record VanPK(String vi, Model model) implements Serializable {
+        public VanPK(String wmi, String vd, String vi) {
+            this(vi, new Model(wmi, vd, null));
+        }
+    }
 
 }

@@ -36,6 +36,12 @@ public class Make {
     @OneToMany(mappedBy = "make", orphanRemoval = true, cascade = {ALL})
     private List<Model> models;
 
+
+    public Make(String wmi) {
+        this.wmi = wmi;
+    }
+
+
     @PrePersist
     protected void prePersist() {
         (models == null
