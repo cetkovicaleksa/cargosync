@@ -13,21 +13,21 @@ import static lombok.AccessLevel.PRIVATE;
 @NoArgsConstructor(access = PRIVATE)
 public final class VanSpecifications {
 
-    public static Specification<Van> makeIn(Collection<String> makes) {
+    public static Specification<Van> makeIn(@Nullable Collection<String> makes) {
         return (root, query, cb) ->
                 makes == null || makes.isEmpty()
                         ? null
                         : root.get("model").get("id").get("wmi").in(makes.stream().map(String::toUpperCase).toList());
     }
 
-    public static Specification<Van> modelIn(Collection<String> models) {
+    public static Specification<Van> modelIn(@Nullable Collection<String> models) {
         return (root, query, cb) ->
                 models == null || models.isEmpty()
                         ? null
                         : root.get("model").get("id").get("vd").in(models.stream().map(String::toUpperCase).toList());
     }
 
-    public static Specification<Van> maxPayloadGte(Integer weightKg) {
+    public static Specification<Van> maxPayloadGte(@Nullable Integer weightKg) {
         return (root, query, cb) ->
                 weightKg == null
                         ? null
@@ -36,7 +36,7 @@ public final class VanSpecifications {
                         );
     }
 
-    public static Specification<Van> maxPayloadLte(Integer weightKg) {
+    public static Specification<Van> maxPayloadLte(@Nullable Integer weightKg) {
         return (root, query, cb) ->
                 weightKg == null
                         ? null
