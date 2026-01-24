@@ -1,0 +1,28 @@
+name: cargosync-dev
+
+services:
+
+  # NOTE: If necessary could also add dev core and frontend images (hot reload)
+  # But seems simpler to expose all ports and run these separately.
+  # Maybe add persistent logging
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    env_file: ./.env.dev
+
+  postgres:
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    env_file: ./.env.dev
+
+  influxdb2:
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    env_file: ./.env.dev
+  

@@ -1,0 +1,2 @@
+Add compose for production with swarm. First deploy images to gitlab registry of the repo. 
+Should recheck core and frontend dockerfiles. 

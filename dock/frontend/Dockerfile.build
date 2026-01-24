@@ -1,0 +1,11 @@
+# https://stackoverflow.com/a/68747623
+FROM node:20-alpine
+ARG OUT_DIR=/dist
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+RUN npm install -g @angular/cli
+COPY . .
+RUN npm run build && cp -r dist ${OUT_DIR}
+RUN echo "Successfully built to: ${OUT_DIR}"
+# NOTE: There is probably a way to make this execute build on command instead
