@@ -179,3 +179,5 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/intellij,visualstudiocode,windows,linux
 
 *.env
+!*.env.dev
+!*.env.test
