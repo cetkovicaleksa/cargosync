@@ -1,5 +1,9 @@
 name: cargosync-dev
 
+x-defaults: &service-defaults
+  restart: unless-stopped
+  env_file: ./.env.dev
+
 services:
 
   # NOTE: If necessary could also add dev core and frontend images (hot reload)
@@ -8,21 +12,18 @@ services:
 
   rabbitmq:
     image: rabbitmq:4-management-alpine
-    restart: unless-stopped
     ports:
       - "5672:5672"
       - "15672:15672"
-    env_file: ./.env.dev
+    <<: *service-defaults
 
   postgres:
-    restart: unless-stopped
     ports:
       - "5432:5432"
-    env_file: ./.env.dev
+    <<: *service-defaults
 
   influxdb2:
-    restart: unless-stopped
     ports:
       - "8086:8086"
-    env_file: ./.env.dev
+    <<: *service-defaults
   

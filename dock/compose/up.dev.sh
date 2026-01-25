@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
-set -e
-docker compose up -d
+# set -e
+docker compose up -d --build
