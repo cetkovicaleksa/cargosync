@@ -1,0 +1,28 @@
+@use '@angular/material' as mat;
+@use "theme" as theme;
+
+$primary: mat.get-theme-color(theme.$my-theme, primary);
+$on-primary: mat.get-theme-color(theme.$my-theme, on-primary);
+$primary-container: mat.get-theme-color(theme.$my-theme, primary-container);
+$on-primary-container: mat.get-theme-color(theme.$my-theme, on-primary-container);
+
+$secondary: mat.get-theme-color(theme.$my-theme, secondary);
+$on-secondary: mat.get-theme-color(theme.$my-theme, on-secondary);
+$secondary-container: mat.get-theme-color(theme.$my-theme, secondary-container);
+$on-secondary-container: mat.get-theme-color(theme.$my-theme, on-secondary-container);
+
+$tertiary: mat.get-theme-color(theme.$my-theme, tertiary);
+$on-tertiary: mat.get-theme-color(theme.$my-theme, on-tertiary);
+$tertiary-container: mat.get-theme-color(theme.$my-theme, tertiary-container);
+$on-tertiary-container: mat.get-theme-color(theme.$my-theme, on-tertiary-container);
+
+$error: mat.get-theme-color(theme.$my-theme, error);
+$on-error: mat.get-theme-color(theme.$my-theme, on-error);
+$error-container: mat.get-theme-color(theme.$my-theme, error-container);
+$on-error-container: mat.get-theme-color(theme.$my-theme, on-error-container);
+
+$background: mat.get-theme-color(theme.$my-theme, background);
+$on-background: mat.get-theme-color(theme.$my-theme, on-background);
+
+$surface: mat.get-theme-color(theme.$my-theme, surface);
+$on-surface: mat.get-theme-color(theme.$my-theme, on-surface);

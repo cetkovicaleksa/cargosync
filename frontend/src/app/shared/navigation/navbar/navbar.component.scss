@@ -1,0 +1,69 @@
+@use '../../../../styles/colors' as colors;
+
+.navbar, .navbar-header {
+  color: colors.$primary;
+  background: colors.$secondary-container;
+}
+
+.navbar-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 8px 16px;
+
+  > .mat-mdc-button {
+    &:last-child {
+      margin-left: auto;
+    }
+  }
+
+  .navbar-header-item-selected {
+    background: color-mix(in srgb, colors.$primary 10%, transparent);
+  }
+}
+
+.mat-mdc-icon-button {
+  color: inherit;
+}
+
+.app-logo,
+app-logo {
+  margin-right: 8px;
+  width: 24px;
+  height: 24px;
+}
+
+.flex-spacer {
+  flex-grow: 1;
+}
+
+.navbar-link {
+  text-decoration: inherit;
+  flex: 1;
+}
+
+.navbar {
+  display: none;
+}
+
+.navbar-show-small {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .navbar-hide-small {
+    display: none;
+  }
+
+  .navbar-show-small {
+    display: block;
+  }
+
+  .navbar {
+    display: flex;
+  }
+
+  .app-logo {
+    margin: 0;
+  }
+}
