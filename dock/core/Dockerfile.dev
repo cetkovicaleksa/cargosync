@@ -1,0 +1,9 @@
+# NOTE: wanted to make a dev setup, but kinda seems like too much of a hustle
+FROM maven:3.9-eclipse-temurin-21-alpine
+WORKDIR /workspace
+COPY pom.xml .
+ENV SPRING_PROFILES_ACTIVE=dev
+RUN mvn -B dependency:go-offline
+EXPOSE 8080
+ENTRYPOINT ["mvn", "spring-boot:run", "-Dspring-boot.run.fork=false", "-DskipTests"]
+CMD []

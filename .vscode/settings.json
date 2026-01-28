@@ -1,0 +1,8 @@
+{
+    "terminal.integrated.env.linux": {
+        "CARGOSYNC_ROOT": "${workspaceFolder}"
+    },
+    "terminal.integrated.env.windows": {
+        "CARGOSYNC_ROOT": "${workspaceFolder}"
+    }
+}

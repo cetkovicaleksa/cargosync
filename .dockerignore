@@ -1,0 +1,21 @@
+# NOTE: Maybe there is a way to move this to the .infra dir
+
+### Backend ###
+core/HELP.md
+core/src/test/
+
+core/.*
+core/mvnw
+core/mvnw.cmd
+
+core/target/
+core/*.log
+core/*.iml
+
+core/.DS_Store
+core/Thumbs.db
+
+### Frontend ###
+frontend/node_modules
+frontend/dist
+frontent/target
