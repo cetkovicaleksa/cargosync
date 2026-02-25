@@ -52,7 +52,7 @@ class SecurityConfig {
     ) {
         var config = new CorsConfiguration();
 
-        config.setAllowedOrigins(corsProperties.allowedOrigins());
+        config.setAllowedOriginPatterns(corsProperties.allowedOrigins());
         config.setAllowedMethods(corsProperties.allowedMethods());
         config.setAllowedHeaders(corsProperties.allowedHeaders());
         config.setAllowCredentials(true);
@@ -73,6 +73,7 @@ class SecurityConfig {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(sp.publicEndpoints()).permitAll()
                         .anyRequest().authenticated()

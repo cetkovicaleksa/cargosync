@@ -12,9 +12,8 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const snackBar = inject(MatSnackBar);
   const token = authService.getToken();
 
-  const exclude: string[] = [];
+  const exclude: string[] = ["signin", "change-password"];
   const isExcluded = exclude.some(url => url.split('?').every(part => req.url.includes(part)));
-
   if (token) {
     req = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` }
