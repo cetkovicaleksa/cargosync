@@ -50,7 +50,7 @@ public class ManagerService {
 
         String rawPassword = generateRandomPassword();
 
-        logPasswordToFile(email, rawPassword);
+        logPasswordToFile(email, username, rawPassword);
 
         Account account = new Account();
         account.setUsername(username);
@@ -104,10 +104,10 @@ public class ManagerService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    private synchronized void logPasswordToFile(String username, String password) {
+    private synchronized void logPasswordToFile(String email, String username, String password) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(PASSWORD_FILE_PATH, true))) {
-            writer.write(String.format("Time: %s | User: %s | Pass: %s%n",
-                    java.time.LocalDateTime.now(), username, password));
+            writer.write(String.format("Time: %s | Email: %s | Username: %s | Pass: %s%n",
+                    java.time.LocalDateTime.now(), email, username, password));
         } catch (IOException e) {
             log.error("Failed to write password to file", e);
         }
