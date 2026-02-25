@@ -17,5 +17,6 @@ public class AccountDto implements Serializable {
     String username;
     UserDto owner;
     AccountRole role;
+    boolean requiresPasswordChange;
     List<GrantedAuthority> authorities;
 }

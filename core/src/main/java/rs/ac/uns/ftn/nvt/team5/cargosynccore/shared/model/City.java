@@ -14,13 +14,13 @@ import static lombok.AccessLevel.PROTECTED;
 
 @Getter
 @Setter
-@ToString(exclude = {"country"})
 @NoArgsConstructor(access = PROTECTED)
 @Entity
 @Table(name = "cities")
 @IdClass(City.CityPK.class)
 public class City implements Comparable<City> {
 
+    @ToString.Exclude
     @Id
     @ManyToOne
     @JoinColumn(name = "country_code", nullable = false, updatable = false)
@@ -87,5 +87,4 @@ public class City implements Comparable<City> {
     public int hashCode() {
         return Objects.hash(country, code);
     }
-
 }

@@ -51,13 +51,21 @@ public class Account extends AbstractPersistable implements UserDetails {
     @Column(name = "account_non_locked", nullable = false)
     private boolean accountNonLocked = true; // ex. !banned
 
+    @Column(name = "requires_password_change", nullable = false)
+    private boolean requiresPasswordChange = false;
+
     @Override
     @Transient
     public @Nonnull Collection<? extends GrantedAuthority> getAuthorities() {
         // TODO: extract super manager username(s) to properties (and/or SM specific authorities)
-        return "admin".equalsIgnoreCase(username)
+        return isSuperManager()
                 ? List.of(role, new SimpleGrantedAuthority("MANAGE_MANAGERS"))
                 : List.of(role);
+    }
+
+    @Transient
+    public boolean isSuperManager() {
+        return "admin".equalsIgnoreCase(username);
     }
 
 }
