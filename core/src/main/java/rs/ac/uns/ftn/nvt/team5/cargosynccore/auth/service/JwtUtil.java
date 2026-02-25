@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.stereotype.Component;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.config.properties.JwtProperties;
 
 import javax.crypto.SecretKey;
@@ -38,13 +39,16 @@ public class JwtUtil {
         var now = new Date();
         var notAfter = new Date(now.getTime() + expiration.toMillis());
         var authorities = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toArray();
+        var requiresPasswordChange = ((Account)userDetails).isRequiresPasswordChange();
 
         return Jwts.builder()
                 .issuer(properties.issuer())
                 .issuedAt(now)
                 .subject(userDetails.getUsername())
-//                .claim("roles", authorities)
                 .claim("authorities", authorities)
+                .claim("requiresPasswordChange", requiresPasswordChange)
+                .claim("email", ((Account)userDetails).getOwner().getEmail())
+                .claim("avatar", ((Account)userDetails).getOwner().getAvatar())
                 .expiration(notAfter)
                 .signWith(signingKey)
                 .compact();
