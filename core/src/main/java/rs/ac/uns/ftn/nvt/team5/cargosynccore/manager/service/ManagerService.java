@@ -59,8 +59,7 @@ public class ManagerService {
         account.setOwner(manager);
         account.setEnabled(true);
         account.setAccountNonLocked(true);
-        account.setCredentialsNonExpired(true);
-        account.setRequiresPasswordChange(true);
+        account.setCredentialsNonExpired(false);
 
         return accountRepository.save(account);
     }

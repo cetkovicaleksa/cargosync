@@ -31,7 +31,7 @@
           <div class="meta">
             <div class="title">
               <span class="name">{{ m.username }}</span>
-              <span class="chip" *ngIf="m.requiresPasswordChange">Password change required</span>
+              <span class="chip" *ngIf="m.credentialsNonExpired">Password change required</span>
             </div>
             <div class="sub">
               <span class="muted">{{ m.owner?.email || '—' }}</span>

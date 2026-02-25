@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../service/auth.service';
 import { finalize } from 'rxjs';
+import {routes} from '../../../app.routes';
 
 @Component({
   selector: 'app-signin',
@@ -47,17 +48,19 @@ export class SignInComponent {
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: () => {
-          if (this.auth.isPasswordChangeRequired()) {
-            this.router.navigate(['/force-password-change']);
-          } else {
-            this.router.navigate(['/home']);
-          }
+          this.router.navigate(['/home']);
         },
         error: (err) => {
-          const msg =
-            err?.status === 403
+          let msg: string;
+          if (err?.error?.error === "CredentialsExpired") {
+            msg = "You need to change your password."
+            let p = this.router.navigate(['/password-change'], { queryParams: { username } });
+            p.then(() => {console.log("redirected")}).catch(() => {console.log("failed to redirect")});
+          } else {
+            msg = err?.status === 403
               ? 'Access denied. Your account may be blocked.'
               : 'Sign in failed. Please check your credentials.';
+          }
           this.snack.open(msg, 'Close', { duration: 4000 });
         },
       });

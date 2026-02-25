@@ -1,6 +1,6 @@
-import { Component, inject } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import { finalize } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,19 +23,33 @@ import { AuthService } from '../../service/auth.service';
   templateUrl: './force-password-change.component.html',
   styleUrl: './force-password-change.component.scss',
 })
-export class ForcePasswordChangeComponent {
+export class ForcePasswordChangeComponent implements OnInit{
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly snack = inject(MatSnackBar);
+  private readonly activatedRoute = inject(ActivatedRoute);
 
   loading = false;
+  username = '';
 
   form = this.fb.nonNullable.group({
     oldPassword: ['', [Validators.required]],
     newPassword: ['', [Validators.required, Validators.minLength(8)]],
     confirmNewPassword: ['', [Validators.required]],
   });
+
+  ngOnInit(): void {
+    this.activatedRoute.queryParams.subscribe(params => {
+      const username = params['username'];
+      if (!username) {
+        this.snack.open('Invalid request.', 'Close', { duration: 3500 });
+        this.router.navigate(['/home']);
+        return;
+      }
+      this.username = username;
+    })
+  }
 
   submit() {
     if (this.form.invalid || this.loading) return;
@@ -47,12 +61,11 @@ export class ForcePasswordChangeComponent {
     }
 
     this.loading = true;
-    this.auth.changePassword(oldPassword, newPassword)
+    this.auth.changePassword(this.username, oldPassword, newPassword)
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: () => {
           this.snack.open('Password updated successfully.', 'Close', { duration: 2500 });
-          this.auth.logout();
           this.router.navigate(['/home']);
         },
         error: () => {

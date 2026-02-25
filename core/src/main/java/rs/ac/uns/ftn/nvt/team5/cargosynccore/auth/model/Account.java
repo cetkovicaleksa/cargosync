@@ -51,9 +51,6 @@ public class Account extends AbstractPersistable implements UserDetails {
     @Column(name = "account_non_locked", nullable = false)
     private boolean accountNonLocked = true; // ex. !banned
 
-    @Column(name = "requires_password_change", nullable = false)
-    private boolean requiresPasswordChange = false;
-
     @Override
     @Transient
     public @Nonnull Collection<? extends GrantedAuthority> getAuthorities() {

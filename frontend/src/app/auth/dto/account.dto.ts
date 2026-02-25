@@ -5,7 +5,7 @@ export interface AccountDto {
   username: string;
   owner: User;
   role?: AccountAuthority;
-  requiresPasswordChange: boolean;
+  credentialsNonExpired: boolean;
   accountNonLocked: boolean;
   authorities: (string | { authority: string } )[];
 }

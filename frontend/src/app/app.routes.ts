@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './shared/home/home/home.component';
 import {AuthGuard} from './auth.guard';
 import {RoleGuard} from './role.guard';
-import {PasswordChangeGuard} from './auth/guard/password-change.guard';
 
 import { SignInComponent } from './auth/pages/signin/signin.component';
 import { ForcePasswordChangeComponent } from './auth/pages/force-password-change/force-password-change.component';
@@ -21,14 +20,13 @@ export const routes: Routes = [
     { path: 'signin', component: SignInComponent },
 
     {
-      path: 'force-password-change',
+      path: 'password-change',
       component: ForcePasswordChangeComponent,
-      canActivate: [AuthGuard],
     },
 
     {
       path: 'managers',
-      canActivate: [AuthGuard, PasswordChangeGuard, RoleGuard],
+      canActivate: [AuthGuard, RoleGuard],
       data: { authorities: ['MANAGE_MANAGERS'] },
       children: [
         { path: '', component: ManagerListComponent },

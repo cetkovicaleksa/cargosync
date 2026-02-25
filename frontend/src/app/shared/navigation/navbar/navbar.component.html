@@ -14,15 +14,6 @@
   <div class="flex-spacer"></div>
 
   @if (isLoggedIn) {
-    @if (mustChangePassword) {
-      <button mat-stroked-button color="primary" class="navbar-hide-small" (click)="goToPasswordChange()">
-        Change password required
-      </button>
-      <button mat-icon-button class="navbar-show-small" (click)="goToPasswordChange()" aria-label="Change password">
-        <mat-icon>lock_reset</mat-icon>
-      </button>
-    }
-
     <span class="user navbar-hide-small">{{ displayName || 'Account' }}</span>
 
     <button mat-button class="navbar-hide-small" (click)="signOut()">

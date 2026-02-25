@@ -56,13 +56,13 @@ public class DevDatabaseSeeder implements CommandLineRunner {
         if (!accounts.existsByUsername("manager")) {
             var manager = new Manager("manager@cargosync.rs", "https://picsum.photos/200");
             accounts.save(new Account(
-                    "manager", passwordEncoder.encode("manager"), AccountRole.MANAGER, manager, true, true, true, false
+                    "manager", passwordEncoder.encode("manager"), AccountRole.MANAGER, manager, true, true, true
             ));
         }
         if (!accounts.existsByUsername("customer")) {
             var customer = new Customer("customer@cargosync.rs", "https://picsum.photos/200");
             accounts.save(new Account(
-                    "customer", passwordEncoder.encode("customer"), AccountRole.CUSTOMER, customer, true, true, true, false
+                    "customer", passwordEncoder.encode("customer"), AccountRole.CUSTOMER, customer, true, true, true
             ));
         }
 

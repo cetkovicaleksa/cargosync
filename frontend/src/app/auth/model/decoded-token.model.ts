@@ -3,7 +3,7 @@ export interface DecodedToken {
   exp: number;
   iat: number;
   iss: string;
-  requiresPasswordChange: boolean;
+  credentialsNonExpired: boolean;
   authorities: string[];
   email: string;
   avatar: string;

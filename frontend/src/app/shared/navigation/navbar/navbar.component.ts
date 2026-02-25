@@ -24,7 +24,6 @@ export class NavBar {
   private readonly router = inject(Router);
 
   private readonly loggedIn = signal<boolean>(this.auth.isLoggedIn());
-  private readonly requiresPwdChange = signal<boolean>(this.auth.isPasswordChangeRequired());
   private readonly canManageManagers = signal<boolean>(this.auth.hasAuthority('MANAGE_MANAGERS'));
   private readonly username = signal<string | null>(this.auth.getMe()?.username ?? null);
 
@@ -32,7 +31,6 @@ export class NavBar {
     this.auth.isLoggedIn$.subscribe((v) => this.loggedIn.set(v));
     this.auth.me$.subscribe((me) => {
       this.username.set(me?.username ?? null);
-      this.requiresPwdChange.set(!!me?.requiresPasswordChange);
       this.canManageManagers.set(this.auth.hasAuthority('MANAGE_MANAGERS'));
     });
   }
@@ -46,7 +44,7 @@ export class NavBar {
     {
       key: '/managers',
       label: 'Managers',
-      visible: () => this.loggedIn() && !this.requiresPwdChange() && this.canManageManagers(),
+      visible: () => this.loggedIn() && this.canManageManagers(),
     },
   ]);
 
@@ -58,16 +56,12 @@ export class NavBar {
     return this.loggedIn();
   }
 
-  get mustChangePassword() {
-    return this.requiresPwdChange();
-  }
-
   get displayName() {
     return this.username();
   }
 
   goToPasswordChange() {
-    this.router.navigate(['/force-password-change']);
+    this.router.navigate(['/password-change']);
   }
 
   signIn() {

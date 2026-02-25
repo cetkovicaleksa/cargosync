@@ -37,7 +37,8 @@ class AuthController {
     }
 
     @PostMapping("/change-password")
-    void changePassword(@AuthenticationPrincipal Account account, @RequestBody @Valid PasswordChangeRequest request) {
-        authService.changePassword(account.getUsername(), request.oldPassword(), request.newPassword());
+    TokenResponseDto changePassword(@RequestBody @Valid PasswordChangeRequest request) {
+        var accessToken = authService.changePassword(request.username(), request.oldPassword(), request.newPassword());
+        return new TokenResponseDto(accessToken);
     }
 }

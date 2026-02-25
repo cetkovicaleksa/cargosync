@@ -50,7 +50,6 @@ export class AuthService {
   }
 
   private handleLoginError(err: HttpErrorResponse) {
-    console.log('Login failed: ', err);
     if (err.status === 403) {
       // blocked manager maps to 403
     }
@@ -98,10 +97,6 @@ export class AuthService {
     return this.meSubject.value;
   }
 
-  isPasswordChangeRequired(): boolean {
-    return !!this.meSubject.value?.requiresPasswordChange;
-  }
-
   hasAuthority(authority: string): boolean {
     const list = this.meSubject.value?.authorities ?? [];
     return list.some(a => {
@@ -133,7 +128,7 @@ export class AuthService {
     }
     const newMe: AccountDto = {
       authorities: decodedToken.authorities,
-      requiresPasswordChange: decodedToken.requiresPasswordChange,
+      credentialsNonExpired: decodedToken.credentialsNonExpired,
       username: decodedToken.sub,
       role: undefined,
       accountNonLocked: true,
@@ -152,9 +147,14 @@ export class AuthService {
     );
   }
 
-  changePassword(oldPassword: string, newPassword: string): Observable<void> {
-    return this.http.request<void>('POST', `${this.apiUrl}/change-password`, {
-      body: { oldPassword, newPassword },
-    });
+  changePassword(username: string, oldPassword: string, newPassword: string): Observable<TokenResponseDto> {;
+    return this.http.request<TokenResponseDto>('POST', `${this.apiUrl}/change-password`, {
+      body: { username, oldPassword, newPassword },
+    }).pipe(
+      tap({
+        next: response => this.handleLoginResponse(response),
+        error: err => this.handleLoginError(err)
+      })
+    );
   }
 }

@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.repository.AccountRepository;
+
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -29,10 +32,10 @@ public class AuthService {
             );
         } catch (BadCredentialsException e) {
             // In case username auth failed, try with email
-            Account account = accountRepository.findByUsername(username).orElseThrow(() -> e);
-            String email = account.getOwner().getEmail();
+            Account account = accountRepository.findByEmail(username).orElseThrow(() -> e);
+            username = account.getUsername();
             auth = authManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, password)
+                    new UsernamePasswordAuthenticationToken(username, password)
             );
         }
 
@@ -40,17 +43,23 @@ public class AuthService {
         return jwtUtil.generateAccessToken(userDetails);
     }
 
-    public void changePassword(String username, String oldPassword, String newPassword) {
-        var account = accountRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    public String changePassword(String username, String oldPassword, String newPassword) {
+        Authentication auth;
+        Optional<Account> account = accountRepository.findByUsername(username);
+        if (account.isEmpty())
+            account = accountRepository.findByEmail(username);
+        if (account.isEmpty())
+            throw new UsernameNotFoundException("User not found");
 
-        if (!passwordEncoder.matches(oldPassword, account.getPassword())) {
+        Account acc = account.get();
+        if (!passwordEncoder.matches(oldPassword, acc.getPassword())) {
             throw new BadCredentialsException("Old password does not match");
         }
+        acc.setPassword(passwordEncoder.encode(newPassword)); // newPassword is not null
+        acc.setCredentialsNonExpired(true);
 
-        account.setPassword(passwordEncoder.encode(newPassword));
-        account.setRequiresPasswordChange(false);
-        accountRepository.save(account);
+        accountRepository.save(acc);
+        return jwtUtil.generateAccessToken(acc);
     }
 
 }

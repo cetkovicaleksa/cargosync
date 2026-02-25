@@ -39,14 +39,13 @@ public class JwtUtil {
         var now = new Date();
         var notAfter = new Date(now.getTime() + expiration.toMillis());
         var authorities = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toArray();
-        var requiresPasswordChange = ((Account)userDetails).isRequiresPasswordChange();
 
         return Jwts.builder()
                 .issuer(properties.issuer())
                 .issuedAt(now)
                 .subject(userDetails.getUsername())
                 .claim("authorities", authorities)
-                .claim("requiresPasswordChange", requiresPasswordChange)
+                .claim("credentialsNonExpired", userDetails.isCredentialsNonExpired())
                 .claim("email", ((Account)userDetails).getOwner().getEmail())
                 .claim("avatar", ((Account)userDetails).getOwner().getAvatar())
                 .expiration(notAfter)
