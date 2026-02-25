@@ -136,6 +136,7 @@ export class AuthService {
       requiresPasswordChange: decodedToken.requiresPasswordChange,
       username: decodedToken.sub,
       role: undefined,
+      accountNonLocked: true,
       owner: {email: decodedToken.email, avatar: decodedToken.avatar}
     }
     this.meSubject.next(newMe);

@@ -10,6 +10,8 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 
 import { ManagerService } from '../../services/manager.service';
 import { AccountDto } from '../../../auth/dto/account.dto';
+import {NgIf} from '@angular/common';
+import {RouterLink} from '@angular/router';
 
 type ManagerVm = AccountDto & { _locallyBlocked?: boolean };
 
@@ -24,6 +26,8 @@ type ManagerVm = AccountDto & { _locallyBlocked?: boolean };
     MatButtonModule,
     MatSnackBarModule,
     ScrollingModule,
+    NgIf,
+    RouterLink
   ],
   templateUrl: './manager-list.component.html',
   styleUrl: './manager-list.component.scss',
@@ -107,8 +111,11 @@ export class ManagerListComponent implements OnDestroy {
 
     this.managers.toggleBlock(item.username).subscribe({
       next: () => {
-        item._locallyBlocked = true;
-        this.snack.open('Manager block state toggled.', 'Close', { duration: 2500 });
+        if (item.accountNonLocked)
+          this.snack.open('Manager blocked.', 'Close', { duration: 2500 });
+        else
+          this.snack.open('Manager unblocked.', 'Close', { duration: 2500 });
+        item.accountNonLocked = !item.accountNonLocked;
       },
       error: () => this.snack.open('Failed to toggle block.', 'Close', { duration: 3500 }),
     });

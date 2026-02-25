@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ManagerService } from '../../services/manager.service';
+import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-manager-create',
@@ -21,6 +22,7 @@ import { ManagerService } from '../../services/manager.service';
     MatInputModule,
     MatButtonModule,
     MatSnackBarModule,
+    NgIf
   ],
   templateUrl: './manager-create.component.html',
   styleUrl: './manager-create.component.scss',

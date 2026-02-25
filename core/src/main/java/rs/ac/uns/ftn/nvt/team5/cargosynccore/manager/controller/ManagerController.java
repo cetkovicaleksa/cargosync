@@ -14,7 +14,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.manager.dto.CreateManagerRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.manager.service.ManagerService;
 
 @RestController
-@RequestMapping("/api/managers")
+@RequestMapping("/managers")
 @RequiredArgsConstructor
 public class ManagerController {
 
