@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.repository.AccountRepository;
 
 @RequiredArgsConstructor
@@ -20,9 +22,19 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     public String login(String username, String password) {
-        var auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
-        );
+        Authentication auth;
+        try {
+            auth = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password)
+            );
+        } catch (BadCredentialsException e) {
+            // In case username auth failed, try with email
+            Account account = accountRepository.findByUsername(username).orElseThrow(() -> e);
+            String email = account.getOwner().getEmail();
+            auth = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, password)
+            );
+        }
 
         var userDetails = (UserDetails) auth.getPrincipal();
         return jwtUtil.generateAccessToken(userDetails);

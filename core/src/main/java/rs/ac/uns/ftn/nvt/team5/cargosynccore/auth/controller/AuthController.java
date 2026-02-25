@@ -36,7 +36,7 @@ class AuthController {
         return modelMapper.map(account, AccountDto.class);
     }
 
-    @GetMapping("/change-password")
+    @PostMapping("/change-password")
     void changePassword(@AuthenticationPrincipal Account account, @RequestBody @Valid PasswordChangeRequest request) {
         authService.changePassword(account.getUsername(), request.oldPassword(), request.newPassword());
     }
