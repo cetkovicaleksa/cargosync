@@ -1,14 +1,18 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.Map;
 
 @Order(1)
 @ControllerAdvice
@@ -18,6 +22,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 new ErrorResponse(HttpStatus.NOT_FOUND.getReasonPhrase(),
                                     e.getMessage())
+        );
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ErrorResponse(HttpStatus.NOT_FOUND.getReasonPhrase(),
+                        e.getMessage())
         );
     }
 
@@ -97,6 +109,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 new ErrorResponse("DataIntegrityViolation", "Operation violates database constraints")
         );
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<?> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new ErrorResponse( "Conflict",
+                        "Another user has modified this resource. Please refresh and try again."));
     }
 
     @ExceptionHandler(Exception.class)
