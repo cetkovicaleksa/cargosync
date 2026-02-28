@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductSearchFilter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.SaveProductRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.repository.ProductRepository;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Factory;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Product;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.ProductCategory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.FactoryRepository;
@@ -20,7 +20,6 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.ProductCategoryRe
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

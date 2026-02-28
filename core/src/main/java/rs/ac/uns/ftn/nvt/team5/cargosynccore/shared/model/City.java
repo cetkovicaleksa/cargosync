@@ -75,7 +75,7 @@ public class City implements Comparable<City> {
         return code.compareToIgnoreCase(o.code);
     }
 
-    protected record CityPK(Country country, String code) implements Serializable {}
+    public record CityPK(Country country, String code) implements Serializable {}
 
     @Override
     public boolean equals(Object o) {
