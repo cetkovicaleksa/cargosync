@@ -96,13 +96,6 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<ErrorResponse> handleDisabledException(DisabledException e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                new ErrorResponse("AccountInactive", "Account is not activated. Please check your email.")
-        );
-    }
-
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
