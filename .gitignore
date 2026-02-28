@@ -181,3 +181,7 @@ $RECYCLE.BIN/
 *.env
 !*.env.dev
 !*.env.test
+
+# local plugin files
+s2.md
+.idea
