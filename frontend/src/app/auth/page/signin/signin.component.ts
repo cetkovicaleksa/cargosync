@@ -52,10 +52,11 @@ export class SignInComponent {
         },
         error: (err) => {
           let msg: string;
-          if (err?.error?.error === "CredentialsExpired") {
-            msg = "You need to change your password."
-            let p = this.router.navigate(['/password-change'], { queryParams: { username } });
-            p.then(() => {console.log("redirected")}).catch(() => {console.log("failed to redirect")});
+          if (err?.error?.error === 'CredentialsExpired') {
+            msg = 'You need to change your password.';
+            this.router.navigate(['/password-change'], { queryParams: { username } });
+          } else if (err?.error?.error === 'AccountInactive') {
+            msg = 'Your account is not activated yet. Check your email for the activation link.';
           } else {
             msg = err?.status === 403
               ? 'Access denied. Your account may be blocked.'
