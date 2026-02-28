@@ -18,11 +18,15 @@ logging:
   level:
     root: INFO
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.springframework.security: DEBUG
 security:
   cors:
     allowed-headers: ["*"]
     allowed-origins:
       - "*"
+  auth:
+    jwt:
+      access-token:
+        ttl: 24h
   public-endpoints: ["/**"]
