@@ -13,10 +13,10 @@ import static lombok.AccessLevel.PROTECTED;
 @Entity
 public class Customer extends User {
 
-    @Column(nullable = false)
+    @Column
     private String firstName;
 
-    @Column(nullable = false)
+    @Column
     private String lastName;
 
     public Customer(String email, String avatar) {
