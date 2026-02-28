@@ -32,11 +32,27 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 20MB
+  mail:
+    host: ${CARGOSYNC_MAIL_HOST:smtp.gmail.com}
+    port: ${CARGOSYNC_MAIL_PORT:587}
+    username: ${CARGOSYNC_MAIL_USERNAME:}
+    password: ${CARGOSYNC_MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+app:
+  frontend-url: ${CARGOSYNC_FRONTEND_URL:http://localhost:4200}
+  activation-token-ttl: 24h
+
 security:
   public-endpoints:
     - /login
     - /auth/login
+    - /auth/logout
     - /auth/change-password
+    - /auth/register
+    - /auth/activate
     - /swagger-ui/**
     - /swagger-ui.html
     - /v3/api-docs/**

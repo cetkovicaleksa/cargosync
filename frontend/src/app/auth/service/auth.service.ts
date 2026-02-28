@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { TokenResponseDto } from '../dto/token-response.dto';
 import { LoginRequestDto } from '../dto/login-request.dto';
+import { RegisterCustomerRequest } from '../dto/register-customer.dto';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { AccountDto } from '../dto/account.dto';
 import {DecodedToken} from '../model/decoded-token.model';
@@ -144,6 +145,17 @@ export class AuthService {
     return this.whoAmI().pipe(
       tap(me => this.meSubject.next(me))
     );
+  }
+
+  register(data: RegisterCustomerRequest, avatar: File): Observable<{ message: string }> {
+    const formData = new FormData();
+    formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    formData.append('avatar', avatar);
+    return this.http.post<{ message: string }>(`${this.apiUrl}/register`, formData);
+  }
+
+  activate(token: string): Observable<{ message: string }> {
+    return this.http.get<{ message: string }>(`${this.apiUrl}/activate`, { params: { token } });
   }
 
   changePassword(username: string, oldPassword: string, newPassword: string): Observable<TokenResponseDto> {;

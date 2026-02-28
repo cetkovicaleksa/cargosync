@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.filter.AuthFilter;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.ratelimit.LoginRateLimitFilter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.config.properties.CorsProperties;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.config.properties.SecurityProperties;
 
@@ -66,6 +67,7 @@ class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             AuthFilter authFilter,
+            LoginRateLimitFilter loginRateLimitFilter,
             SecurityProperties sp
             ) throws Exception
     {
@@ -78,7 +80,8 @@ class SecurityConfig {
                         .requestMatchers(sp.publicEndpoints()).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(loginRateLimitFilter, AuthFilter.class);
 
         return http.build();
     }
