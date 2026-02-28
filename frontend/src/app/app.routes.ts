@@ -1,12 +1,12 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './shared/home/home/home.component';
-import {AuthGuard} from './auth.guard';
-import {RoleGuard} from './role.guard';
+import { AuthGuard } from './auth.guard';
+import { RoleGuard } from './role.guard';
 
-import { SignInComponent } from './auth/pages/signin/signin.component';
-import { ForcePasswordChangeComponent } from './auth/pages/force-password-change/force-password-change.component';
-import { ManagerListComponent } from './managers/pages/manager-list/manager-list.component';
-import { ManagerCreateComponent } from './managers/pages/manager-create/manager-create.component';
+import { SignInComponent } from './auth/page/signin/signin.component';
+import { ForcePasswordChangeComponent } from './auth/page/force-password-change/force-password-change.component';
+import { ManagerListComponent } from './manager/page/manager-list/manager-list.component';
+import { ProductListComponent } from './product/page/product-list/product-list.component';
 
 // paramaters:
 //   path - url
@@ -25,13 +25,16 @@ export const routes: Routes = [
     },
 
     {
+      path: 'product',
+      component: ProductListComponent,
+      canActivate: [AuthGuard],
+    },
+
+    {
       path: 'managers',
+      component: ManagerListComponent,
       canActivate: [AuthGuard, RoleGuard],
       data: { authorities: ['MANAGE_MANAGERS'] },
-      children: [
-        { path: '', component: ManagerListComponent },
-        { path: 'new', component: ManagerCreateComponent },
-      ],
     },
 
     {path: '**', redirectTo: 'home'},
