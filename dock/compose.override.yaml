@@ -26,4 +26,9 @@ services:
     ports:
       - "8086:8086"
     <<: *service-defaults
-  
+
+  mailhog:
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    <<: *service-defaults
