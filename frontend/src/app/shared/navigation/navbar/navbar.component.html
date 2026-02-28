@@ -1,0 +1,41 @@
+<nav class="navbar-header" aria-label="Top Toolbar">
+  <a mat-button routerLink="/home" class="brand">
+    CargoSync
+  </a>
+
+  @for (item of items; track item.key) {
+    <a mat-button class="navbar-hide-small"
+       [routerLink]="item.key"
+       routerLinkActive="navbar-header-item-selected">
+      {{ item.label }}
+    </a>
+  }
+
+  <div class="flex-spacer"></div>
+
+  @if (isLoggedIn) {
+    <span class="user navbar-hide-small">{{ displayName || 'Account' }}</span>
+
+    <button mat-button class="navbar-hide-small" (click)="signOut()">
+      Sign out
+    </button>
+    <button mat-icon-button class="navbar-show-small" (click)="signOut()" aria-label="Sign out">
+      <mat-icon>logout</mat-icon>
+    </button>
+  } @else {
+    <button mat-button class="navbar-hide-small" (click)="signIn()">
+      Sign in
+    </button>
+    <button mat-icon-button class="navbar-show-small" (click)="signIn()" aria-label="Sign in">
+      <mat-icon>login</mat-icon>
+    </button>
+  }
+</nav>
+
+<nav class="navbar navbar-show-small" aria-label="Section Nav Bar">
+  @for (item of items; track item.key) {
+    <a mat-button class="navbar-link" [routerLink]="item.key">
+      {{ item.label }}
+    </a>
+  }
+</nav>

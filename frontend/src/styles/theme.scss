@@ -1,0 +1,16 @@
+@use '@angular/material' as mat;
+
+$my-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$spring-green-palette,
+    tertiary: mat.$yellow-palette,
+  ),
+  typography: (
+    brand-family: 'Inter',
+    plain-family: 'Inter',
+  ),
+  density: (
+    scale: 0,
+  )
+));

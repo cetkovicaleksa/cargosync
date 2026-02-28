@@ -11,6 +11,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.dto.LoginRequestDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.dto.TokenResponseDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.service.AuthService;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.manager.dto.PasswordChangeRequest;
 
 import static org.springframework.http.MediaType.*;
 
@@ -35,4 +36,9 @@ class AuthController {
         return modelMapper.map(account, AccountDto.class);
     }
 
+    @PostMapping("/change-password")
+    TokenResponseDto changePassword(@RequestBody @Valid PasswordChangeRequest request) {
+        var accessToken = authService.changePassword(request.username(), request.oldPassword(), request.newPassword());
+        return new TokenResponseDto(accessToken);
+    }
 }

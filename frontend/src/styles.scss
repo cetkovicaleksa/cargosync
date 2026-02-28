@@ -1,25 +1,16 @@
 @use '@angular/material' as mat;
-
-$my-theme: mat.define-theme((
-  color: (
-    theme-type: light,
-    primary: mat.$spring-green-palette,
-    tertiary: mat.$yellow-palette,
-  ),
-  typography: (
-    brand-family: 'Inter',
-    plain-family: 'Inter',
-  ),
-  density: (
-    scale: 0,
-  )
-));
+@use "styles/theme" as theme;
+@use "styles/colors" as colors;
 
 body {
-  background: mat.get-theme-color($my-theme, surface);
-  color: mat.get-theme-color($my-theme, on-surface);
+  background: mat.get-theme-color(theme.$my-theme, surface);
+  color: mat.get-theme-color(theme.$my-theme, on-surface);
   font-family: Inter, "Helvetica Neue", sans-serif;
-  
-  @include mat.all-component-themes($my-theme);
-  @include mat.color-variants-backwards-compatibility($my-theme);
+
+  @include mat.all-component-themes(theme.$my-theme);
+  @include mat.color-variants-backwards-compatibility(theme.$my-theme);
+
+  margin: 0;
+  padding: 0;
+  background-color: colors.$surface;
 }

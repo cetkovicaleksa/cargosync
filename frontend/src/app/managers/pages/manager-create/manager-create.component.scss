@@ -1,0 +1,34 @@
+.card {
+  margin: 16px;
+  max-width: 720px;
+}
+
+.form {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.file {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(0, 0, 0, 0.18);
+  border-radius: 12px;
+}
+
+.file-label {
+  font-weight: 600;
+}
+
+.file-name {
+  font-size: 12.5px;
+  opacity: 0.75;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}

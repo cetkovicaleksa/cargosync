@@ -1,11 +1,10 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-
-@ResponseStatus(code = NOT_FOUND)
-public class NotFoundException extends BaseException {
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class NotFoundException extends RuntimeException {
     public NotFoundException(String message) {
         super(message);
     }

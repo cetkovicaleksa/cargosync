@@ -1,0 +1,10 @@
+{
+    "python.venvPath": "${projectFolder}/.venv",
+    "python.envFile": "${workspaceFolder}/.env", // NOTE: I couldn't make it load .env
+    // "terminal.integrated.env.linux": {
+    //     "envFile": "${projectFolder}/.env",    
+    // },
+    // "terminal.integrated.env.windows": {
+    //     "envFile": "${projectFolder}/.env"
+    // }
+}

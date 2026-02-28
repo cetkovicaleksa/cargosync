@@ -39,6 +39,7 @@ security:
   public-endpoints:
     - /login
     - /auth/login
+    - /auth/change-password
     - /swagger-ui/**
     - /swagger-ui.html
     - /v3/api-docs/**

@@ -1,0 +1,68 @@
+name: cargosync-test
+
+services:
+  api:
+    build:
+      context: ${CARGOSYNC_ROOT}/core
+      dockerfile: ${CARGOSYNC_ROOT}/dock/core/Dockerfile
+    # command: [] # Could pass some java args like memory limit etc.
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file: ./.env.test
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - cargo-net
+    depends_on: [postgres, rabbitmq, influxdb2]
+
+  nginx:
+    image: nginx:1.28-alpine
+    restart: unless-stopped
+    ports:
+    - "80:80"
+    # - "443:443" 
+    configs:
+      - source: nginx-conf
+        target: /etc/nginx/nginx.conf:ro
+    volumes:
+      - web-dist:/usr/share/nginx/html:ro # NOTE: could maybe be /var/www/cargosync/uploads:ro (but not variable and would overlap dist)
+      - uploads:/var/www/cargosync/uploads:rw
+    networks:
+      - cargo-net
+    depends_on: [api, ng]
+
+  ng:
+    build:
+      context: ${CARGOSYNC_ROOT}/frontend
+      dockerfile: ${CARGOSYNC_ROOT}/dock/frontend/Dockerfile.build
+    restart: on-failure:3
+    volumes:
+      - web-dist:/workspace/dist:rw
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine # just so I don't need two images for dev and test (should be removed to use regular alpine)
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+    env_file: ./.env.test
+
+  postgres:
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    env_file: ./.env.test
+
+  influxdb2:
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    env_file: ./.env.test
+
+volumes:
+  web-dist:
+  uploads:
+
+configs:
+  nginx-conf:
+    file: ./nginx/test.conf
