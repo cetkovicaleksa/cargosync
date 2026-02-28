@@ -44,17 +44,51 @@
         <mat-hint>Select existing or type a new category</mat-hint>
       </mat-form-field>
 
-      <mat-autocomplete #categoryAuto="matAutocomplete">
-        <mat-option *ngFor="let category of filteredCategoryOptions | async" [value]="category">
-          {{ category }}
-        </mat-option>
-      </mat-autocomplete>
-
       <mat-form-field appearance="outline">
-        <mat-label>Factory IDs (comma-separated UUIDs)</mat-label>
-        <input matInput formControlName="factoryIdsCsv" placeholder="uuid1, uuid2, ..." />
+        <mat-label>Select factories</mat-label>
+        <input matInput formControlName="factorySearch" placeholder="Type at least 2 characters" />
+        <mat-hint>Search factories by name</mat-hint>
       </mat-form-field>
     </div>
+
+    <mat-autocomplete #categoryAuto="matAutocomplete">
+      <mat-option *ngFor="let category of filteredCategoryOptions | async" [value]="category">
+        {{ category }}
+      </mat-option>
+    </mat-autocomplete>
+
+    <section class="factory-picker">
+      <div class="selected" *ngIf="selectedFactories.length > 0">
+        <div class="selected-title">Selected factories</div>
+        <mat-chip-set aria-label="Selected factories">
+          <mat-chip-row *ngFor="let sf of selectedFactories" removable="true" (removed)="removeFactory(sf.id)">
+            {{ sf.name }}<span *ngIf="sf.cityName || sf.countryCode"> ({{ sf.cityName }}{{ sf.cityName && sf.countryCode ? ', ' : '' }}{{ sf.countryCode }})</span>
+            <button matChipRemove type="button" aria-label="Remove factory">x</button>
+          </mat-chip-row>
+        </mat-chip-set>
+      </div>
+
+      <div class="results" *ngIf="factoryQuery.trim().length >= 2">
+        <button
+          type="button"
+          mat-stroked-button
+          class="factory-result"
+          *ngFor="let f of factoryResults"
+          [disabled]="isFactorySelected(f.id)"
+          (click)="addFactory(f)"
+        >
+          <span class="factory-name">{{ f.name }}</span>
+          &nbsp;
+          <span class="factory-meta">{{ f.cityName }}, {{ f.countryCode }}</span>
+        </button>
+
+        <div class="results-footer" *ngIf="!factoriesLoading && !factoriesLast">
+          <button mat-button type="button" (click)="loadMoreFactories()" [disabled]="factoriesLoadingMore">
+            {{ factoriesLoadingMore ? 'Loading…' : 'Load more factories' }}
+          </button>
+        </div>
+      </div>
+    </section>
 
     <mat-slide-toggle formControlName="isForSale" color="primary">For sale</mat-slide-toggle>
   </form>

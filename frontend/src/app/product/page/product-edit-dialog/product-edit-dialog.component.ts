@@ -1,10 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Observable, finalize, map, of, startWith, switchMap } from 'rxjs';
+import { Observable, Subject, debounceTime, distinctUntilChanged, finalize, map, of, startWith, switchMap, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -16,10 +17,19 @@ import { ProductDto } from '../../dto/product.dto';
 import { SaveProductRequestDto } from '../../dto/save-product-request.dto';
 import { ImageUploadService } from '../../../shared/service/image-upload.service';
 import { ProductCategoryService } from '../../service/product-category.service';
+import { FactoryService } from '../../../factory/service/factory.service';
+import { FactoryDto } from '../../../factory/dto/factory.dto';
 
 export type ProductEditDialogData =
   | { mode: 'create' }
   | { mode: 'edit'; product: ProductDto };
+
+type SelectedFactory = {
+  id: string;
+  name: string;
+  cityName: string;
+  countryCode: string;
+};
 
 @Component({
   selector: 'app-product-edit-dialog',
@@ -29,6 +39,7 @@ export type ProductEditDialogData =
     MatDialogModule,
     MatButtonModule,
     MatAutocompleteModule,
+    MatChipsModule,
     MatFormFieldModule,
     MatInputModule,
     MatSlideToggleModule,
@@ -40,20 +51,32 @@ export type ProductEditDialogData =
   templateUrl: './product-edit-dialog.component.html',
   styleUrl: './product-edit-dialog.component.scss',
 })
-export class ProductEditDialogComponent {
+export class ProductEditDialogComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly products = inject(ProductService);
   private readonly snack = inject(MatSnackBar);
   private readonly imageUpload = inject(ImageUploadService);
   private readonly categories = inject(ProductCategoryService);
+  private readonly factories = inject(FactoryService);
+
+  private readonly destroy$ = new Subject<void>();
 
   readonly ref = inject(MatDialogRef<ProductEditDialogComponent>);
   readonly data = inject<ProductEditDialogData>(MAT_DIALOG_DATA);
 
   loading = false;
   selectedImageFile: File | null = null;
+
   categoryOptions: string[] = [];
   filteredCategoryOptions: Observable<string[]> = of([]);
+
+  factoryQuery = '';
+  factoryResults: FactoryDto[] = [];
+  selectedFactories: SelectedFactory[] = [];
+  factoriesLoading = false;
+  factoriesLoadingMore = false;
+  factoriesPage = 0;
+  factoriesLast = true;
 
   form = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
@@ -61,7 +84,7 @@ export class ProductEditDialogComponent {
     weight: [0, [Validators.required, Validators.min(0)]],
     isForSale: [false],
     categoryName: ['', [Validators.required]],
-    factoryIdsCsv: [''],
+    factorySearch: [''],
   });
 
   constructor() {
@@ -73,8 +96,32 @@ export class ProductEditDialogComponent {
         weight: p.weight,
         isForSale: p.isForSale,
         categoryName: p.categoryName,
-        factoryIdsCsv: (p.factoryIds ?? []).join(', '),
       });
+
+      this.selectedFactories = (p.factoryIds ?? []).map((id) => ({
+        id,
+        name: id,
+        cityName: '',
+        countryCode: '',
+      }));
+
+      if ((p.factoryIds ?? []).length > 0) {
+        this.factories.getByIds(p.factoryIds).subscribe({
+          next: (resolved) => {
+            const byId = new Map(resolved.map((x) => [x.id, x]));
+            this.selectedFactories = (p.factoryIds ?? []).map((id) => {
+              const factory = byId.get(id);
+              return {
+                id,
+                name: factory?.name ?? id,
+                cityName: factory?.cityName ?? '',
+                countryCode: factory?.countryCode ?? '',
+              };
+            });
+          },
+          error: () => this.snack.open('Failed to resolve selected factories.', 'Close', { duration: 3000 }),
+        });
+      }
     }
 
     this.filteredCategoryOptions = this.form.controls.categoryName.valueChanges.pipe(
@@ -92,6 +139,10 @@ export class ProductEditDialogComponent {
       },
       error: () => this.snack.open('Failed to load categories.', 'Close', { duration: 3000 }),
     });
+
+    this.form.controls.factorySearch.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((value) => this.searchFactories(value || ''));
   }
 
   get selectedImageName() {
@@ -106,17 +157,81 @@ export class ProductEditDialogComponent {
     return this.data.mode === 'create' ? 'New product' : 'Edit product';
   }
 
-  private parseFactoryIds(csv: string): string[] {
-    return (csv ?? '')
-      .split(',')
-      .map(x => x.trim())
-      .filter(x => x.length > 0);
-  }
-
   private filterCategoryOptions(value: string): string[] {
     const q = (value || '').toLowerCase().trim();
     if (!q) return this.categoryOptions;
     return this.categoryOptions.filter((x) => x.toLowerCase().includes(q));
+  }
+
+  private searchFactories(query: string) {
+    this.factoryQuery = query;
+    const q = query.trim();
+
+    if (q.length < 2) {
+      this.factoryResults = [];
+      this.factoriesPage = 0;
+      this.factoriesLast = true;
+      return;
+    }
+
+    this.factoriesLoading = true;
+    this.factoriesPage = 0;
+
+    this.factories.search({ name: q }, 0, 15)
+      .pipe(finalize(() => (this.factoriesLoading = false)))
+      .subscribe({
+        next: (p) => {
+          this.factoryResults = p.content ?? [];
+          this.factoriesPage = p.page?.number ?? 0;
+          this.factoriesLast = !p.page || p.page.totalPages === 0 || this.factoriesPage >= p.page.totalPages - 1;
+        },
+        error: () => this.snack.open('Failed to search factories.', 'Close', { duration: 3000 }),
+      });
+  }
+
+  loadMoreFactories() {
+    if (this.factoriesLoadingMore || this.factoriesLast) return;
+
+    const q = this.factoryQuery.trim();
+    if (q.length < 2) return;
+
+    const nextPage = this.factoriesPage + 1;
+    this.factoriesLoadingMore = true;
+
+    this.factories.search({ name: q }, nextPage, 15)
+      .pipe(finalize(() => (this.factoriesLoadingMore = false)))
+      .subscribe({
+        next: (p) => {
+          const existing = new Set(this.factoryResults.map((x) => x.id));
+          const appended = (p.content ?? []).filter((x) => !existing.has(x.id));
+          this.factoryResults = [...this.factoryResults, ...appended];
+          this.factoriesPage = p.page?.number ?? nextPage;
+          this.factoriesLast = !p.page || p.page.totalPages === 0 || this.factoriesPage >= p.page.totalPages - 1;
+        },
+        error: () => this.snack.open('Failed to load more factories.', 'Close', { duration: 3000 }),
+      });
+  }
+
+  isFactorySelected(id: string): boolean {
+    return this.selectedFactories.some((x) => x.id === id);
+  }
+
+  addFactory(factory: FactoryDto) {
+    if (this.isFactorySelected(factory.id)) return;
+
+    this.selectedFactories = [
+      ...this.selectedFactories,
+      {
+        id: factory.id,
+        name: factory.name,
+        cityName: factory.cityName,
+        countryCode: factory.countryCode,
+      },
+    ];
+  }
+
+  removeFactory(id: string) {
+    this.selectedFactories = this.selectedFactories.filter((x) => x.id !== id);
   }
 
   onImageSelected(event: Event) {
@@ -136,7 +251,7 @@ export class ProductEditDialogComponent {
       weight: Number(v.weight),
       isForSale: !!v.isForSale,
       categoryName: v.categoryName.trim(),
-      factoryIds: this.parseFactoryIds(v.factoryIdsCsv),
+      factoryIds: this.selectedFactories.map((x) => x.id),
       version: this.data.mode === 'edit' ? this.data.product.version : null,
     };
 
@@ -160,13 +275,18 @@ export class ProductEditDialogComponent {
         finalize(() => (this.loading = false)),
       )
       .subscribe({
-      next: (saved) => this.ref.close(saved),
-      error: (err) => {
-        const msg = err?.status === 409
-          ? 'This product was updated by someone else. Please refresh and try again.'
-          : 'Failed to save product.';
-        this.snack.open(msg, 'Close', { duration: 4000 });
-      },
-    });
+        next: (saved) => this.ref.close(saved),
+        error: (err) => {
+          const msg = err?.status === 409
+            ? 'This product was updated by someone else. Please refresh and try again.'
+            : 'Failed to save product.';
+          this.snack.open(msg, 'Close', { duration: 4000 });
+        },
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

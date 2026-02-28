@@ -32,12 +32,11 @@ public class Factory extends AbstractAuditable {
     @Column(nullable = false)
     private String street;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumns({
-            @JoinColumn(name = "country_code", referencedColumnName = "country_code"),
-            @JoinColumn(name = "city_code", referencedColumnName = "code")
-    })
-    private City city;
+    @Column(name="country_code", nullable = false)
+    private String countryCode;
+
+    @Column(name = "city_code", nullable = false)
+    private String cityCode;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "factory_images", joinColumns = @JoinColumn(name = "factory_id"))

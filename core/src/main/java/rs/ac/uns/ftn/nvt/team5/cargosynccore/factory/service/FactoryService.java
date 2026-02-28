@@ -1,6 +1,9 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
@@ -18,7 +21,10 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.CityRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository.FactoryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository.FactoryStatusRepository;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -64,6 +70,14 @@ public class FactoryService {
     }
 
     @Transactional(readOnly = true)
+    public List<Factory> getFactoriesByIds(Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return factoryRepository.findAllById(ids);
+    }
+
+    @Transactional(readOnly = true)
     public Page<Factory> searchFactories(FactorySearchFilter filter, Pageable pageable) {
         Specification<Factory> spec = (root, query, cb) -> cb.isTrue(cb.literal(true));
 
@@ -71,13 +85,12 @@ public class FactoryService {
             spec = spec.and((root, query, cb) ->
                     cb.like(cb.lower(root.get("name")), "%" + filter.name().toLowerCase() + "%"));
         }
+
         if (filter.countryCode() != null && !filter.countryCode().isBlank()) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("city").get("country").get("code"), filter.countryCode()));
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("countryCode"), filter.countryCode()));
         }
         if (filter.cityCode() != null && !filter.cityCode().isBlank()) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("city").get("code"), filter.cityCode()));
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("cityCode"), filter.cityCode()));
         }
 
         return factoryRepository.findAll(spec, pageable);
@@ -96,7 +109,9 @@ public class FactoryService {
         factory.setName(request.name());
         factory.setLocation(new GeoLocation(request.location().getLatitude(), request.location().getLongitude()));
         factory.setStreet(request.street());
-        factory.setCity(city);
+
+        factory.setCountryCode(request.countryCode());
+        factory.setCityCode(request.cityCode());
 
         if (request.imageUrls() != null) {
             factory.setImageUrls(new HashSet<>(request.imageUrls()));
