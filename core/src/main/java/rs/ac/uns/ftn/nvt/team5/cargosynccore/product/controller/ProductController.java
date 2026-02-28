@@ -13,7 +13,10 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.SaveProductRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.service.ProductService;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Factory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Product;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.WarehouseInventoryRepository;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 public class ProductController {
 
     private final ProductService productService;
+    private final WarehouseInventoryRepository inventoryRepository;
 
     @PostMapping
     @PreAuthorize("hasRole('MANAGER')")
@@ -37,10 +41,38 @@ public class ProductController {
         return mapToDto(productService.updateProduct(id, request));
     }
 
+    /** Manager product management — all products, no stock info. */
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('MANAGER')")
     public Page<ProductDto> searchProducts(ProductSearchFilter filter, Pageable pageable) {
         return productService.searchProducts(filter, pageable).map(this::mapToDto);
+    }
+
+    /**
+     * Customer product catalogue — only isForSale products, enriched with
+     * total stock across all warehouses (2 queries per page, no N+1).
+     *
+     * Query params: name, categoryName, minPrice, maxPrice, inStockOnly (bool)
+     */
+    @GetMapping("/catalogue")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public Page<ProductDto> getCatalogue(ProductSearchFilter filter, Pageable pageable) {
+        // Force isForSale=true regardless of what caller passes
+        ProductSearchFilter forSaleFilter = new ProductSearchFilter(
+                filter.name(),
+                filter.categoryName(),
+                filter.minPrice(),
+                filter.maxPrice(),
+                true
+        );
+        Page<Product> page = productService.searchProducts(forSaleFilter, pageable);
+
+        List<UUID> ids = page.getContent().stream().map(Product::getId).toList();
+        Map<UUID, Long> stockMap = ids.isEmpty() ? Map.of() : inventoryRepository
+                .findTotalStockByProductIds(ids).stream()
+                .collect(Collectors.toMap(r -> (UUID) r[0], r -> ((Number) r[1]).longValue()));
+
+        return page.map(p -> mapToDto(p, stockMap.getOrDefault(p.getId(), 0L)));
     }
 
     @DeleteMapping("/{id}")
@@ -51,6 +83,10 @@ public class ProductController {
     }
 
     private ProductDto mapToDto(Product product) {
+        return mapToDto(product, null);
+    }
+
+    private ProductDto mapToDto(Product product, Long totalStock) {
         return new ProductDto(
                 product.getId(),
                 product.getName(),
@@ -61,7 +97,8 @@ public class ProductController {
                 product.getCategory().getId(),
                 product.getCategory().getName(),
                 product.getFactories().stream().map(Factory::getId).collect(Collectors.toSet()),
-                product.getVersion()
+                product.getVersion(),
+                totalStock
         );
     }
 }
