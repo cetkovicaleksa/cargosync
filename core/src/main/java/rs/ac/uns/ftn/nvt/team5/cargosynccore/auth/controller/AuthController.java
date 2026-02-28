@@ -1,8 +1,10 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -40,5 +42,13 @@ class AuthController {
     TokenResponseDto changePassword(@RequestBody @Valid PasswordChangeRequest request) {
         var accessToken = authService.changePassword(request.username(), request.oldPassword(), request.newPassword());
         return new TokenResponseDto(accessToken);
+    }
+
+    @Operation(summary = "Logout (client-side token invalidation)")
+    @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
+    ResponseEntity<Void> logout() {
+        //TODO: add JWT blacklist when Redis is configured
+        return ResponseEntity.ok().build();
     }
 }
