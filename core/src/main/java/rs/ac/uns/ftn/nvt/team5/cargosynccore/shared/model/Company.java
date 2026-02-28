@@ -1,32 +1,50 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
-/**
- * Stub entity
- */
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
-@NoArgsConstructor
 @Entity
+@NoArgsConstructor
+@ToString
 @Table(name = "companies")
-public class Company extends AbstractAuditable {
+public class Company extends AbstractPersistable {
+
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "customer_id", nullable = false, updatable = false)
+    private Customer owner;
 
     @NotBlank
-    @Column(nullable = false)
     private String name;
 
-    @Column
+    @NotNull
+    @ManyToOne
+    @JoinColumns({
+        @JoinColumn(name = "city_country_code", referencedColumnName = "country_code"),
+        @JoinColumn(name = "city_code", referencedColumnName = "code")
+    })
+    private City city;
+
+    @NotBlank
     private String address;
 
-    public Company(String name, String address) {
-        this.name = name;
-        this.address = address;
-    }
+    @Valid
+    @Embedded
+    private GeoLocation location;
+
+    @Size(min = 1, max = 32)
+    @ElementCollection
+    private List<@NotBlank String> images = new ArrayList<>();
 }

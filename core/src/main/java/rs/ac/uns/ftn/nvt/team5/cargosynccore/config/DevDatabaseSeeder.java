@@ -51,6 +51,7 @@ public class DevDatabaseSeeder implements CommandLineRunner {
     private final WarehouseInventoryRepository inventoryRepository;
     private final ProductCategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final CustomerRepository customerRepository;
 
     @Transactional
     @Override
@@ -113,8 +114,16 @@ public class DevDatabaseSeeder implements CommandLineRunner {
         inventoryRepository.save(new WarehouseInventory(wh3, forklift,  10L));
 
         // ---- Stub company for testing orders ----
-        if (companyRepository.count() == 0) {
-            companyRepository.save(new Company("Dev Corp d.o.o.", "Futoška 10, Novi Sad"));
+        Customer devCustomer = customerRepository.findAll().stream()
+                .filter(c -> "customer@cargosync.rs".equals(c.getEmail()))
+                .findFirst().orElse(null);
+        if (devCustomer != null && companyRepository.count() == 0) {
+            Company company = new Company();
+            company.setOwner(devCustomer);
+            company.setName("Dev Corp d.o.o.");
+            company.setAddress("Futoška 10");
+            company.setCity(noviSad);
+            companyRepository.save(company);
         }
     }
 
