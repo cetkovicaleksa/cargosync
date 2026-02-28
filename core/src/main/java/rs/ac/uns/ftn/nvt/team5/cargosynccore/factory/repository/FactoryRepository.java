@@ -1,4 +1,4 @@
-package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository;
+package rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

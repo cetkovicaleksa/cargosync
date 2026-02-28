@@ -21,8 +21,6 @@ public class FactoryMapper {
                 factory.getCity().getCountry().getCode(),
                 factory.getCity().getCountry().getName(),
                 factory.getImageUrls(),
-                factory.isOnline(),
-                factory.getLastHeartbeat(),
                 factory.getVersion()
         );
     }

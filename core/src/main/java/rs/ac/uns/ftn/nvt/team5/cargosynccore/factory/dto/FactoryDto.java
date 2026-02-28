@@ -15,7 +15,5 @@ public record FactoryDto(
         String countryCode,
         String countryName,
         Set<String> imageUrls,
-        boolean isOnline,
-        LocalDateTime lastHeartbeat,
         Long version
 ) {}

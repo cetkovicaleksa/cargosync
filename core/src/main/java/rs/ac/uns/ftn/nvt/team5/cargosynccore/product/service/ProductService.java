@@ -14,7 +14,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.repository.ProductRepositor
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Product;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.ProductCategory;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.FactoryRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository.FactoryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.ProductCategoryRepository;
 
 import java.util.HashSet;
