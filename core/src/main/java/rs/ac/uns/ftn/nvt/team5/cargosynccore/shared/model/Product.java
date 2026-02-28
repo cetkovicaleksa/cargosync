@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -47,6 +48,7 @@ public class Product extends AbstractAuditable {
     @JoinColumn(name = "category_id", nullable = false)
     private ProductCategory category;
 
+    @BatchSize(size = 24)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "product_factories",

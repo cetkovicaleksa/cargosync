@@ -13,7 +13,7 @@ public record SaveProductRequest(
         @NotNull @DecimalMin("0.0") BigDecimal price,
         @NotNull @DecimalMin("0.0") Double weight,
         boolean isForSale,
-        @NotNull UUID categoryId,
+        @NotBlank String categoryName,
         Set<UUID> factoryIds,
         Long version // optimistic locking
 ) {}

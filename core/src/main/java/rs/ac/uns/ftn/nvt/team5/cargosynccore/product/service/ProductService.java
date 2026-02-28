@@ -50,8 +50,13 @@ public class ProductService {
 
     private Product saveOrUpdate(Product product, SaveProductRequest request)
             throws OptimisticLockingFailureException {
-        ProductCategory category = categoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+        String normalizedCatName = request.categoryName().trim();
+        ProductCategory category = categoryRepository.findByNameIgnoreCase(normalizedCatName)
+                .orElseGet(() -> {
+                    ProductCategory newCat = new ProductCategory();
+                    newCat.setName(normalizedCatName);
+                    return categoryRepository.save(newCat);
+                });
 
         product.setName(request.name());
         product.setImageUrl(request.imageUrl());
@@ -78,9 +83,9 @@ public class ProductService {
             spec = spec.and((root, query, cb) ->
                     cb.like(cb.lower(root.get("name")), "%" + filter.name().toLowerCase() + "%"));
         }
-        if (filter.categoryId() != null) {
+        if (filter.categoryName() != null && !filter.categoryName().isBlank()) {
             spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("category").get("id"), filter.categoryId()));
+                    cb.like(cb.lower(root.get("category").get("name")), "%" + filter.categoryName().toLowerCase() + "%"));
         }
         if (filter.minPrice() != null) {
             spec = spec.and((root, query, cb) ->

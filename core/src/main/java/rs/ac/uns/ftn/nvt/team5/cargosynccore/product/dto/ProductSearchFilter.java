@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record ProductSearchFilter(
         String name,
-        UUID categoryId,
+        String categoryName,
         BigDecimal minPrice,
         BigDecimal maxPrice,
         Boolean isForSale
