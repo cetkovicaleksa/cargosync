@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.dto.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.service.*;
 
+import java.net.URI;
+
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.*;
 
@@ -19,6 +21,8 @@ import static org.springframework.http.MediaType.*;
 @RequestMapping(value = "/vans", produces = APPLICATION_JSON_VALUE)
 class VanController {
 
+    private final UpdateVanUC updateVanUC;
+    private final NewVanUC newVanUC;
     private final QueryVansUC queryVansUc;
     private final DeleteVanUC deleteVanUc;
     private final ModelMapper modelMapper;
@@ -47,12 +51,34 @@ class VanController {
                 .body(modelMapper.map(van, VanDto.class));
     }
 
-    @PostMapping
+    @PostMapping(consumes = MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
-    @ResponseStatus(NOT_IMPLEMENTED)
-    VanDto addAVan() {return null;}
+    ResponseEntity<VanDto> addAVan(
+            @ModelAttribute VanForm form
+    ) {
+        var van = newVanUC.createVan(form);
+        String etag = Integer.toHexString(van.getVersion());
 
-    // TODO: Should we use PUT OR PATCH (maybe both)
+        return ResponseEntity.created(URI.create("/vans/" + van.getVin()))
+                .eTag(etag) // ?
+                .body(modelMapper.map(van, VanDto.class));
+    }
+
+    @PatchMapping(path = "/{vin}", consumes = MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('MANAGER')")
+    ResponseEntity<VanDto> updateVan(
+            @PathVariable String vin,
+            @ModelAttribute UpdateVanForm form
+    ) {
+        form.setVin(vin);
+
+        var van = updateVanUC.updateVan(form);
+        String etag = Integer.toHexString(van.getVersion());
+
+        return ResponseEntity.ok()
+                .eTag(etag)
+                .body(modelMapper.map(van, VanDto.class));
+    }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER')")

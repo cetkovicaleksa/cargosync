@@ -2,6 +2,8 @@ package rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.NotFoundException;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.repository.VanRepository;
@@ -13,7 +15,7 @@ public class DeleteVanUC {
     private final VanService vanService;
     private final VanRepository vans;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
     public void deleteVan(String vin) {
         var id = vanService.parseVanVin(vin);
         String

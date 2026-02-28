@@ -10,7 +10,7 @@ import java.io.Serializable;
 @Data
 public class VanDto implements Serializable {
 
-    private String vin, registrationNumber;
+    private String vin, vi, registrationNumber;
     private ModelDto model;
     private int maxPayload;
 

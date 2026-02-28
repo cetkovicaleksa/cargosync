@@ -8,6 +8,7 @@ import org.hibernate.annotations.Nationalized;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serializable;
+import java.util.List;
 
 import static jakarta.persistence.CascadeType.*;
 import static jakarta.persistence.FetchType.*;
@@ -52,6 +53,9 @@ public class Van {
     @Version
     @Column(name = "revision")
     private int version;
+
+    @ElementCollection
+    private List<String> images;
 
 
     public Van(String vi, Model model) {
