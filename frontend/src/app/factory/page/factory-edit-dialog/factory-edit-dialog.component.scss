@@ -1,0 +1,76 @@
+mat-dialog-content {
+  max-height: 74vh;
+  overflow: auto;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.grid {
+  display: grid;
+  gap: 10px;
+}
+
+.grid.two {
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+}
+
+.map {
+  height: 280px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.upload {
+  display: grid;
+  gap: 8px;
+}
+
+.upload-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.upload input[type='file'] {
+  display: none;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  max-width: 100%;
+}
+
+.text {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+@media (max-width: 840px) {
+  .grid.two {
+    grid-template-columns: 1fr;
+  }
+}

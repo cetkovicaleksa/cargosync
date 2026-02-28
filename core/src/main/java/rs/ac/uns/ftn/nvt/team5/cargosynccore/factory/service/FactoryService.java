@@ -99,6 +99,7 @@ public class FactoryService {
 //    @CacheEvict(value = "factories", key = "#id")
     @Transactional
     public void deleteFactory(UUID id) {
+        factoryStatusRepository.deleteFactoryStatusByFactoryId(id);
         factoryRepository.deleteById(id);
     }
 

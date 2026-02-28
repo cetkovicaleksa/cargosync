@@ -51,6 +51,11 @@ export class NavBar {
       label: 'Managers',
       visible: () => this.loggedIn() && this.canManageManagers(),
     },
+    {
+      key: '/factories',
+      label: 'Factories',
+      visible: () => this.loggedIn(),
+    },
   ]);
 
   get items() {

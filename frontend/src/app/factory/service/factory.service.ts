@@ -5,6 +5,9 @@ import { environment } from '../../../environments/environment';
 import { PageDto } from '../../shared/dto/page.dto';
 import { FactoryDto } from '../dto/factory.dto';
 import { FactorySearchFilterDto } from '../dto/factory-search-filter.dto';
+import { SaveFactoryRequestDto } from '../dto/save-factory-request.dto';
+import { CountryOptionDto } from '../dto/country-option.dto';
+import { CityOptionDto } from '../dto/city-option.dto';
 
 @Injectable({ providedIn: 'root' })
 export class FactoryService {
@@ -29,5 +32,26 @@ export class FactoryService {
       params = params.append('ids', id);
     });
     return this.http.get<FactoryDto[]>(`${this.apiUrl}/by-ids`, { params });
+  }
+
+  create(request: SaveFactoryRequestDto): Observable<FactoryDto> {
+    return this.http.post<FactoryDto>(this.apiUrl, request);
+  }
+
+  update(id: string, request: SaveFactoryRequestDto): Observable<FactoryDto> {
+    return this.http.put<FactoryDto>(`${this.apiUrl}/${encodeURIComponent(id)}`, request);
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${encodeURIComponent(id)}`);
+  }
+
+  getCountries(): Observable<CountryOptionDto[]> {
+    return this.http.get<CountryOptionDto[]>(`${this.apiUrl}/countries`);
+  }
+
+  getCities(countryCode: string): Observable<CityOptionDto[]> {
+    const params = new HttpParams().set('countryCode', countryCode);
+    return this.http.get<CityOptionDto[]>(`${this.apiUrl}/cities`, { params });
   }
 }

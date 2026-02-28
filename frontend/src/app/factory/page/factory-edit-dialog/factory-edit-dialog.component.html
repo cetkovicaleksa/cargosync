@@ -1,0 +1,75 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="form">
+    <div class="grid two">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Street</mat-label>
+        <input matInput formControlName="street" />
+      </mat-form-field>
+    </div>
+
+    <div class="grid two">
+      <mat-form-field appearance="outline">
+        <mat-label>Country</mat-label>
+        <mat-select formControlName="countryCode">
+          <mat-option *ngFor="let c of countries" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>City</mat-label>
+        <mat-select formControlName="cityCode" [disabled]="!form.controls.countryCode.value">
+          <mat-option *ngFor="let c of cities" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="grid two">
+      <mat-form-field appearance="outline">
+        <mat-label>Latitude</mat-label>
+        <input matInput type="number" step="0.000001" formControlName="latitude" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Longitude</mat-label>
+        <input matInput type="number" step="0.000001" formControlName="longitude" />
+      </mat-form-field>
+    </div>
+
+    <div class="map" #mapHost></div>
+
+    <div class="upload">
+      <label class="upload-label" for="factory-image-input">Add images</label>
+      <input id="factory-image-input" type="file" multiple accept="image/*" (change)="onPickFiles($event)" />
+
+      <div class="chips" *ngIf="existingImageUrls.length > 0 || selectedFiles.length > 0">
+        <div class="chip" *ngFor="let image of existingImageUrls; let i = index">
+          <span class="text">{{ image }}</span>
+          <button mat-icon-button type="button" (click)="removeExistingImage(i)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <div class="chip" *ngFor="let file of selectedFiles; let i = index">
+          <span class="text">{{ file.name }}</span>
+          <button mat-icon-button type="button" (click)="removeSelectedFile(i)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="submitting">Cancel</button>
+  <button mat-flat-button color="primary" (click)="submit()" [disabled]="submitting">
+    {{ submitting ? 'Saving…' : 'Save' }}
+  </button>
+</mat-dialog-actions>

@@ -37,5 +37,12 @@ export const routes: Routes = [
       data: { authorities: ['MANAGE_MANAGERS'] },
     },
 
+    {
+      path: 'factories',
+      loadComponent: () => import('./factory/page/factory-list/factory-list.component').then((m) => m.FactoryListComponent),
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_MANAGER'] },
+    },
+
     {path: '**', redirectTo: 'home'},
 ];
