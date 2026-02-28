@@ -4,5 +4,8 @@
     },
     "terminal.integrated.env.windows": {
         "CARGOSYNC_ROOT": "${workspaceFolder}"
+    },
+    "chat.tools.terminal.autoApprove": {
+        "npm run build": true
     }
 }

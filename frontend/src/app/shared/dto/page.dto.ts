@@ -1,11 +1,6 @@
+import { PageMetadataDto } from './page-metadata.dto';
+
 export interface PageDto<T> {
   content: T[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-  first: boolean;
-  last: boolean;
-  numberOfElements: number;
-  empty: boolean;
+  page: PageMetadataDto;
 }

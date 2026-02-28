@@ -1,0 +1,87 @@
+@if (isDialogMode) {
+  <h2 mat-dialog-title>New manager</h2>
+
+  <div mat-dialog-content class="dialog-content">
+    <p class="subtitle">Create a manager account.</p>
+    <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="grid-2">
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" autocomplete="off" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" autocomplete="off" />
+        </mat-form-field>
+      </div>
+
+      <div class="file" aria-label="Avatar file upload">
+        <mat-form-field appearance="outline" class="file-field">
+          <mat-label>Avatar image</mat-label>
+          <input matInput [value]="selectedAvatarName || 'No file selected'" readonly />
+          <button mat-button matSuffix type="button" (click)="managerAvatarDialogInput.click()">Browse</button>
+        </mat-form-field>
+        <input
+          #managerAvatarDialogInput
+          class="hidden-file-input"
+          type="file"
+          accept="image/*"
+          (change)="onAvatarSelected($event)"
+        />
+      </div>
+    </form>
+  </div>
+
+  <div mat-dialog-actions align="end" class="actions">
+    <button mat-button (click)="dialogRef?.close(false)" [disabled]="loading">Cancel</button>
+    <button mat-flat-button color="primary" (click)="submit()" [disabled]="loading || form.invalid">
+      {{ loading ? 'Creating…' : 'Create manager' }}
+    </button>
+  </div>
+} @else {
+  <mat-card class="card">
+    <mat-card-header>
+      <mat-card-title>New manager</mat-card-title>
+      <mat-card-subtitle>Create a manager account.</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+        <div class="grid-2">
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" autocomplete="off" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Username</mat-label>
+            <input matInput formControlName="username" autocomplete="off" />
+          </mat-form-field>
+        </div>
+
+        <div class="file" aria-label="Avatar file upload">
+          <mat-form-field appearance="outline" class="file-field">
+            <mat-label>Avatar image</mat-label>
+            <input matInput [value]="selectedAvatarName || 'No file selected'" readonly />
+            <button mat-button matSuffix type="button" (click)="managerAvatarPageInput.click()">Browse</button>
+          </mat-form-field>
+          <input
+            #managerAvatarPageInput
+            class="hidden-file-input"
+            type="file"
+            accept="image/*"
+            (change)="onAvatarSelected($event)"
+          />
+        </div>
+
+        <div class="actions">
+          <a mat-button routerLink="/managers">Cancel</a>
+          <button mat-flat-button color="primary" type="submit" [disabled]="loading || form.invalid">
+            {{ loading ? 'Creating…' : 'Create manager' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}

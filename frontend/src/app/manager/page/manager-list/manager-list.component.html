@@ -1,0 +1,69 @@
+<section class="page">
+  <header class="page-header">
+    <div class="title">
+      <h1>Managers</h1>
+      <p>Search and manage manager accounts.</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-flat-button color="primary" (click)="openCreate()">New manager</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <div class="toolbar">
+      <mat-form-field appearance="outline" class="search">
+        <mat-label>Search managers</mat-label>
+        <input matInput [formControl]="form.controls.query" placeholder="Username or email…" />
+      </mat-form-field>
+    </div>
+
+    <div class="table-wrap" *ngIf="items.length > 0">
+      <table class="table" aria-label="Managers list">
+        <thead>
+          <tr>
+            <th>Manager</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row" *ngFor="let m of items; trackBy: trackByUsername">
+            <td>
+              <div class="manager-cell">
+                <div class="avatar" [attr.aria-label]="m.username">
+                  <img *ngIf="m.owner.avatar; else initials" [src]="m.owner.avatar" alt="" />
+                  <ng-template #initials>
+                    <span>{{ (m.username || '?').slice(0, 1).toUpperCase() }}</span>
+                  </ng-template>
+                </div>
+                <span class="name">{{ m.username }}</span>
+              </div>
+            </td>
+            <td class="muted">{{ m.owner.email || '—' }}</td>
+            <td>
+              <span class="chip" *ngIf="!m.credentialsNonExpired">Password change required</span>
+              <span class="muted" *ngIf="m.credentialsNonExpired">OK</span>
+            </td>
+            <td class="actions-col">
+              <button mat-stroked-button color="warn" (click)="toggleBlock(m)" [disabled]="m.username === 'admin'">
+                {{ m.accountNonLocked ? 'Block' : 'Unblock' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer" *ngIf="!loading && !last">
+      <button mat-button (click)="loadMore()" [disabled]="loadingMore">
+        {{ loadingMore ? 'Loading…' : 'Load more' }}
+      </button>
+    </div>
+
+    <div class="empty" *ngIf="!loading && items.length === 0">
+      No managers found.
+    </div>
+  </section>
+</section>

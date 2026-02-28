@@ -25,3 +25,7 @@ security:
     allowed-headers: ["*"]
     allowed-origins:
       - "*"
+  auth:
+    jwt:
+      access-token:
+        ttl: 24h

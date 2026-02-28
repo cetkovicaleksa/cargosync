@@ -5,7 +5,6 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { TokenResponseDto } from '../dto/token-response.dto';
 import { LoginRequestDto } from '../dto/login-request.dto';
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { User } from '../../shared/model/user.model';
 import { AccountDto } from '../dto/account.dto';
 import {DecodedToken} from '../model/decoded-token.model';
 
@@ -45,7 +44,7 @@ export class AuthService {
       this.loadUserFromToken(response.accessToken);
       this.isLoggedInSubject.next(true);
 
-      this.refreshMe().subscribe({ error: () => void 0 });
+      // this.refreshMe().subscribe({ error: () => void 0 });
     }
   }
 

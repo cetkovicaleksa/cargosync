@@ -42,6 +42,11 @@ export class NavBar {
       visible: () => true,
     },
     {
+      key: '/product',
+      label: 'Products',
+      visible: () => this.loggedIn(),
+    },
+    {
       key: '/managers',
       label: 'Managers',
       visible: () => this.loggedIn() && this.canManageManagers(),
