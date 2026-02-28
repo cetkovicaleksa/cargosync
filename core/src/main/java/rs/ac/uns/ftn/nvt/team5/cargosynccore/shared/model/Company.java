@@ -23,7 +23,7 @@ public class Company extends AbstractPersistable {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "customer_id", nullable = false, updatable = false)
+    @JoinColumn(name = "owner_id", nullable = false, updatable = false)
     private Customer owner;
 
     @NotBlank
