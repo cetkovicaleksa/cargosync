@@ -7,6 +7,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -92,6 +93,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUserBlockedException(UserBlockedException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
                 new ErrorResponse("UserBlocked", e.getMessage())
+        );
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> handleDisabledException(DisabledException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                new ErrorResponse("AccountInactive", "Account is not activated. Please check your email.")
         );
     }
 

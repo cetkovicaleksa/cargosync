@@ -22,7 +22,13 @@ services:
     expose: ["8086"]
     volumes:
       - influxdb-data:/var/lib/influxdb2:rw
-    networks: 
+    networks:
+      - cargo-net
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    expose: ["1025", "8025"]
+    networks:
       - cargo-net
 
 volumes:

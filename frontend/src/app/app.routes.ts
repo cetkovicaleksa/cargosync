@@ -5,6 +5,8 @@ import { RoleGuard } from './role.guard';
 
 import { SignInComponent } from './auth/page/signin/signin.component';
 import { ForcePasswordChangeComponent } from './auth/page/force-password-change/force-password-change.component';
+import { RegisterComponent } from './auth/page/register/register.component';
+import { ActivateComponent } from './auth/page/activate/activate.component';
 import { ManagerListComponent } from './manager/page/manager-list/manager-list.component';
 import { ProductListComponent } from './product/page/product-list/product-list.component';
 
@@ -18,6 +20,8 @@ export const routes: Routes = [
     {path: 'home', component: HomeComponent},
 
     { path: 'signin', component: SignInComponent },
+    { path: 'register', component: RegisterComponent },
+    { path: 'auth/activate', component: ActivateComponent },
 
     {
       path: 'password-change',
