@@ -1,0 +1,106 @@
+<section class="page">
+  <header class="page-header">
+    <div class="title">
+      <h1>Shop</h1>
+      <p>Browse available products and add them to your cart.</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-button (click)="reload()">Refresh</button>
+      <button mat-flat-button (click)="openCheckout()"
+              [disabled]="cart.count === 0"
+              [matBadge]="cart.count > 0 ? cart.count : null"
+              matBadgeColor="warn">
+        <mat-icon>shopping_cart</mat-icon>
+        Cart
+      </button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <section class="filters">
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Name</mat-label>
+        <input matInput [formControl]="form.controls.name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Category</mat-label>
+        <input matInput [formControl]="form.controls.categoryName" [matAutocomplete]="catAuto" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Min price</mat-label>
+        <input matInput type="number" [formControl]="form.controls.minPrice" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Max price</mat-label>
+        <input matInput type="number" [formControl]="form.controls.maxPrice" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Sort</mat-label>
+        <mat-select [formControl]="form.controls.sort">
+          <mat-option value="name,asc">Name (A–Z)</mat-option>
+          <mat-option value="name,desc">Name (Z–A)</mat-option>
+          <mat-option value="price,asc">Price ascending</mat-option>
+          <mat-option value="price,desc">Price descending</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </section>
+
+    <mat-autocomplete #catAuto="matAutocomplete">
+      <mat-option *ngFor="let c of filteredCategoryOptions" [value]="c">{{ c }}</mat-option>
+    </mat-autocomplete>
+
+    <div class="loading" *ngIf="loading">
+      <mat-spinner diameter="36" />
+    </div>
+
+    <section class="grid" *ngIf="!loading">
+      <article class="card" *ngFor="let p of items; trackBy: trackById">
+        <div class="card-image">
+          @if (p.imageUrl) {
+            <img [src]="p.imageUrl" [alt]="p.name" />
+          } @else {
+            <div class="no-image">
+              <mat-icon>inventory_2</mat-icon>
+            </div>
+          }
+          <span class="stock-badge" [class.out]="(p.totalStock ?? 0) <= 0">
+            {{ (p.totalStock ?? 0) > 0 ? (p.totalStock + ' in stock') : 'Out of stock' }}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <p class="card-category">{{ p.categoryName }}</p>
+          <h3 class="card-name">{{ p.name }}</h3>
+          <p class="card-meta">{{ p.weight }} kg</p>
+          <div class="card-footer">
+            <span class="card-price">€{{ p.price | number:'1.2-2' }}</span>
+            <button mat-stroked-button
+                    [disabled]="(p.totalStock ?? 0) <= 0"
+                    (click)="addToCart(p)">
+              @if (cartQuantity(p) > 0) {
+                In cart ({{ cartQuantity(p) }})
+              } @else {
+                Add to cart
+              }
+            </button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div class="empty" *ngIf="!loading && items.length === 0">
+      No products found.
+    </div>
+
+    <div class="footer" *ngIf="!loading && !last">
+      <button mat-button (click)="loadMore()" [disabled]="loadingMore">
+        {{ loadingMore ? 'Loading…' : 'Load more' }}
+      </button>
+    </div>
+  </section>
+</section>

@@ -1,0 +1,154 @@
+.page {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 12px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.page-header p {
+  margin: 4px 0 0;
+  opacity: 0.75;
+}
+
+.panel {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+}
+
+.loading {
+  display: grid;
+  place-items: center;
+  padding: 40px 0;
+}
+
+/* Expansion panel header */
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-desc {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.order-id {
+  font-family: monospace;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.order-total {
+  font-weight: 700;
+  margin-left: auto;
+}
+
+.order-date {
+  opacity: 0.65;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* Status badges */
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  white-space: nowrap;
+}
+
+.status-confirmed   { background: rgba(25, 118, 210, 0.12); color: #1565c0; }
+.status-processing  { background: rgba(245, 124, 0, 0.12);  color: #e65100; }
+.status-shipped     { background: rgba(56, 142, 60, 0.12);  color: #2e7d32; }
+.status-delivered   { background: rgba(56, 142, 60, 0.2);   color: #1b5e20; }
+.status-cancelled   { background: rgba(198, 40, 40, 0.12);  color: #b71c1c; }
+
+/* Order detail */
+.order-detail {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.detail-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.detail-info mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+}
+
+.muted {
+  opacity: 0.65;
+}
+
+/* Items table */
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.items-table th,
+.items-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.items-table th {
+  background: rgba(0, 0, 0, 0.04);
+  font-weight: 600;
+}
+
+.items-table tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.items-table tfoot td {
+  border-top: 2px solid rgba(0, 0, 0, 0.1);
+  border-bottom: none;
+}
+
+.bold { font-weight: 600; }
+.grand-label { opacity: 0.7; }
+.grand-total { font-weight: 700; font-size: 15px; }
+
+.empty {
+  padding: 24px 0;
+  opacity: 0.75;
+}
+
+.footer {
+  display: grid;
+  place-items: center;
+  padding: 8px 0;
+}
