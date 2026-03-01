@@ -21,7 +21,7 @@ public class Warehouse extends AbstractAuditable {
     @Column(nullable = false)
     private String address;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumns({
         @JoinColumn(name = "city_country_code", referencedColumnName = "country_code"),
         @JoinColumn(name = "city_code", referencedColumnName = "code")

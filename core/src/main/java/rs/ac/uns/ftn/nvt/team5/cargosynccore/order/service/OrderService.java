@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.model.Company;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.order.dto.CreateOrderRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.order.dto.OrderItemRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.order.model.Order;
@@ -18,7 +19,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.BadRequestExceptio
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.ForbiddenException;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.NotFoundException;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.CompanyRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.repository.CompanyRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.CustomerRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.WarehouseInventoryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;

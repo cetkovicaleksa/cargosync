@@ -1,4 +1,4 @@
-package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model;
+package rs.ac.uns.ftn.nvt.team5.cargosynccore.company.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,4 +48,5 @@ public class Company extends AbstractPersistable {
     @Size(min = 1, max = 32)
     @ElementCollection
     private List<@NotBlank String> images = new ArrayList<>();
+
 }

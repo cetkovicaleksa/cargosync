@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.AccountRole;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.repository.AccountRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.model.Company;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.repository.CompanyRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.repository.ProductRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.*;
