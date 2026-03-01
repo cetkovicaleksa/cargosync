@@ -17,6 +17,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.EmailService;
 
+import java.util.List;
 import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
@@ -37,6 +38,11 @@ public class CompanyService {
     public Company getCompany(UUID id) {
         return companies.findById(id)
                 .orElseThrow(() -> new NotFoundException("Company not found"));
+    }
+
+    @Transactional(readonly = true)
+    public List<Company> getCustomerCompanies(UUID customerId) {
+        return companies.findAllByOwner_id(customerId);
     }
 
     @Transactional(readOnly = true)
