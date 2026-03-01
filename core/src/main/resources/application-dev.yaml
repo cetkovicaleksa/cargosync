@@ -8,7 +8,7 @@ spring:
   rabbitmq:
     listener:
       simple:
-        auto-startup: false
+        auto-startup: true
   jpa:
     show-sql: true
     generate-ddl: true
