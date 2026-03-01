@@ -16,7 +16,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { NgFor, NgIf } from '@angular/common';
-import { Subject, forkJoin, of, switchMap, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import * as L from 'leaflet';
 
 import { FactoryDto } from '../../dto/factory.dto';
@@ -24,7 +24,6 @@ import { FactoryService } from '../../service/factory.service';
 import { CountryOptionDto } from '../../dto/country-option.dto';
 import { CityOptionDto } from '../../dto/city-option.dto';
 import { SaveFactoryRequestDto } from '../../dto/save-factory-request.dto';
-import { ImageUploadService } from '../../../shared/service/image-upload.service';
 import { ImagePreviewDialogComponent } from '../../../shared/dialog/image-preview-dialog/image-preview-dialog.component';
 import { ProtectedImageComponent } from "../../../shared/util/protected-image.component";
 
@@ -64,7 +63,6 @@ export type FactoryEditDialogData =
 export class FactoryEditDialogComponent implements AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly factories = inject(FactoryService);
-  private readonly upload = inject(ImageUploadService);
   private readonly snack = inject(MatSnackBar);
   private readonly dialogRef = inject(MatDialogRef<FactoryEditDialogComponent, FactoryDto | undefined>);
   private readonly dialog = inject(MatDialog);
@@ -233,35 +231,26 @@ export class FactoryEditDialogComponent implements AfterViewInit, OnDestroy {
     this.submitting = true;
 
     const selectedFiles = this.selectedImagePreviews.map((x) => x.file);
-    const upload$ = selectedFiles.length
-      ? forkJoin(selectedFiles.map((file) => this.upload.uploadImage(file)))
-      : of<string[]>([]);
+    const value = this.form.getRawValue();
 
-    upload$
-      .pipe(
-        switchMap((newImages) => {
-          const value = this.form.getRawValue();
+    const request: SaveFactoryRequestDto = {
+      name: value.name.trim(),
+      street: value.street.trim(),
+      countryCode: value.countryCode,
+      cityCode: value.cityCode,
+      imageUrls: [...this.existingImageUrls],
+      location: {
+        latitude: Number(value.latitude),
+        longitude: Number(value.longitude),
+      },
+      version: this.data.mode === 'edit' ? this.data.factory.version : null,
+    };
 
-          const request: SaveFactoryRequestDto = {
-            name: value.name.trim(),
-            street: value.street.trim(),
-            countryCode: value.countryCode,
-            cityCode: value.cityCode,
-            imageUrls: [...this.existingImageUrls, ...newImages],
-            location: {
-              latitude: Number(value.latitude),
-              longitude: Number(value.longitude),
-            },
-            version: this.data.mode === 'edit' ? this.data.factory.version : null,
-          };
+    const request$ = this.data.mode === 'create'
+      ? this.factories.create(request, selectedFiles)
+      : this.factories.update(this.data.factory.id, request, selectedFiles);
 
-          if (this.data.mode === 'create') {
-            return this.factories.create(request);
-          }
-
-          return this.factories.update(this.data.factory.id, request);
-        }),
-      )
+    request$
       .subscribe({
         next: (saved) => {
           this.submitting = false;

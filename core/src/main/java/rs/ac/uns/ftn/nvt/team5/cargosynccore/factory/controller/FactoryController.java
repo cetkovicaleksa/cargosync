@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactorySearchFilter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.SaveFactoryRequest;
@@ -33,17 +35,24 @@ public class FactoryController {
     public record CountryOptionDto(String code, String name) {}
     public record CityOptionDto(String code, String name) {}
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.CREATED)
-    public FactoryDto createFactory(@RequestBody @Valid SaveFactoryRequest request) {
-        return mapToDto(factoryService.createFactory(request));
+    public FactoryDto createFactory(
+            @RequestPart("data") @Valid SaveFactoryRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) {
+        return mapToDto(factoryService.createFactory(request, images));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
-    public FactoryDto updateFactory(@PathVariable UUID id, @RequestBody @Valid SaveFactoryRequest request) {
-        return mapToDto(factoryService.updateFactory(id, request));
+    public FactoryDto updateFactory(
+            @PathVariable UUID id,
+            @RequestPart("data") @Valid SaveFactoryRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) {
+        return mapToDto(factoryService.updateFactory(id, request, images));
     }
 
     @GetMapping

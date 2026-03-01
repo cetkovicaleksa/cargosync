@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductMapper;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductSearchFilter;
@@ -22,17 +24,24 @@ public class ProductController {
 
     private final ProductService productService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.CREATED)
-    public ProductDto createProduct(@RequestBody @Valid SaveProductRequest request) {
-        return ProductMapper.mapToDto(productService.createProduct(request));
+    public ProductDto createProduct(
+            @RequestPart("data") @Valid SaveProductRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        return ProductMapper.mapToDto(productService.createProduct(request, image));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
-    public ProductDto updateProduct(@PathVariable UUID id, @RequestBody @Valid SaveProductRequest request) {
-        return ProductMapper.mapToDto(productService.updateProduct(id, request));
+    public ProductDto updateProduct(
+            @PathVariable UUID id,
+            @RequestPart("data") @Valid SaveProductRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        return ProductMapper.mapToDto(productService.updateProduct(id, request, image));
     }
 
     @GetMapping

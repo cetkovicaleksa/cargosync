@@ -1,7 +1,7 @@
 import { Component, OnDestroy, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Observable, Subject, debounceTime, distinctUntilChanged, finalize, map, of, startWith, switchMap, takeUntil } from 'rxjs';
+import { Observable, Subject, debounceTime, distinctUntilChanged, finalize, map, of, startWith, takeUntil } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -15,7 +15,6 @@ import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { ProductService } from '../../service/product.service';
 import { ProductDto } from '../../dto/product.dto';
 import { SaveProductRequestDto } from '../../dto/save-product-request.dto';
-import { ImageUploadService } from '../../../shared/service/image-upload.service';
 import { ProductCategoryService } from '../../service/product-category.service';
 import { FactoryService } from '../../../factory/service/factory.service';
 import { FactoryDto } from '../../../factory/dto/factory.dto';
@@ -55,7 +54,6 @@ export class ProductEditDialogComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly products = inject(ProductService);
   private readonly snack = inject(MatSnackBar);
-  private readonly imageUpload = inject(ImageUploadService);
   private readonly categories = inject(ProductCategoryService);
   private readonly factories = inject(FactoryService);
 
@@ -246,7 +244,7 @@ export class ProductEditDialogComponent implements OnDestroy {
 
     const req: SaveProductRequestDto = {
       name: v.name.trim(),
-      imageUrl: null,
+      imageUrl: this.data.mode === 'edit' ? (this.data.product.imageUrl ?? null) : null,
       price: Number(v.price),
       weight: Number(v.weight),
       isForSale: !!v.isForSale,
@@ -257,23 +255,12 @@ export class ProductEditDialogComponent implements OnDestroy {
 
     this.loading = true;
 
-    const uploadOrKeepImage$ = this.selectedImageFile
-      ? this.imageUpload.uploadImage(
-        this.selectedImageFile,
-        this.imageUpload.generateRandomImageName(this.selectedImageFile),
-      )
-      : of(this.data.mode === 'edit' ? this.data.product.imageUrl : null);
+    const request$ = this.data.mode === 'create'
+      ? this.products.create(req, this.selectedImageFile)
+      : this.products.update(this.data.product.id, req, this.selectedImageFile);
 
-    uploadOrKeepImage$
-      .pipe(
-        switchMap((imageUrl) => {
-          req.imageUrl = imageUrl;
-          return this.data.mode === 'create'
-            ? this.products.create(req)
-            : this.products.update(this.data.product.id, req);
-        }),
-        finalize(() => (this.loading = false)),
-      )
+    request$
+      .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (saved) => this.ref.close(saved),
         error: (err) => {

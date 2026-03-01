@@ -11,8 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactorySearchFilter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.SaveFactoryRequest;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.BadRequestException;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.City;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.FactoryStatus;
@@ -20,25 +22,33 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.GeoLocation;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.CityRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository.FactoryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository.FactoryStatusRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class FactoryService {
 
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/webp"
+    );
+    private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
+
     private final FactoryRepository factoryRepository;
     private final FactoryStatusRepository factoryStatusRepository;
     private final CityRepository cityRepository;
+    private final ContentStore contentStore;
 
     @Transactional
-    public Factory createFactory(SaveFactoryRequest request) {
+    public Factory createFactory(SaveFactoryRequest request, List<MultipartFile> images) {
         Factory factory = new Factory();
-        Factory savedFactory = saveOrUpdate(factory, request);
+        Factory savedFactory = saveOrUpdate(factory, request, images);
 
         FactoryStatus status = new FactoryStatus(savedFactory);
         factoryStatusRepository.save(status);
@@ -48,7 +58,7 @@ public class FactoryService {
 
 //    @CachePut(value = "factories", key = "#id")
     @Transactional
-    public Factory updateFactory(UUID id, SaveFactoryRequest request) {
+    public Factory updateFactory(UUID id, SaveFactoryRequest request, List<MultipartFile> images) {
         Factory factory = factoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Factory not found"));
 
@@ -56,7 +66,7 @@ public class FactoryService {
             factory.setVersion(request.version());
         }
 
-        return saveOrUpdate(factory, request);
+        return saveOrUpdate(factory, request, images);
     }
 
 //    @Cacheable(value = "factories", key = "#id")
@@ -103,7 +113,7 @@ public class FactoryService {
         factoryRepository.deleteById(id);
     }
 
-    private Factory saveOrUpdate(Factory factory, SaveFactoryRequest request) {
+    private Factory saveOrUpdate(Factory factory, SaveFactoryRequest request, List<MultipartFile> images) {
         City city = cityRepository.findByCountryCodeAndCode(request.countryCode(), request.cityCode())
                 .orElseThrow(() -> new EntityNotFoundException("City not found"));
 
@@ -114,10 +124,56 @@ public class FactoryService {
         factory.setCountryCode(request.countryCode());
         factory.setCityCode(request.cityCode());
 
-        if (request.imageUrls() != null) {
-            factory.setImageUrls(new HashSet<>(request.imageUrls()));
-        }
+        Set<String> mergedImageUrls = new HashSet<>(request.imageUrls() == null ? Set.of() : request.imageUrls());
+        mergedImageUrls.addAll(saveImages(images));
+        factory.setImageUrls(mergedImageUrls);
 
         return factoryRepository.save(factory);
+    }
+
+    private List<String> saveImages(List<MultipartFile> images) {
+        if (images == null || images.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> savedPaths = new ArrayList<>();
+        for (MultipartFile image : images) {
+            if (image == null || image.isEmpty()) {
+                continue;
+            }
+            validateImage(image);
+            savedPaths.add(saveImage(image));
+        }
+        return savedPaths;
+    }
+
+    private void validateImage(MultipartFile image) {
+        String contentType = image.getContentType();
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+            throw new BadRequestException("Images must be JPG, PNG, or WebP files");
+        }
+        if (image.getSize() > MAX_IMAGE_SIZE) {
+            throw new BadRequestException("Each image must not exceed 10 MB");
+        }
+    }
+
+    private String saveImage(MultipartFile image) {
+        String ext = extensionOrDefault(image.getOriginalFilename(), "jpg");
+        String path = "factories/" + UUID.randomUUID() + "." + ext;
+        contentStore.save(path, image);
+        return path;
+    }
+
+    private String extensionOrDefault(String originalFilename, String fallback) {
+        if (originalFilename == null) {
+            return fallback;
+        }
+
+        int index = originalFilename.lastIndexOf('.');
+        if (index < 0 || index == originalFilename.length() - 1) {
+            return fallback;
+        }
+
+        return originalFilename.substring(index + 1).toLowerCase();
     }
 }

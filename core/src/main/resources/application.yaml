@@ -47,6 +47,8 @@ app:
   frontend-url: ${CARGOSYNC_FRONTEND_URL:http://localhost:4200}
   activation-token-ttl: 24h
   manager-password-file: ${CARGOSYNC_MANAGER_PASSWORD_FILE:manager_passwords.txt}
+  supermanager-email: ${CARGOSYNC_SUPERMANAGER_EMAIL:admin@cargosync.rs}
+  supermanager-username: ${CARGOSYNC_SUPERMANAGER_USERNAME:admin}
 
 security:
   public-endpoints:

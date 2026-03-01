@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { finalize, switchMap } from 'rxjs';
+import { finalize } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,7 +10,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ManagerService } from '../../service/manager.service';
-import { ImageUploadService } from '../../../shared/service/image-upload.service';
 
 type ManagerCreateData = { mode: 'create' };
 
@@ -35,7 +34,6 @@ export class ManagerCreateComponent {
   private readonly managers = inject(ManagerService);
   private readonly router = inject(Router);
   private readonly snack = inject(MatSnackBar);
-  private readonly imageUpload = inject(ImageUploadService);
   readonly dialogRef = inject(MatDialogRef<ManagerCreateComponent>, { optional: true });
   readonly dialogData = inject<ManagerCreateData | null>(MAT_DIALOG_DATA, { optional: true });
 
@@ -70,13 +68,8 @@ export class ManagerCreateComponent {
     this.loading = true;
     const { email, username } = this.form.getRawValue();
 
-    const imageName = this.imageUpload.generateRandomImageName(this.avatarFile);
-
-    this.imageUpload.uploadImage(this.avatarFile, imageName)
-      .pipe(
-        switchMap((avatarUrl) => this.managers.createManager({ email, username, avatarUrl })),
-        finalize(() => (this.loading = false)),
-      )
+    this.managers.createManager({ email, username }, this.avatarFile)
+      .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: () => {
           this.snack.open('Manager created successfully.', 'Close', { duration: 3000 });

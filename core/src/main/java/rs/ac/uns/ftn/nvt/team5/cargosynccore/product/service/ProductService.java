@@ -8,35 +8,45 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductSearchFilter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.SaveProductRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.repository.ProductRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.BadRequestException;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Product;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.ProductCategory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository.FactoryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.ProductCategoryRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
 
+    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/webp"
+    );
+    private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
+
     private final ProductRepository productRepository;
     private final ProductCategoryRepository categoryRepository;
     private final FactoryRepository factoryRepository;
+    private final ContentStore contentStore;
 
     @Transactional
-    public Product createProduct(SaveProductRequest request) {
+    public Product createProduct(SaveProductRequest request, MultipartFile image) {
         Product product = new Product();
-        return saveOrUpdate(product, request);
+        return saveOrUpdate(product, request, image);
     }
 
     @Transactional
-    public Product updateProduct(UUID id, SaveProductRequest request) {
+    public Product updateProduct(UUID id, SaveProductRequest request, MultipartFile image) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
 
@@ -44,10 +54,10 @@ public class ProductService {
             product.setVersion(request.version());
         }
 
-        return saveOrUpdate(product, request);
+        return saveOrUpdate(product, request, image);
     }
 
-    private Product saveOrUpdate(Product product, SaveProductRequest request)
+    private Product saveOrUpdate(Product product, SaveProductRequest request, MultipartFile image)
             throws OptimisticLockingFailureException {
         String normalizedCatName = request.categoryName().trim();
         ProductCategory category = categoryRepository.findByNameIgnoreCase(normalizedCatName)
@@ -58,7 +68,7 @@ public class ProductService {
                 });
 
         product.setName(request.name());
-        product.setImageUrl(request.imageUrl());
+        product.setImageUrl(resolveImageUrl(request.imageUrl(), image));
         product.setPrice(request.price());
         product.setWeight(request.weight());
         product.setForSale(request.isForSale());
@@ -72,6 +82,45 @@ public class ProductService {
         }
 
         return productRepository.save(product);
+    }
+
+    private String resolveImageUrl(String currentImageUrl, MultipartFile image) {
+        if (image == null || image.isEmpty()) {
+            return currentImageUrl;
+        }
+
+        validateImage(image);
+        return saveImage(image);
+    }
+
+    private void validateImage(MultipartFile image) {
+        String contentType = image.getContentType();
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+            throw new BadRequestException("Image must be a JPG, PNG, or WebP image");
+        }
+        if (image.getSize() > MAX_IMAGE_SIZE) {
+            throw new BadRequestException("Image must not exceed 10 MB");
+        }
+    }
+
+    private String saveImage(MultipartFile image) {
+        String ext = extensionOrDefault(image.getOriginalFilename(), "jpg");
+        String path = "products/" + UUID.randomUUID() + "." + ext;
+        contentStore.save(path, image);
+        return path;
+    }
+
+    private String extensionOrDefault(String originalFilename, String fallback) {
+        if (originalFilename == null) {
+            return fallback;
+        }
+
+        int index = originalFilename.lastIndexOf('.');
+        if (index < 0 || index == originalFilename.length() - 1) {
+            return fallback;
+        }
+
+        return originalFilename.substring(index + 1).toLowerCase();
     }
 
     @Transactional(readOnly = true)

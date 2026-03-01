@@ -5,6 +5,5 @@ import jakarta.validation.constraints.NotBlank;
 
 public record CreateManagerRequest(
     @NotBlank @Email String email,
-    @NotBlank String username,
-    String avatarUrl
+    @NotBlank String username
 ) {}

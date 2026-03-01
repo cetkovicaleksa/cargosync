@@ -44,12 +44,18 @@ export class FactoryService {
     return this.http.get<FactoryDto[]>(`${this.apiUrl}/by-ids`, { params });
   }
 
-  create(request: SaveFactoryRequestDto): Observable<FactoryDto> {
-    return this.http.post<FactoryDto>(this.apiUrl, request);
+  create(request: SaveFactoryRequestDto, images: File[] = []): Observable<FactoryDto> {
+    const formData = new FormData();
+    formData.append('data', new Blob([JSON.stringify(request)], { type: 'application/json' }));
+    images.forEach((image) => formData.append('images', image));
+    return this.http.post<FactoryDto>(this.apiUrl, formData);
   }
 
-  update(id: string, request: SaveFactoryRequestDto): Observable<FactoryDto> {
-    return this.http.put<FactoryDto>(`${this.apiUrl}/${encodeURIComponent(id)}`, request);
+  update(id: string, request: SaveFactoryRequestDto, images: File[] = []): Observable<FactoryDto> {
+    const formData = new FormData();
+    formData.append('data', new Blob([JSON.stringify(request)], { type: 'application/json' }));
+    images.forEach((image) => formData.append('images', image));
+    return this.http.put<FactoryDto>(`${this.apiUrl}/${encodeURIComponent(id)}`, formData);
   }
 
   delete(id: string): Observable<void> {
