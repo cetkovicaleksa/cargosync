@@ -26,6 +26,7 @@ export class NavBar {
   private readonly loggedIn = signal<boolean>(this.auth.isLoggedIn());
   private readonly canManageManagers = signal<boolean>(this.auth.hasAuthority('MANAGE_MANAGERS'));
   private readonly isCustomer = signal<boolean>(this.auth.hasAuthority('ROLE_CUSTOMER'));
+  private readonly isManager = signal<boolean>(this.auth.hasAuthority('ROLE_MANAGER'));
   private readonly username = signal<string | null>(this.auth.getMe()?.username ?? null);
 
   constructor() {
@@ -34,6 +35,7 @@ export class NavBar {
       this.username.set(me?.username ?? null);
       this.canManageManagers.set(this.auth.hasAuthority('MANAGE_MANAGERS'));
       this.isCustomer.set(this.auth.hasAuthority('ROLE_CUSTOMER'));
+      this.isManager.set(this.auth.hasAuthority('ROLE_MANAGER'));
     });
   }
 
@@ -57,6 +59,11 @@ export class NavBar {
       key: '/orders',
       label: 'My Orders',
       visible: () => this.loggedIn() && this.isCustomer(),
+    },
+    {
+      key: '/warehouses',
+      label: 'Warehouses',
+      visible: () => this.loggedIn() && this.isManager(),
     },
     {
       key: '/managers',
