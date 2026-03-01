@@ -9,7 +9,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.model.CompanyRequest;
 import java.util.List;
 import java.util.UUID;
 
-interface CompanyRequestRepository extends JpaRepository<CompanyRequest, UUID> {
+public interface CompanyRequestRepository extends JpaRepository<CompanyRequest, UUID> {
     List<CompanyRequest> findAllByStatus(CompanyRequest.Status status);
     List<CompanyRequest> findAllByStatus(CompanyRequest.Status status, Sort sort);
     Page<CompanyRequest> findAllByStatus(CompanyRequest.Status status, Pageable pageable);

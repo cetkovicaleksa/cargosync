@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.model.Company;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.service.CompanyService;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.order.dto.CreateOrderRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.order.dto.OrderItemRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.order.model.Order;
@@ -19,7 +20,6 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.BadRequestExceptio
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.ForbiddenException;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.NotFoundException;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.repository.CompanyRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.CustomerRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.WarehouseInventoryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;
@@ -38,7 +38,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyService companyService;
     private final ProductRepository productRepository;
     private final WarehouseInventoryRepository inventoryRepository;
     private final InvoiceService invoiceService;
@@ -60,8 +60,7 @@ public class OrderService {
     @Transactional
     public Order createOrder(Account account, CreateOrderRequest request) {
         Customer customer = resolveCustomer(account);
-        Company company = companyRepository.findById(request.companyId())
-                .orElseThrow(() -> new NotFoundException("Company not found: " + request.companyId()));
+        Company company = companyService.getCompany(request.companyId());
 
         // Sort by product UUID string for consistent lock ordering → prevents deadlocks
         List<OrderItemRequest> sortedItems = request.items().stream()

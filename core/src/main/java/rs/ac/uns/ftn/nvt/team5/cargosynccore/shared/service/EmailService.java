@@ -10,6 +10,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.config.properties.AppProperties;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.order.model.Order;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -65,6 +66,47 @@ public class EmailService {
         } catch (Exception e) {
             log.error("Failed to send activation email to {}: {}", to, e.getMessage());
             throw new RuntimeException("Failed to send activation email", e);
+        }
+    }
+
+    public void sendCompanyApprovedEmail(Customer to) {
+        var ctx = new Context();
+        ctx.setVariable("firstName", to.getFirstName());
+
+        String html = templateEngine.process("email/company-approved", ctx);
+
+        try {
+            var message = mailSender.createMimeMessage();
+            var helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to.getEmail());
+            helper.setSubject("Company Approved");
+            helper.setText(html, true);
+            mailSender.send(message);
+            log.info("Company approval email sent to {}", to.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send company approval email to {}: {}", to.getEmail(), e.getMessage());
+            throw new RuntimeException("Failed to send company approval email", e);
+        }
+    }
+
+    public void sendCompanyRejectedEmail(Customer to, String reason) {
+        var ctx = new Context();
+        ctx.setVariable("firstName", to.getFirstName());
+        ctx.setVariable("reason", reason);
+
+        String html = templateEngine.process("email/company-rejected", ctx);
+
+        try {
+            var message = mailSender.createMimeMessage();
+            var helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to.getEmail());
+            helper.setSubject("Company Rejected");
+            helper.setText(html, true);
+            mailSender.send(message);
+            log.info("Company rejection email sent to {}", to.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send company rejection email to {}: {}", to.getEmail(), e.getMessage());
+            throw new RuntimeException("Failed to send company rejection email", e);
         }
     }
 

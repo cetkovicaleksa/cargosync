@@ -18,6 +18,7 @@ public class UpdateVanUC {
     @Transactional
     public Van updateVan(UpdateVanForm vanRequest) {
         var van = vanService.getVan(vanRequest.getVin());
+        van.setVersion(vanRequest.getVersion());
 
         Optional.ofNullable(vanRequest.getRegistrationNumber())
                 .ifPresent(van::setRegistrationNumber);
