@@ -34,7 +34,8 @@ export const routes: Routes = [
     {
       path: 'product',
       component: ProductListComponent,
-      canActivate: [AuthGuard],
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_MANAGER'] },
     },
 
     {
