@@ -45,7 +45,7 @@ public class Product extends AbstractPersistable {
     @Column(nullable = false)
     private Long version;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
     private ProductCategory category;
 

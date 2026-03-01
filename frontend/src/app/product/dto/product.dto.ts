@@ -8,4 +8,5 @@ export interface ProductDto {
   categoryName: string;
   factoryIds: string[]; // UUID[]
   version: number; // optimistic locking
+  totalStock: number | null; // populated on /catalogue, null on manager CRUD
 }

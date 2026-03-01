@@ -5,14 +5,19 @@ server:
 spring:
   application:
     name: CargoSyncCore
-  autoconfigure:
-    exclude: org.springframework.boot.amqp.autoconfigure.RabbitAutoConfiguration
+  rabbitmq:
+    host: ${CARGOSYNC_RABBITMQ_HOST:localhost}
+    port: ${CARGOSYNC_RABBITMQ_PORT:5672}
+    username: ${CARGOSYNC_RABBITMQ_USERNAME:guest}
+    password: ${CARGOSYNC_RABBITMQ_PASSWORD:guest}
   jpa:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-#        id.new_generator_mappings: true
-#        uuid.generator: org.hibernate.id.UUIDGenerator
+#        jdbc:
+#          batch_size: 100
+#        order_updates: true
+#        order_inserts: true
   datasource:
     url: ${CARGOSYNC_DB_URL}
     username: ${CARGOSYNC_DB_USERNAME}
@@ -49,6 +54,11 @@ app:
   manager-password-file: ${CARGOSYNC_MANAGER_PASSWORD_FILE:manager_passwords.txt}
   supermanager-email: ${CARGOSYNC_SUPERMANAGER_EMAIL:admin@cargosync.rs}
   supermanager-username: ${CARGOSYNC_SUPERMANAGER_USERNAME:admin}
+  influx:
+    url: ${CARGOSYNC_INFLUX_URL:http://localhost:8086}
+    token: ${CARGOSYNC_INFLUX_TOKEN:}
+    org: ${CARGOSYNC_INFLUX_ORG:cargosync}
+    bucket: ${CARGOSYNC_INFLUX_BUCKET:cargosync}
 
 security:
   public-endpoints:
@@ -63,7 +73,7 @@ security:
     - /swagger-ui.html
     - /v3/api-docs/**
   cors:
-    allowed-headers: ["Authorization", "Content-Type", "Accept"]
+    allowed-headers: ["Authorization", "Content-Type", "Accept", "Content-Length", "User-Agent", "Accept-Encoding"]
     allowed-methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
   auth:
     jwt:

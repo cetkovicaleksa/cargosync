@@ -14,5 +14,6 @@ public record ProductDto(
         UUID categoryId,
         String categoryName,
         Set<UUID> factoryIds,
-        Long version // optimistic locking
+        Long version, // optimistic locking
+        Long totalStock  // null for manager CRUD responses, populated for customer listing
 ) {}
