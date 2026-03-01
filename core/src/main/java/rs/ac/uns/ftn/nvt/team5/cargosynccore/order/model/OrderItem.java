@@ -16,11 +16,11 @@ import java.math.BigDecimal;
 @Table(name = "order_items")
 public class OrderItem extends AbstractPersistable {
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false, updatable = false)
     private Order order;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", nullable = false, updatable = false)
     private Product product;
 

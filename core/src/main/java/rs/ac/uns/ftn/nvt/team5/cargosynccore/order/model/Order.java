@@ -24,12 +24,12 @@ import java.util.List;
 public class Order extends AbstractAuditable {
 
     @NotNull
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false, updatable = false)
     private Customer customer;
 
     @NotNull
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false, updatable = false)
     private Company company;
 
