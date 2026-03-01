@@ -1,11 +1,11 @@
-package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository;
+package rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository;
 
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.WarehouseInventory;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.WarehouseInventory;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,4 +39,8 @@ public interface WarehouseInventoryRepository extends JpaRepository<WarehouseInv
             "FROM WarehouseInventory wi " +
             "WHERE wi.product.id = :productId")
     Long findTotalStockByProductId(@Param("productId") UUID productId);
+
+    List<WarehouseInventory> findByWarehouseId(UUID warehouseId);
+
+    boolean existsByWarehouseIdAndQuantityGreaterThan(UUID warehouseId, long quantity);
 }

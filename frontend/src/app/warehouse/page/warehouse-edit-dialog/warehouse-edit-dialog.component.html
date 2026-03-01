@@ -1,0 +1,116 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<div mat-dialog-content class="content">
+  <form [formGroup]="form" class="form">
+
+    <div class="grid-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Address</mat-label>
+        <input matInput formControlName="address" />
+      </mat-form-field>
+    </div>
+
+    <div class="grid-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Country code</mat-label>
+        <input matInput formControlName="countryCode" placeholder="e.g. RS" maxlength="2" />
+        <mat-hint>2-letter ISO code</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>City code</mat-label>
+        <input matInput formControlName="cityCode" placeholder="e.g. NVS" maxlength="3" />
+        <mat-hint>3-character LOCODE</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <!-- Map -->
+    <div class="section-header">
+      <span class="section-title">Location</span>
+      <span class="coords-label">{{ latLonLabel }}</span>
+    </div>
+    <div #mapContainer class="map-container"></div>
+
+    <!-- Sectors -->
+    <div class="section-header">
+      <span class="section-title">Sectors</span>
+      <button mat-stroked-button type="button" (click)="addSector()">
+        <mat-icon>add</mat-icon> Add sector
+      </button>
+    </div>
+
+    <div formArrayName="sectors" class="sectors-list">
+      <div
+        *ngFor="let sector of sectorsArray.controls; let i = index"
+        [formGroupName]="i"
+        class="sector-row"
+      >
+        <mat-form-field appearance="outline" class="sector-name">
+          <mat-label>Sector name</mat-label>
+          <input matInput formControlName="name" placeholder="e.g. Cold Storage" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="sector-zone">
+          <mat-label>Climate zone</mat-label>
+          <mat-select formControlName="climateZone">
+            <mat-option [value]="null">— None —</mat-option>
+            <mat-option *ngFor="let z of climateZones" [value]="z.value">{{ z.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button type="button" color="warn" (click)="removeSector(i)" aria-label="Remove sector">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+
+      <p class="muted" *ngIf="sectorsArray.length === 0">No sectors defined.</p>
+    </div>
+
+    <!-- Existing images (edit mode) -->
+    <ng-container *ngIf="existingImages.length > 0">
+      <div class="section-header">
+        <span class="section-title">Existing images</span>
+      </div>
+      <div class="images-grid">
+        <div *ngFor="let img of existingImages" class="image-item" [class.marked-for-removal]="isMarkedForRemoval(img)">
+          <img [src]="img" [alt]="img" class="thumb" />
+          <button mat-stroked-button type="button" [color]="isMarkedForRemoval(img) ? 'primary' : 'warn'" (click)="toggleRemoveImage(img)">
+            {{ isMarkedForRemoval(img) ? 'Keep' : 'Remove' }}
+          </button>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- New images -->
+    <div class="section-header">
+      <span class="section-title">Add images</span>
+      <button mat-stroked-button type="button" (click)="imageInput.click()">
+        <mat-icon>upload</mat-icon> Choose files
+      </button>
+      <input #imageInput type="file" accept="image/*" multiple class="hidden-file-input" (change)="onImagesSelected($event)" />
+    </div>
+
+    <div *ngIf="newImageFiles.length > 0" class="new-images-list">
+      <div *ngFor="let f of newImageFiles; let i = index" class="new-image-row">
+        <mat-icon>image</mat-icon>
+        <span class="file-name">{{ f.name }}</span>
+        <button mat-icon-button type="button" color="warn" (click)="removeNewImage(i)" aria-label="Remove">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="loading">Cancel</button>
+  <button mat-flat-button color="primary" (click)="save()" [disabled]="loading || form.invalid">
+    {{ loading ? 'Saving…' : 'Save' }}
+  </button>
+</div>

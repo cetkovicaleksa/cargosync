@@ -15,6 +15,12 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.repository.CompanyRepositor
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.repository.ProductRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.*;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.Warehouse;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.WarehouseInventory;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.WarehouseStatus;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseInventoryRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseStatusRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -50,6 +56,7 @@ public class DevDatabaseSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final CompanyRepository companyRepository;
     private final WarehouseRepository warehouseRepository;
+    private final WarehouseStatusRepository warehouseStatusRepository;
     private final WarehouseInventoryRepository inventoryRepository;
     private final ProductCategoryRepository categoryRepository;
     private final ProductRepository productRepository;
@@ -152,7 +159,9 @@ public class DevDatabaseSeeder implements CommandLineRunner {
         wh.setAddress(address);
         wh.setCity(city);
         wh.setLocation(location);
-        return warehouseRepository.save(wh);
+        var saved = warehouseRepository.save(wh);
+        warehouseStatusRepository.save(new WarehouseStatus(saved));
+        return saved;
     }
 
 }

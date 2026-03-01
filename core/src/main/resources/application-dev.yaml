@@ -5,6 +5,10 @@ spring:
   web:
     error:
       include-message: always
+  rabbitmq:
+    listener:
+      simple:
+        auto-startup: true
   jpa:
     show-sql: true
     generate-ddl: true
