@@ -7,34 +7,35 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String EXCHANGE = "warehouse-events";
-    public static final String HEARTBEAT_QUEUE = "warehouse-heartbeat";
-    public static final String TEMPERATURE_QUEUE = "warehouse-temperature";
-    public static final String HEARTBEAT_KEY = "warehouse.heartbeat";
-    public static final String TEMPERATURE_KEY = "warehouse.temperature";
+    // ── Warehouse ────────────────────────────────────────────────────────────
+    public static final String WAREHOUSE_EXCHANGE       = "warehouse-events";
+    public static final String WAREHOUSE_HEARTBEAT_QUEUE   = "warehouse-heartbeat";
+    public static final String WAREHOUSE_TEMPERATURE_QUEUE = "warehouse-temperature";
+    public static final String WAREHOUSE_HEARTBEAT_KEY     = "warehouse.heartbeat";
+    public static final String WAREHOUSE_TEMPERATURE_KEY   = "warehouse.temperature";
 
     @Bean
     TopicExchange warehouseEventsExchange() {
-        return new TopicExchange(EXCHANGE);
+        return new TopicExchange(WAREHOUSE_EXCHANGE);
     }
 
     @Bean
-    Queue heartbeatQueue() {
-        return new Queue(HEARTBEAT_QUEUE, true);
+    Queue warehouseHeartbeatQueue() {
+        return new Queue(WAREHOUSE_HEARTBEAT_QUEUE, true);
     }
 
     @Bean
-    Queue temperatureQueue() {
-        return new Queue(TEMPERATURE_QUEUE, true);
+    Queue warehouseTemperatureQueue() {
+        return new Queue(WAREHOUSE_TEMPERATURE_QUEUE, true);
     }
 
     @Bean
-    Binding heartbeatBinding(Queue heartbeatQueue, TopicExchange warehouseEventsExchange) {
-        return BindingBuilder.bind(heartbeatQueue).to(warehouseEventsExchange).with(HEARTBEAT_KEY);
+    Binding warehouseHeartbeatBinding(Queue warehouseHeartbeatQueue, TopicExchange warehouseEventsExchange) {
+        return BindingBuilder.bind(warehouseHeartbeatQueue).to(warehouseEventsExchange).with(WAREHOUSE_HEARTBEAT_KEY);
     }
 
     @Bean
-    Binding temperatureBinding(Queue temperatureQueue, TopicExchange warehouseEventsExchange) {
-        return BindingBuilder.bind(temperatureQueue).to(warehouseEventsExchange).with(TEMPERATURE_KEY);
+    Binding warehouseTemperatureBinding(Queue warehouseTemperatureQueue, TopicExchange warehouseEventsExchange) {
+        return BindingBuilder.bind(warehouseTemperatureQueue).to(warehouseEventsExchange).with(WAREHOUSE_TEMPERATURE_KEY);
     }
 }
