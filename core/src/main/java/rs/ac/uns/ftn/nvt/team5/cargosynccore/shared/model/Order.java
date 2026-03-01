@@ -1,6 +1,7 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.order.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,10 +23,12 @@ import java.util.List;
 )
 public class Order extends AbstractAuditable {
 
+    @NotNull
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false, updatable = false)
     private Customer customer;
 
+    @NotNull
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false, updatable = false)
     private Company company;
