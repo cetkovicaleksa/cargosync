@@ -13,6 +13,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.GeoLocation;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.CountryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.Warehouse;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.WarehouseSector;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.WarehouseStatus;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.dto.WarehouseForm;
 
@@ -45,6 +46,7 @@ public class CreateWarehouseUC {
         }
 
         var saved = warehouses.saveAndFlush(warehouse);
+        saved.setStatus(new WarehouseStatus(saved));
 
         List<WarehouseForm.SectorForm> sectorForms = form.getSectors() != null
                 ? objectMapper.readValue(form.getSectors(), new TypeReference<>() {})

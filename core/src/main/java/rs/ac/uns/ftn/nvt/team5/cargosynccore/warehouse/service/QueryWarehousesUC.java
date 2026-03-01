@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.service;
 
+import jakarta.persistence.criteria.JoinType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,8 +39,10 @@ public class QueryWarehousesUC {
                     cb.equal(root.get("city").get("code"), params.getCityCode()));
         }
         if (params.getOnline() != null) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("online"), params.getOnline()));
+            spec = spec.and((root, query, cb) -> {
+                var statusJoin = root.join("status", JoinType.LEFT);
+                return cb.equal(statusJoin.get("online"), params.getOnline());
+            });
         }
 
         return warehouses.findAll(spec, pageable);
