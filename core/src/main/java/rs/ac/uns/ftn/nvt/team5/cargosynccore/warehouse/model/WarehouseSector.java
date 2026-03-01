@@ -1,10 +1,11 @@
-package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model;
+package rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.AbstractPersistable;
 
 import java.time.Instant;
 
@@ -23,8 +24,9 @@ public class WarehouseSector extends AbstractPersistable {
     @Column(nullable = false)
     private String name;
 
+    @Enumerated(EnumType.STRING)
     @Column
-    private String climateZone;
+    private ClimateZone climateZone;
 
     @Column
     private Double lastTemperature;

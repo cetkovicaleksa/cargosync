@@ -1,10 +1,13 @@
-package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model;
+package rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.AbstractAuditable;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.City;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.GeoLocation;
 
 import java.time.Instant;
 import java.util.ArrayList;

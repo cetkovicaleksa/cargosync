@@ -1,10 +1,10 @@
-package rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository;
+package rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Warehouse;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.Warehouse;
 
 import java.time.Instant;
 import java.util.List;

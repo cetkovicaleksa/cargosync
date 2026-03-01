@@ -15,6 +15,10 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.repository.CompanyRepositor
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.repository.ProductRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.*;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.Warehouse;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.WarehouseInventory;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseInventoryRepository;
 
 import java.math.BigDecimal;
 import java.util.List;

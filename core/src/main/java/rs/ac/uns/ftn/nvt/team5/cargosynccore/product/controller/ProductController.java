@@ -13,7 +13,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.SaveProductRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.service.ProductService;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Factory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Product;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.WarehouseInventoryRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseInventoryRepository;
 
 import java.util.List;
 import java.util.Map;

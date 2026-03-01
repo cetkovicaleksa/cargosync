@@ -21,7 +21,8 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.NotFoundException;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.repository.CompanyRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.CustomerRepository;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.WarehouseInventoryRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.WarehouseInventory;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseInventoryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.EmailService;
 
