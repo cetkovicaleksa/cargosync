@@ -55,7 +55,8 @@
             ],
             "styles": [
               "src/styles.scss",
-              "src/styles/colors.scss"
+              "src/styles/colors.scss",
+              "node_modules/leaflet/dist/leaflet.css"
             ],
             "scripts": []
           },
