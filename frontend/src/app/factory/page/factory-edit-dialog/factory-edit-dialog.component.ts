@@ -27,6 +27,16 @@ import { SaveFactoryRequestDto } from '../../dto/save-factory-request.dto';
 import { ImagePreviewDialogComponent } from '../../../shared/dialog/image-preview-dialog/image-preview-dialog.component';
 import { ProtectedImageComponent } from "../../../shared/util/protected-image.component";
 
+const leafletIconRetinaUrl = new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).toString();
+const leafletIconUrl = new URL('leaflet/dist/images/marker-icon.png', import.meta.url).toString();
+const leafletShadowUrl = new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).toString();
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: leafletIconRetinaUrl,
+  iconUrl: leafletIconUrl,
+  shadowUrl: leafletShadowUrl,
+});
+
 type SelectedImagePreview = {
   file: File;
   url: string;

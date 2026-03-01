@@ -43,6 +43,12 @@ export class ProtectedImageComponent implements OnChanges, OnDestroy {
     this.loading = true;
     this.error = false;
 
+    if (this.isDirectImageUrl(this.src)) {
+      this.imageUrl = this.src;
+      this.loading = false;
+      return;
+    }
+
     this.sub = this.http.get(this.imageBaseUrl + this.src, {
       responseType: 'blob'
     }).subscribe({
@@ -57,6 +63,13 @@ export class ProtectedImageComponent implements OnChanges, OnDestroy {
         this.imageUrl = this.fallback;
       }
     });
+  }
+
+  private isDirectImageUrl(src: string): boolean {
+    return src.startsWith('blob:')
+      || src.startsWith('data:')
+      || src.startsWith('http://')
+      || src.startsWith('https://');
   }
 
   private cleanup() {

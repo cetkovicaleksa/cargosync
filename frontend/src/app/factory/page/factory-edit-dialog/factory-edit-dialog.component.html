@@ -57,7 +57,7 @@
         </div>
 
         <div class="preview-card" *ngFor="let item of selectedImagePreviews; let i = index">
-          <app-protected-image class="preview-image" [src]="item.url" [alt]="item.file.name" (click)="openPreview(item.url)" />
+          <img class="preview-image" [src]="item.url" [alt]="item.file.name" (click)="openPreview(item.url)" />
           <div class="preview-name">{{ item.file.name }}</div>
           <button class="remove-btn" mat-icon-button type="button" (click)="removeSelectedFile(i)">
             <mat-icon>close</mat-icon>
