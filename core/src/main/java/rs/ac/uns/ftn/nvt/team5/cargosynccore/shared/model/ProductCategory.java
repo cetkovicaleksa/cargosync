@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "product_categories")
-public class ProductCategory extends AbstractAuditable {
+public class ProductCategory extends AbstractPersistable {
 
     @NotBlank
     @Column(nullable = false, unique = true)

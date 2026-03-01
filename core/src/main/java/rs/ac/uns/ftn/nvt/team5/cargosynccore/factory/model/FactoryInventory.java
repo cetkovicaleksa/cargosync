@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.AbstractAuditable;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.AbstractPersistable;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Product;
 
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "factory_inventory")
-public class FactoryInventory extends AbstractAuditable {
+public class FactoryInventory extends AbstractPersistable {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "factory_id", nullable = false)

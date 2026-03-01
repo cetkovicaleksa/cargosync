@@ -19,7 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "products")
-public class Product extends AbstractAuditable {
+public class Product extends AbstractPersistable {
 
     @NotBlank
     @Column(nullable = false)

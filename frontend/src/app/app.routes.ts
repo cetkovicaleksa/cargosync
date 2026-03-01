@@ -48,5 +48,12 @@ export const routes: Routes = [
       data: { authorities: ['ROLE_MANAGER'] },
     },
 
+    {
+      path: 'factories/overview',
+      loadComponent: () => import('./factory/page/factory-overview/factory-overview.component').then((m) => m.FactoryOverviewComponent),
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_MANAGER'] },
+    },
+
     {path: '**', redirectTo: 'home'},
 ];

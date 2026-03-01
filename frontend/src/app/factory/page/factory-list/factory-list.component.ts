@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
+import { Router } from '@angular/router';
 
 import { FactoryService } from '../../service/factory.service';
 import { FactoryDto } from '../../dto/factory.dto';
@@ -42,6 +43,7 @@ export class FactoryListComponent implements OnDestroy {
   private readonly factories = inject(FactoryService);
   private readonly snack = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
+  private readonly router = inject(Router);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -215,6 +217,12 @@ export class FactoryListComponent implements OnDestroy {
       maxHeight: '94vh',
       autoFocus: false,
       data: { imageUrl, title: 'Factory image' },
+    });
+  }
+
+  openOverview(factoryId: string) {
+    this.router.navigate(['/factories/overview'], {
+      queryParams: { factoryId },
     });
   }
 

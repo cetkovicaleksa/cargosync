@@ -6,10 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.AbstractAuditable;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.City;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.GeoLocation;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Product;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -19,7 +16,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "factories")
-public class Factory extends AbstractAuditable {
+public class Factory extends AbstractPersistable {
 
     @NotBlank
     @Column(nullable = false)
