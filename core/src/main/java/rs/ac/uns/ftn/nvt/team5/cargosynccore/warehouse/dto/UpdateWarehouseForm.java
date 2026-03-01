@@ -16,5 +16,6 @@ public class UpdateWarehouseForm {
     private BigDecimal longitude;
     private List<MultipartFile> images;
     private List<String> removeImages;
-    private List<WarehouseForm.SectorForm> sectors;
+    // JSON-encoded list of sector definitions, sent as a single JSON string field
+    private String sectors;
 }

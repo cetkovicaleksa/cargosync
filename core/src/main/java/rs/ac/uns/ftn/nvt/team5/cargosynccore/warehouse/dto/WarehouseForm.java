@@ -4,9 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.ClimateZone;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -28,15 +28,15 @@ public class WarehouseForm {
 
     private BigDecimal longitude;
 
-    private List<MultipartFile> images = new ArrayList<>();
+    private List<MultipartFile> images;
 
-    // JSON-encoded list of sector definitions, sent as a form field
-    private List<SectorForm> sectors = new ArrayList<>();
+    // JSON-encoded list of sector definitions, sent as a single JSON string field
+    private String sectors;
 
     @Data
     public static class SectorForm {
         @NotBlank
         private String name;
-        private String climateZone;
+        private ClimateZone climateZone;
     }
 }
