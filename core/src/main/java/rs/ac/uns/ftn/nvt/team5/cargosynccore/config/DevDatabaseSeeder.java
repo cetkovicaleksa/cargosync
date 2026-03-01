@@ -123,6 +123,7 @@ public class DevDatabaseSeeder implements CommandLineRunner {
             company.setName("Dev Corp d.o.o.");
             company.setAddress("Futoška 10");
             company.setCity(noviSad);
+            company.getImages().add("https://picsum.photos/seed/devcorp/800/600");
             companyRepository.save(company);
         }
     }
