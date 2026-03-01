@@ -6,6 +6,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+import static jakarta.persistence.CascadeType.ALL;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,6 +36,17 @@ public class Warehouse extends AbstractAuditable {
 
     @Embedded
     private GeoLocation location;
+
+    @ElementCollection
+    private List<String> images = new ArrayList<>();
+
+    @Column(nullable = false)
+    private boolean online = false;
+
+    private Instant lastHeartbeat;
+
+    @OneToMany(mappedBy = "warehouse", cascade = ALL, orphanRemoval = true)
+    private List<WarehouseSector> sectors = new ArrayList<>();
 
     @Version
     private Long version;
