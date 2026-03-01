@@ -43,14 +43,21 @@ public class Warehouse extends AbstractAuditable {
     @ElementCollection
     private List<String> images = new ArrayList<>();
 
-    @Column(nullable = false)
-    private boolean online = false;
-
-    private Instant lastHeartbeat;
-
     @OneToMany(mappedBy = "warehouse", cascade = ALL, orphanRemoval = true)
     private List<WarehouseSector> sectors = new ArrayList<>();
 
+    @OneToOne(mappedBy = "warehouse", cascade = ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private WarehouseStatus status;
+
     @Version
     private Long version;
+
+    // Delegates for DTO mapping and convenience
+    public boolean isOnline() {
+        return status != null && status.isOnline();
+    }
+
+    public Instant getLastHeartbeat() {
+        return status != null ? status.getLastHeartbeat() : null;
+    }
 }
