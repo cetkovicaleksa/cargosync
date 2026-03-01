@@ -42,4 +42,18 @@ export class ProductService {
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${encodeURIComponent(id)}`);
   }
+
+  catalogue(filter: ProductSearchFilterDto, page: number, size: number, sort?: string): Observable<PageDto<ProductDto>> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    if (sort?.trim()) params = params.set('sort', sort);
+    if (filter.name?.trim()) params = params.set('name', filter.name.trim());
+    if (filter.categoryName?.trim()) params = params.set('categoryName', filter.categoryName.trim());
+    if (filter.minPrice != null) params = params.set('minPrice', filter.minPrice);
+    if (filter.maxPrice != null) params = params.set('maxPrice', filter.maxPrice);
+
+    return this.http.get<PageDto<ProductDto>>(`${this.apiUrl}/catalogue`, { params });
+  }
 }

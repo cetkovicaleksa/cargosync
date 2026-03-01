@@ -9,6 +9,8 @@ import { RegisterComponent } from './auth/page/register/register.component';
 import { ActivateComponent } from './auth/page/activate/activate.component';
 import { ManagerListComponent } from './manager/page/manager-list/manager-list.component';
 import { ProductListComponent } from './product/page/product-list/product-list.component';
+import { CatalogueComponent } from './order/page/catalogue/catalogue.component';
+import { OrderListComponent } from './order/page/order-list/order-list.component';
 
 // paramaters:
 //   path - url
@@ -39,6 +41,20 @@ export const routes: Routes = [
       component: ManagerListComponent,
       canActivate: [AuthGuard, RoleGuard],
       data: { authorities: ['MANAGE_MANAGERS'] },
+    },
+
+    {
+      path: 'catalogue',
+      component: CatalogueComponent,
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_CUSTOMER'] },
+    },
+
+    {
+      path: 'orders',
+      component: OrderListComponent,
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_CUSTOMER'] },
     },
 
     {path: '**', redirectTo: 'home'},
