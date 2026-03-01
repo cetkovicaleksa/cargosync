@@ -8,7 +8,7 @@ import {
   inject,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -25,6 +25,13 @@ import { CountryOptionDto } from '../../dto/country-option.dto';
 import { CityOptionDto } from '../../dto/city-option.dto';
 import { SaveFactoryRequestDto } from '../../dto/save-factory-request.dto';
 import { ImageUploadService } from '../../../shared/service/image-upload.service';
+import { ImagePreviewDialogComponent } from '../../../shared/dialog/image-preview-dialog/image-preview-dialog.component';
+import { ProtectedImageComponent } from "../../../shared/util/protected-image.component";
+
+type SelectedImagePreview = {
+  file: File;
+  url: string;
+};
 
 export type FactoryEditDialogData =
   | {
@@ -49,7 +56,8 @@ export type FactoryEditDialogData =
     MatSnackBarModule,
     NgIf,
     NgFor,
-  ],
+    ProtectedImageComponent
+],
   templateUrl: './factory-edit-dialog.component.html',
   styleUrl: './factory-edit-dialog.component.scss',
 })
@@ -59,6 +67,7 @@ export class FactoryEditDialogComponent implements AfterViewInit, OnDestroy {
   private readonly upload = inject(ImageUploadService);
   private readonly snack = inject(MatSnackBar);
   private readonly dialogRef = inject(MatDialogRef<FactoryEditDialogComponent, FactoryDto | undefined>);
+  private readonly dialog = inject(MatDialog);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -68,7 +77,7 @@ export class FactoryEditDialogComponent implements AfterViewInit, OnDestroy {
   cities: CityOptionDto[] = [];
 
   existingImageUrls: string[] = [];
-  selectedFiles: File[] = [];
+  selectedImagePreviews: SelectedImagePreview[] = [];
 
   submitting = false;
   private map?: L.Map;
@@ -181,16 +190,39 @@ export class FactoryEditDialogComponent implements AfterViewInit, OnDestroy {
     const files = Array.from(input.files ?? []);
     if (files.length === 0) return;
 
-    this.selectedFiles = [...this.selectedFiles, ...files];
+    const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
+    const valid = files.filter((file) => allowed.has(file.type) && file.size <= 10 * 1024 * 1024);
+
+    if (valid.length !== files.length) {
+      this.snack.open('Only JPG, PNG, or WebP files up to 10 MB are allowed.', 'Close', { duration: 3500 });
+    }
+
+    const additions = valid.map((file) => ({ file, url: URL.createObjectURL(file) }));
+    this.selectedImagePreviews = [...this.selectedImagePreviews, ...additions];
     input.value = '';
   }
 
   removeSelectedFile(index: number) {
-    this.selectedFiles = this.selectedFiles.filter((_, i) => i !== index);
+    const removed = this.selectedImagePreviews[index];
+    if (removed) {
+      URL.revokeObjectURL(removed.url);
+    }
+    this.selectedImagePreviews = this.selectedImagePreviews.filter((_, i) => i !== index);
   }
 
   removeExistingImage(index: number) {
     this.existingImageUrls = this.existingImageUrls.filter((_, i) => i !== index);
+  }
+
+  openPreview(imageUrl: string) {
+    if (!imageUrl) return;
+    this.dialog.open(ImagePreviewDialogComponent, {
+      width: 'min(96vw, 1100px)',
+      maxWidth: '96vw',
+      maxHeight: '94vh',
+      autoFocus: false,
+      data: { imageUrl, title: 'Factory image' },
+    });
   }
 
   submit() {
@@ -200,8 +232,9 @@ export class FactoryEditDialogComponent implements AfterViewInit, OnDestroy {
 
     this.submitting = true;
 
-    const upload$ = this.selectedFiles.length
-      ? forkJoin(this.selectedFiles.map((file) => this.upload.uploadImage(file)))
+    const selectedFiles = this.selectedImagePreviews.map((x) => x.file);
+    const upload$ = selectedFiles.length
+      ? forkJoin(selectedFiles.map((file) => this.upload.uploadImage(file)))
       : of<string[]>([]);
 
     upload$
@@ -232,11 +265,15 @@ export class FactoryEditDialogComponent implements AfterViewInit, OnDestroy {
       .subscribe({
         next: (saved) => {
           this.submitting = false;
+          this.snack.open(this.data.mode === 'create' ? 'Factory created successfully.' : 'Factory updated successfully.', 'Close', {
+            duration: 2800,
+          });
           this.dialogRef.close(saved);
         },
-        error: () => {
+        error: (err) => {
           this.submitting = false;
-          this.snack.open('Failed to save factory.', 'Close', { duration: 3500 });
+          const message = err?.error?.message ?? 'Failed to save factory.';
+          this.snack.open(message, 'Close', { duration: 3500 });
         },
       });
   }
@@ -245,5 +282,6 @@ export class FactoryEditDialogComponent implements AfterViewInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.map?.remove();
+    this.selectedImagePreviews.forEach((x) => URL.revokeObjectURL(x.url));
   }
 }

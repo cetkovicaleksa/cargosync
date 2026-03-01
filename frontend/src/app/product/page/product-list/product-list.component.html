@@ -87,7 +87,7 @@
             <tr class="row" *ngFor="let p of items; trackBy: trackById">
               <td class="image-col">
                 @if (p.imageUrl) {
-                  <img class="thumb" [src]="p.imageUrl" [alt]="p.name" />
+                  <app-protected-image class="thumb" [src]="p.imageUrl" [alt]="p.name" (click)="openImagePreview(p.imageUrl)" />
                 } @else {
                   <span class="no-image">-</span>
                 }

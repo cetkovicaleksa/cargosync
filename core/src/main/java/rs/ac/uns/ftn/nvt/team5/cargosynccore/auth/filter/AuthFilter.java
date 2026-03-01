@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.filter;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,10 +32,20 @@ public class AuthFilter extends OncePerRequestFilter {
             @Nonnull FilterChain filterChain
     ) throws ServletException, IOException
     {
-        Optional.ofNullable(request.getHeader("Authorization"))
+        Optional<String> token = Optional.ofNullable(request.getHeader("Authorization"))
                 .filter(authHeader -> authHeader.startsWith("Bearer "))
-                .map(authHeader -> authHeader.substring("Bearer ".length()))
-                .filter(jwtUtil::isTokenValid)
+                .map(authHeader -> authHeader.substring("Bearer ".length()));
+
+        if (token.isEmpty() && request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    token = Optional.of(cookie.getValue());
+                    break;
+                }
+            }
+        }
+
+        token.filter(jwtUtil::isTokenValid)
                 .map(jwtUtil::extractUsername)
                 .map(userDetailsService::loadUserByUsername)
                 .ifPresent(userDetails -> {

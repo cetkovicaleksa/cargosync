@@ -33,7 +33,7 @@
             <td>
               <div class="manager-cell">
                 <div class="avatar" [attr.aria-label]="m.username">
-                  <img *ngIf="m.owner.avatar; else initials" [src]="m.owner.avatar" alt="" />
+                  <app-protected-image *ngIf="m.owner.avatar; else initials" [src]="m.owner.avatar" alt="" />
                   <ng-template #initials>
                     <span>{{ (m.username || '?').slice(0, 1).toUpperCase() }}</span>
                   </ng-template>

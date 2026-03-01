@@ -45,28 +45,55 @@ mat-dialog-content {
   display: none;
 }
 
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
 }
 
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding-left: 10px;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  max-width: 100%;
+.preview-card {
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 120px;
 }
 
-.text {
-  font-size: 12px;
+.preview-image {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+  cursor: zoom-in;
+}
+
+.preview-name {
+  font-size: 11px;
+  padding: 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 260px;
+}
+
+.remove-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.remove-btn .mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  line-height: 18px;
 }
 
 @media (max-width: 840px) {

@@ -12,6 +12,7 @@ services:
     env_file: ./.env.test
     volumes:
       - uploads:/app/uploads
+      - ${CARGOSYNC_ROOT}/passwords:/app/shared
     networks:
       - cargo-net
     depends_on: [postgres, rabbitmq, influxdb2]
@@ -24,7 +25,7 @@ services:
     # - "443:443" 
     configs:
       - source: nginx-conf
-        target: /etc/nginx/nginx.conf:ro
+        target: /etc/nginx/nginx.conf
     volumes:
       - web-dist:/usr/share/nginx/html:ro # NOTE: could maybe be /var/www/cargosync/uploads:ro (but not variable and would overlap dist)
       - uploads:/var/www/cargosync/uploads:rw
@@ -38,7 +39,7 @@ services:
       dockerfile: ${CARGOSYNC_ROOT}/dock/frontend/Dockerfile.build
     restart: on-failure:3
     volumes:
-      - web-dist:/workspace/dist:rw
+      - web-dist:/app/dist/cargo-sync/browser:rw
 
   rabbitmq:
     image: rabbitmq:4-management-alpine # just so I don't need two images for dev and test (should be removed to use regular alpine)

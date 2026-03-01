@@ -14,10 +14,20 @@ export class FactoryService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiHost}factories`;
 
-  search(filter: FactorySearchFilterDto, page: number, size: number): Observable<PageDto<FactoryDto>> {
+  search(
+    filter: FactorySearchFilterDto,
+    page: number,
+    size: number,
+    sortBy?: string,
+    direction?: 'asc' | 'desc',
+  ): Observable<PageDto<FactoryDto>> {
     let params = new HttpParams()
       .set('page', page)
       .set('size', size);
+
+    if (sortBy?.trim()) {
+      params = params.set('sort', `${sortBy.trim()},${direction ?? 'asc'}`);
+    }
 
     if (filter.name?.trim()) params = params.set('name', filter.name.trim());
     if (filter.countryCode?.trim()) params = params.set('countryCode', filter.countryCode.trim());

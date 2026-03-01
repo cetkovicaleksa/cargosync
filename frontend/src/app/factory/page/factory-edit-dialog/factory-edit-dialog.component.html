@@ -48,17 +48,18 @@
       <label class="upload-label" for="factory-image-input">Add images</label>
       <input id="factory-image-input" type="file" multiple accept="image/*" (change)="onPickFiles($event)" />
 
-      <div class="chips" *ngIf="existingImageUrls.length > 0 || selectedFiles.length > 0">
-        <div class="chip" *ngFor="let image of existingImageUrls; let i = index">
-          <span class="text">{{ image }}</span>
-          <button mat-icon-button type="button" (click)="removeExistingImage(i)">
+      <div class="previews" *ngIf="existingImageUrls.length > 0 || selectedImagePreviews.length > 0">
+        <div class="preview-card" *ngFor="let image of existingImageUrls; let i = index">
+          <app-protected-image class="preview-image" [src]="image" alt="Existing factory image" (click)="openPreview(image)" />
+          <button class="remove-btn" mat-icon-button type="button" (click)="removeExistingImage(i)">
             <mat-icon>close</mat-icon>
           </button>
         </div>
 
-        <div class="chip" *ngFor="let file of selectedFiles; let i = index">
-          <span class="text">{{ file.name }}</span>
-          <button mat-icon-button type="button" (click)="removeSelectedFile(i)">
+        <div class="preview-card" *ngFor="let item of selectedImagePreviews; let i = index">
+          <app-protected-image class="preview-image" [src]="item.url" [alt]="item.file.name" (click)="openPreview(item.url)" />
+          <div class="preview-name">{{ item.file.name }}</div>
+          <button class="remove-btn" mat-icon-button type="button" (click)="removeSelectedFile(i)">
             <mat-icon>close</mat-icon>
           </button>
         </div>

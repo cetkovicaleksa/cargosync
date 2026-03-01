@@ -15,6 +15,8 @@ import { CityOptionDto } from '../../dto/city-option.dto';
 import { CountryOptionDto } from '../../dto/country-option.dto';
 import { FactoryEditDialogComponent, FactoryEditDialogData } from '../factory-edit-dialog/factory-edit-dialog.component';
 import { ConfirmDeleteDialogComponent } from '../../../shared/dialog/confirm-delete-dialog/confirm-delete-dialog.component';
+import { ImagePreviewDialogComponent } from '../../../shared/dialog/image-preview-dialog/image-preview-dialog.component';
+import { ProtectedImageComponent } from "../../../shared/util/protected-image.component";
 
 @Component({
   selector: 'app-factory-list',
@@ -30,7 +32,8 @@ import { ConfirmDeleteDialogComponent } from '../../../shared/dialog/confirm-del
     DecimalPipe,
     NgFor,
     NgIf,
-  ],
+    ProtectedImageComponent
+],
   templateUrl: './factory-list.component.html',
   styleUrl: './factory-list.component.scss',
 })
@@ -56,6 +59,8 @@ export class FactoryListComponent implements OnDestroy {
     name: [''],
     countryCode: [''],
     cityCode: [''],
+    sortBy: ['name'],
+    sortDirection: ['asc' as 'asc' | 'desc'],
   });
 
   constructor() {
@@ -99,6 +104,14 @@ export class FactoryListComponent implements OnDestroy {
     };
   }
 
+  private getSort() {
+    const value = this.form.getRawValue();
+    return {
+      by: value.sortBy || 'name',
+      direction: (value.sortDirection || 'asc') as 'asc' | 'desc',
+    };
+  }
+
   reload() {
     if (this.loading) return;
 
@@ -107,7 +120,9 @@ export class FactoryListComponent implements OnDestroy {
     this.page = 0;
     this.last = false;
 
-    this.factories.search(this.getFilter(), 0, this.size)
+    const sort = this.getSort();
+
+    this.factories.search(this.getFilter(), 0, this.size, sort.by, sort.direction)
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (p) => {
@@ -125,7 +140,9 @@ export class FactoryListComponent implements OnDestroy {
     this.loadingMore = true;
     const nextPage = this.page + 1;
 
-    this.factories.search(this.getFilter(), nextPage, this.size)
+    const sort = this.getSort();
+
+    this.factories.search(this.getFilter(), nextPage, this.size, sort.by, sort.direction)
       .pipe(finalize(() => (this.loadingMore = false)))
       .subscribe({
         next: (p) => {
@@ -186,6 +203,18 @@ export class FactoryListComponent implements OnDestroy {
         },
         error: () => this.snack.open('Failed to delete factory.', 'Close', { duration: 3500 }),
       });
+    });
+  }
+
+  openImagePreview(imageUrl: string) {
+    if (!imageUrl) return;
+
+    this.dialog.open(ImagePreviewDialogComponent, {
+      width: 'min(96vw, 1100px)',
+      maxWidth: '96vw',
+      maxHeight: '94vh',
+      autoFocus: false,
+      data: { imageUrl, title: 'Factory image' },
     });
   }
 

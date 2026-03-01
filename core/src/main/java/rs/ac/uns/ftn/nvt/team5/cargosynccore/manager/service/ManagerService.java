@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.nvt.team5.cargosynccore.manager.service;
 import jakarta.persistence.criteria.Join;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -30,7 +31,8 @@ public class ManagerService {
 
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
-    private static final String PASSWORD_FILE_PATH = "manager_passwords.txt";
+    @Value("${app.manager-password-file}")
+    private String managerPasswordFile;
 
     @Transactional
     public Account createManager(CreateManagerRequest request) {
@@ -104,7 +106,7 @@ public class ManagerService {
     }
 
     private synchronized void logPasswordToFile(String email, String username, String password) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(PASSWORD_FILE_PATH, true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(managerPasswordFile, true))) {
             writer.write(String.format("Time: %s | Email: %s | Username: %s | Pass: %s%n",
                     java.time.LocalDateTime.now(), email, username, password));
         } catch (IOException e) {

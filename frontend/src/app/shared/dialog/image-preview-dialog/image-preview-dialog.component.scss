@@ -1,0 +1,14 @@
+mat-dialog-content {
+  max-height: 82vh;
+  overflow: auto;
+}
+
+.preview {
+  display: block;
+  max-width: min(92vw, 1200px);
+  max-height: 74vh;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+  object-fit: contain;
+}

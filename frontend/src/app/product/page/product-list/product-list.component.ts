@@ -16,6 +16,9 @@ import { ProductEditDialogComponent, ProductEditDialogData } from '../product-ed
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { ConfirmDeleteDialogComponent } from '../../../shared/dialog/confirm-delete-dialog/confirm-delete-dialog.component';
 import { ProductCategoryService } from '../../service/product-category.service';
+import { ImagePreviewDialogComponent } from '../../../shared/dialog/image-preview-dialog/image-preview-dialog.component';
+import { ProtectedImageComponent } from "../../../shared/util/protected-image.component";
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-product-list',
@@ -32,7 +35,8 @@ import { ProductCategoryService } from '../../service/product-category.service';
     DecimalPipe,
     NgFor,
     NgIf,
-  ],
+    ProtectedImageComponent
+],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss',
 })
@@ -208,6 +212,18 @@ export class ProductListComponent implements OnDestroy {
         },
         error: () => this.snack.open('Failed to delete product.', 'Close', { duration: 3500 }),
       });
+    });
+  }
+
+  openImagePreview(imageUrl: string) {
+    if (!imageUrl) return;
+
+    this.dialog.open(ImagePreviewDialogComponent, {
+      width: 'min(96vw, 1100px)',
+      maxWidth: '96vw',
+      maxHeight: '94vh',
+      autoFocus: false,
+      data: { imageUrl, title: 'Product image' },
     });
   }
 

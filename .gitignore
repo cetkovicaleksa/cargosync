@@ -181,6 +181,8 @@ $RECYCLE.BIN/
 *.env
 !*.env.dev
 !*.env.test
+*.env.secret
+passwords
 
 # local plugin files
 s2.md

@@ -11,6 +11,7 @@ import { ManagerService } from '../../service/manager.service';
 import { AccountDto } from '../../../auth/dto/account.dto';
 import { NgFor, NgIf } from '@angular/common';
 import { ManagerCreateComponent } from '../manager-create/manager-create.component';
+import { ProtectedImageComponent } from "../../../shared/util/protected-image.component";
 
 type ManagerVm = AccountDto & { _locallyBlocked?: boolean };
 
@@ -26,7 +27,8 @@ type ManagerVm = AccountDto & { _locallyBlocked?: boolean };
     MatDialogModule,
     NgFor,
     NgIf,
-  ],
+    ProtectedImageComponent
+],
   templateUrl: './manager-list.component.html',
   styleUrl: './manager-list.component.scss',
 })
