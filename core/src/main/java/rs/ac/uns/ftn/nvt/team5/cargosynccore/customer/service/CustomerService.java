@@ -45,13 +45,15 @@ public class CustomerService {
             throw new BadRequestException("Passwords do not match");
         }
 
-        validateAvatar(avatar);
+        if (avatar != null && !avatar.isEmpty()) {
+            validateAvatar(avatar);
+        }
 
         if (accountRepository.findByEmail(request.email()).isPresent()) {
             throw new ConflictException("An account with this email already exists");
         }
 
-        String avatarPath = saveAvatar(avatar);
+        String avatarPath = (avatar != null && !avatar.isEmpty()) ? saveAvatar(avatar) : null;
 
         var customer = new Customer(
                 request.email(),
@@ -106,9 +108,6 @@ public class CustomerService {
     }
 
     private void validateAvatar(MultipartFile avatar) {
-        if (avatar == null || avatar.isEmpty()) {
-            throw new BadRequestException("Avatar image is required");
-        }
         String contentType = avatar.getContentType();
         if (contentType == null || !ALLOWED_AVATAR_TYPES.contains(contentType)) {
             throw new BadRequestException("Avatar must be a JPG, PNG, or WebP image");

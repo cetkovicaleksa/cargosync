@@ -27,7 +27,7 @@ public class CustomerController {
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, String> register(
             @RequestPart("data") @Valid RegisterCustomerRequest request,
-            @RequestPart("avatar") MultipartFile avatar
+            @RequestPart(value = "avatar", required = false) MultipartFile avatar
     ) {
         customerService.register(request, avatar);
         return Map.of("message", "Check your email to activate your account");
