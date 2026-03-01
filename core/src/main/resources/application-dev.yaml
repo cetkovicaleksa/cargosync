@@ -37,3 +37,4 @@ security:
     jwt:
       access-token:
         ttl: 24h
+  public-endpoints: ["/**"]

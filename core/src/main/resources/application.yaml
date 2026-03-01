@@ -9,8 +9,10 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-#        id.new_generator_mappings: true
-#        uuid.generator: org.hibernate.id.UUIDGenerator
+#        jdbc:
+#          batch_size: 100
+#        order_updates: true
+#        order_inserts: true
   datasource:
     url: ${CARGOSYNC_DB_URL}
     username: ${CARGOSYNC_DB_USERNAME}
@@ -57,7 +59,7 @@ security:
     - /swagger-ui.html
     - /v3/api-docs/**
   cors:
-    allowed-headers: ["Authorization", "Content-Type", "Accept"]
+    allowed-headers: ["Authorization", "Content-Type", "Accept", "Content-Length", "User-Agent", "Accept-Encoding"]
     allowed-methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
   auth:
     jwt:
