@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.InfluxService;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseStatusRepository;
 
 import java.time.Instant;
 
@@ -14,18 +14,19 @@ import java.time.Instant;
 @Component
 public class WarehouseOfflineScheduler {
 
-    private final WarehouseRepository warehouses;
+    private final WarehouseStatusRepository statuses;
     private final InfluxService influx;
 
     @Scheduled(fixedDelay = 30_000)
     public void markOfflineWarehouses() {
         var threshold = Instant.now().minusSeconds(60);
-        var stale = warehouses.findByOnlineTrueAndLastHeartbeatBefore(threshold);
-        for (var warehouse : stale) {
-            log.info("Marking warehouse {} offline (last heartbeat: {})", warehouse.getId(), warehouse.getLastHeartbeat());
-            warehouse.setOnline(false);
-            warehouses.save(warehouse);
-            influx.writeAvailabilityEvent(warehouse.getId(), false, Instant.now());
+        var stale = statuses.findByOnlineTrueAndLastHeartbeatBefore(threshold);
+        for (var status : stale) {
+            log.info("Marking warehouse {} offline (last heartbeat: {})",
+                    status.getWarehouse().getId(), status.getLastHeartbeat());
+            status.setOnline(false);
+            statuses.save(status);
+            influx.writeWarehouseAvailabilityEvent(status.getWarehouse().getId(), false, Instant.now());
         }
     }
 }
