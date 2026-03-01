@@ -47,7 +47,7 @@ export class SignInComponent {
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: () => {
-          this.router.navigate(['/home']);
+          this.router.navigate(['/']);
         },
         error: (err) => {
           let msg: string;

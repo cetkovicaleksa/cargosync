@@ -45,11 +45,6 @@ export class NavBar {
 
   readonly navItems = computed<NavItem[]>(() => [
     {
-      key: '/home',
-      label: 'Home',
-      visible: () => true,
-    },
-    {
       key: '/product',
       label: 'Products',
       visible: () => this.loggedIn() && !this.isCustomer(),
