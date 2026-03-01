@@ -39,4 +39,8 @@ public interface WarehouseInventoryRepository extends JpaRepository<WarehouseInv
             "FROM WarehouseInventory wi " +
             "WHERE wi.product.id = :productId")
     Long findTotalStockByProductId(@Param("productId") UUID productId);
+
+    List<WarehouseInventory> findByWarehouseId(UUID warehouseId);
+
+    boolean existsByWarehouseIdAndQuantityGreaterThan(UUID warehouseId, long quantity);
 }
