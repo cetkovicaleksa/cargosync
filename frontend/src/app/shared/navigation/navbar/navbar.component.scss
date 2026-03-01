@@ -21,12 +21,36 @@
   letter-spacing: 0.2px;
 }
 
+.profile {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: color-mix(in srgb, colors.$primary 12%, transparent);
+  color: colors.$primary;
+  margin-right: 8px;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .user {
   opacity: 0.85;
   font-size: 13px;
-  margin-right: 8px;
-  padding: 0 8px;
-  border-left: 1px solid color-mix(in srgb, colors.$primary 18%, transparent);
+  margin-right: 4px;
 }
 
 .mat-mdc-icon-button {
@@ -61,6 +85,10 @@
 
   .navbar {
     display: flex;
+  }
+
+  .avatar.navbar-show-small {
+    margin-right: 6px;
   }
 
   .app-logo {

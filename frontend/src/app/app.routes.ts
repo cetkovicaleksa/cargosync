@@ -34,7 +34,8 @@ export const routes: Routes = [
     {
       path: 'product',
       component: ProductListComponent,
-      canActivate: [AuthGuard],
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_MANAGER'] },
     },
 
     {
@@ -61,6 +62,20 @@ export const routes: Routes = [
     {
       path: 'warehouses',
       component: WarehouseListComponent,
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_MANAGER'] },
+    },
+
+    {
+      path: 'factories',
+      loadComponent: () => import('./factory/page/factory-list/factory-list.component').then((m) => m.FactoryListComponent),
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_MANAGER'] },
+    },
+
+    {
+      path: 'factories/overview',
+      loadComponent: () => import('./factory/page/factory-overview/factory-overview.component').then((m) => m.FactoryOverviewComponent),
       canActivate: [AuthGuard, RoleGuard],
       data: { authorities: ['ROLE_MANAGER'] },
     },

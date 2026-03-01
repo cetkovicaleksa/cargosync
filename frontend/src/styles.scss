@@ -1,6 +1,7 @@
 @use '@angular/material' as mat;
 @use "styles/theme" as theme;
 @use "styles/colors" as colors;
+@import 'leaflet/dist/leaflet.css';
 
 body {
   margin: 0;

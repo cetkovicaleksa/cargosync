@@ -14,7 +14,24 @@
   <div class="flex-spacer"></div>
 
   @if (isLoggedIn) {
-    <span class="user navbar-hide-small">{{ displayName || 'Account' }}</span>
+    <div class="profile navbar-hide-small" aria-label="Current user profile">
+      <div class="avatar" [attr.aria-label]="displayName || 'Account'">
+        @if (avatarSrc) {
+          <app-protected-image [src]="avatarSrc" [alt]="displayName || 'Account'" />
+        } @else {
+          <span>{{ avatarInitial }}</span>
+        }
+      </div>
+      <span class="user">{{ displayName || 'Account' }}</span>
+    </div>
+
+    <div class="avatar navbar-show-small" [attr.aria-label]="displayName || 'Account'">
+      @if (avatarSrc) {
+        <app-protected-image [src]="avatarSrc" [alt]="displayName || 'Account'" />
+      } @else {
+        <span>{{ avatarInitial }}</span>
+      }
+    </div>
 
     <button mat-button class="navbar-hide-small" (click)="signOut()">
       Sign out

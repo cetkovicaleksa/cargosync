@@ -6,6 +6,8 @@
         "CARGOSYNC_ROOT": "${workspaceFolder}"
     },
     "chat.tools.terminal.autoApprove": {
-        "npm run build": true
+        "npm run build": true,
+        "Push-Location": true,
+        "Pop-Location": true
     }
 }

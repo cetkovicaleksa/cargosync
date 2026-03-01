@@ -33,13 +33,6 @@ public class SecurityExceptionHandler {
         );
     }
 
-    @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<ErrorResponse> handleDisabledAccount(DisabledException e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                new ErrorResponse("AccountDisabled", "Account is disabled")
-        );
-    }
-
     @ExceptionHandler(CredentialsExpiredException.class)
     public ResponseEntity<ErrorResponse> handleCredentialsExpired(CredentialsExpiredException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
@@ -65,6 +58,13 @@ public class SecurityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleSecurityException(SecurityException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
                 new ErrorResponse("SecurityViolation", e.getMessage())
+        );
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> handleDisabledException(DisabledException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                new ErrorResponse("AccountInactive", "Account is not activated. Please check your email.")
         );
     }
 

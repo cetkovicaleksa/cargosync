@@ -28,7 +28,10 @@ export class ManagerService {
     return this.http.put<void>(`${this.apiUrl}/${encodeURIComponent(username)}/toggle-block`, {});
   }
 
-  createManager(payload: { email: string; username: string; avatarUrl: string }): Observable<AccountDto> {
-    return this.http.post<AccountDto>(this.apiUrl, payload);
+  createManager(payload: { email: string; username: string }, avatar: File): Observable<AccountDto> {
+    const formData = new FormData();
+    formData.append('data', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+    formData.append('avatar', avatar);
+    return this.http.post<AccountDto>(this.apiUrl, formData);
   }
 }

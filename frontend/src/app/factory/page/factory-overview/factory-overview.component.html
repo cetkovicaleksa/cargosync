@@ -1,0 +1,329 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Factory Work Overview</h1>
+      <p>Search factories, inspect products, and view production + factory availability analytics.</p>
+    </div>
+  </header>
+
+  <section class="panel">
+    <h2>Factory Search</h2>
+
+    <section class="filters">
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Name</mat-label>
+        <input matInput [formControl]="factorySearchForm.controls.name" placeholder="Factory name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Country</mat-label>
+        <mat-select [formControl]="factorySearchForm.controls.countryCode">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let c of countries" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>City</mat-label>
+        <mat-select [formControl]="factorySearchForm.controls.cityCode" [disabled]="!factorySearchForm.controls.countryCode.value">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let c of cities" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Sort by</mat-label>
+        <mat-select [formControl]="factorySearchForm.controls.sortBy">
+          <mat-option value="name">Name</mat-option>
+          <mat-option value="countryCode">Country</mat-option>
+          <mat-option value="cityCode">City</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Direction</mat-label>
+        <mat-select [formControl]="factorySearchForm.controls.sortDirection">
+          <mat-option value="asc">Ascending</mat-option>
+          <mat-option value="desc">Descending</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </section>
+
+    <div class="table-wrap" *ngIf="factoriesData.length > 0">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let factory of factoriesData" [class.selected]="selectedFactory?.id === factory.id">
+            <td>{{ factory.name }}</td>
+            <td>{{ factory.street }}, {{ factory.cityName }}, {{ factory.countryName }}</td>
+            <td>
+              <button mat-stroked-button (click)="chooseFactory(factory)">Select</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="!loadingFactories && factoriesData.length === 0" class="empty">No factories found.</div>
+  </section>
+
+  <section class="panel" *ngIf="selectedFactory as factory">
+    <h2>Selected Factory</h2>
+    <p><strong>{{ factory.name }}</strong> — {{ factory.street }}, {{ factory.cityName }}, {{ factory.countryName }}</p>
+
+    <div class="factory-images" *ngIf="factory.imageUrls.length > 0">
+      <button class="image-btn" *ngFor="let imageUrl of factory.imageUrls" (click)="openFactoryImage(imageUrl)">
+        <app-protected-image class="factory-thumb" [src]="imageUrl" alt="Factory image" />
+      </button>
+    </div>
+
+    <h3>Products Produced in Factory</h3>
+    <div *ngIf="loadingProducts" class="empty">Loading products...</div>
+
+    <div class="product-grid" *ngIf="!loadingProducts && products.length > 0">
+      <button
+        mat-stroked-button
+        class="product-btn"
+        *ngFor="let product of products"
+        [class.active]="selectedProduct?.id === product.id"
+        (click)="chooseProduct(product)"
+      >
+        <span>{{ product.name }}</span>
+        &nbsp;<small>{{ product.categoryName }}</small>
+      </button>
+    </div>
+
+    <div *ngIf="!loadingProducts && products.length === 0" class="empty">No products available for this factory.</div>
+  </section>
+
+  <section class="panel" *ngIf="selectedFactory">
+    <mat-tab-group animationDuration="0ms">
+      <mat-tab label="Production">
+        <div class="tab-content" *ngIf="selectedProduct; else noProductSelected">
+          <h2>Production Chart</h2>
+
+          <section class="filters narrow-filters">
+            <mat-form-field appearance="outline" class="filter-item">
+              <mat-label>Period preset</mat-label>
+              <mat-select [formControl]="productionPeriodForm.controls.preset">
+                <mat-option value="7d">Last 7 days</mat-option>
+                <mat-option value="1m">Last 1 month</mat-option>
+                <mat-option value="3m">Last 3 months</mat-option>
+                <mat-option value="6m">Last 6 months</mat-option>
+                <mat-option value="1y">Last 1 year</mat-option>
+                <mat-option value="custom">Custom</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-item">
+              <mat-label>From</mat-label>
+              <input matInput [matDatepicker]="productionFromPicker" [formControl]="productionPeriodForm.controls.fromDate" readonly />
+              <mat-datepicker-toggle matIconSuffix [for]="productionFromPicker"></mat-datepicker-toggle>
+              <mat-datepicker #productionFromPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-item">
+              <mat-label>To</mat-label>
+              <input matInput [matDatepicker]="productionToPicker" [formControl]="productionPeriodForm.controls.toDate" readonly />
+              <mat-datepicker-toggle matIconSuffix [for]="productionToPicker"></mat-datepicker-toggle>
+              <mat-datepicker #productionToPicker></mat-datepicker>
+            </mat-form-field>
+
+            <div class="filter-item actions">
+              <button mat-flat-button color="primary" (click)="loadProductionSeries()" [disabled]="loadingProduction">
+                {{ loadingProduction ? 'Loading…' : 'Load chart' }}
+              </button>
+            </div>
+          </section>
+
+          <div *ngIf="productionSeries as s" class="series-summary">
+            <p>
+              Product: <strong>{{ selectedProduct.name }}</strong>
+              • Aggregation: <strong>{{ s.bucket }}</strong>
+              • Total units: <strong>{{ s.totalUnits | number:'1.0-0' }}</strong>
+            </p>
+
+            <div class="chart" *ngIf="s.points.length > 0">
+              <div class="bar-wrap" *ngFor="let point of s.points; let i = index">
+                <div class="bar" [style.height.px]="productionBarHeight(point.units)" [title]="productionPointLabel(i) + ': ' + point.units"></div>
+                <div class="bar-value">{{ point.units }}</div>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table compact">
+                <thead>
+                  <tr>
+                    <th>Period</th>
+                    <th>Units</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let point of s.points">
+                    <td>{{ point.periodStart }} → {{ point.periodEnd }}</td>
+                    <td>{{ point.units | number:'1.0-0' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Availability">
+        <div class="tab-content">
+          <h2>Factory Availability</h2>
+
+          <section class="filters availability-filters">
+            <mat-form-field appearance="outline" class="filter-item">
+              <mat-label>Period preset</mat-label>
+              <mat-select [formControl]="availabilityPeriodForm.controls.preset">
+                <mat-option value="1h">Last 1 hour</mat-option>
+                <mat-option value="3h">Last 3 hours</mat-option>
+                <mat-option value="12h">Last 12 hours</mat-option>
+                <mat-option value="24h">Last 24 hours</mat-option>
+                <mat-option value="7d">Last 7 days</mat-option>
+                <mat-option value="1m">Last 1 month</mat-option>
+                <mat-option value="3m">Last 3 months</mat-option>
+                <mat-option value="1y">Last 1 year</mat-option>
+                <mat-option value="custom">Custom</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-item">
+              <mat-label>From date</mat-label>
+              <input matInput [matDatepicker]="availabilityFromPicker" [formControl]="availabilityPeriodForm.controls.fromDate" readonly />
+              <mat-datepicker-toggle matIconSuffix [for]="availabilityFromPicker"></mat-datepicker-toggle>
+              <mat-datepicker #availabilityFromPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-item">
+              <mat-label>From time</mat-label>
+              <mat-select [formControl]="availabilityPeriodForm.controls.fromTime">
+                <mat-option *ngFor="let t of timeOptions" [value]="t">{{ t }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-item">
+              <mat-label>To date</mat-label>
+              <input matInput [matDatepicker]="availabilityToPicker" [formControl]="availabilityPeriodForm.controls.toDate" readonly />
+              <mat-datepicker-toggle matIconSuffix [for]="availabilityToPicker"></mat-datepicker-toggle>
+              <mat-datepicker #availabilityToPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-item">
+              <mat-label>To time</mat-label>
+              <mat-select [formControl]="availabilityPeriodForm.controls.toTime">
+                <mat-option *ngFor="let t of timeOptions" [value]="t">{{ t }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <div class="filter-item actions split-actions">
+              <button mat-flat-button color="primary" (click)="loadFactoryAvailability()" [disabled]="loadingAvailability">
+                {{ loadingAvailability ? 'Loading…' : 'Load availability' }}
+              </button>
+
+              <button
+                mat-stroked-button
+                color="primary"
+                (click)="toggleRealtime()"
+                [disabled]="!canUseRealtime"
+              >
+                {{ realtimeActive ? 'Stop realtime' : 'Start realtime (WS)' }}
+              </button>
+            </div>
+          </section>
+
+          <div class="hint" *ngIf="!canUseRealtime">Realtime is available only for a period up to the last 3 hours.</div>
+
+          <div *ngIf="availabilitySeries as a" class="availability-layout">
+            <section class="availability-summary panel-block">
+              <h3>Total Availability</h3>
+              <div class="summary-grid">
+                <div class="summary-card online">
+                  <div class="label">Online</div>
+                  <div class="value">{{ a.onlinePercent | number:'1.0-2' }}%</div>
+                  <div class="sub">{{ formatDuration(a.totalOnlineSeconds) }}</div>
+                </div>
+                <div class="summary-card offline">
+                  <div class="label">Offline</div>
+                  <div class="value">{{ a.offlinePercent | number:'1.0-2' }}%</div>
+                  <div class="sub">{{ formatDuration(a.totalOfflineSeconds) }}</div>
+                </div>
+              </div>
+
+              <div class="pie-wrap">
+                <div class="pie" [style.background]="availabilityPieGradient()"></div>
+                <div class="pie-legend">
+                  <span><i class="dot online"></i>Online</span>
+                  <span><i class="dot offline"></i>Offline</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel-block">
+              <h3>Availability Bar Chart</h3>
+              <div class="availability-bars" *ngIf="a.points.length > 0">
+                <div class="availability-row" *ngFor="let point of a.points">
+                  <div class="period">{{ availabilityLabel(point.periodStart) }}</div>
+                  <div class="stack" [title]="point.onlinePercent + '% online, ' + point.offlinePercent + '% offline'">
+                    <div class="online-part" [style.width.%]="point.onlinePercent"></div>
+                    <div class="offline-part" [style.width.%]="point.offlinePercent"></div>
+                  </div>
+                  <div class="pct">{{ point.onlinePercent | number:'1.0-1' }}%</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel-block">
+              <h3>Availability Plot</h3>
+              <div class="line-wrap" *ngIf="a.points.length > 0">
+                <svg viewBox="0 0 840 220" preserveAspectRatio="none">
+                  <line x1="24" y1="202" x2="824" y2="202" class="axis"></line>
+                  <line x1="24" y1="12" x2="24" y2="202" class="axis"></line>
+                  <polyline [attr.points]="availabilityLinePoints()" class="line"></polyline>
+
+                  <g class="tick" *ngFor="let i of availabilityTickIndices()">
+                    <line [attr.x1]="availabilityTickX(i)" y1="202" [attr.x2]="availabilityTickX(i)" y2="208" class="tick-line"></line>
+                    <text [attr.x]="availabilityTickX(i)" y="218" text-anchor="middle">{{ availabilityLabel(a.points[i].periodStart) }}</text>
+                  </g>
+                </svg>
+              </div>
+            </section>
+
+            <div class="table-wrap full">
+              <table class="table compact">
+                <thead>
+                  <tr>
+                    <th>Period</th>
+                    <th>Online</th>
+                    <th>Offline</th>
+                    <th>Online %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let point of a.points">
+                    <td>{{ point.periodStart }} → {{ point.periodEnd }}</td>
+                    <td>{{ formatDuration(point.onlineSeconds) }}</td>
+                    <td>{{ formatDuration(point.offlineSeconds) }}</td>
+                    <td>{{ point.onlinePercent | number:'1.0-2' }}%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </section>
+</section>
+
+<ng-template #noProductSelected>
+  <div class="tab-content empty">Select a product first to see production analytics.</div>
+</ng-template>

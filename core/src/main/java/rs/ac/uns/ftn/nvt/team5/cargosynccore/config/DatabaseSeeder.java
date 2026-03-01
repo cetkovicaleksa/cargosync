@@ -4,6 +4,7 @@ import jakarta.annotation.Nonnull;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,8 +21,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @Component
 public class DatabaseSeeder implements CommandLineRunner {
+    private static final String DEFAULT_SUPER_MANAGER_AVATAR_CLASSPATH = "images/default_avatar.png";
+
     private final AccountRepository accounts;
     private final ManagerService managerService;
+    @Value("${app.supermanager-email}")
+    private String superManagerEmail;
+    @Value("${app.supermanager-username}")
+    private String superManagerUsername;
 
     @Transactional
     @Override
@@ -30,7 +37,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (!accounts.existsByUsername("admin")) {
             // Initial super manager
             try {
-                managerService.createManger("admin@cargosync.rs", "admin", "https://picsum.photos/200");
+                managerService.createManger(superManagerEmail, superManagerUsername, DEFAULT_SUPER_MANAGER_AVATAR_CLASSPATH);
             } catch (Exception e) {
                 log.error("Failed to create super manager", e);
             }

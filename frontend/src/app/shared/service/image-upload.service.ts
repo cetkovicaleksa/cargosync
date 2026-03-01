@@ -8,7 +8,7 @@ export class ImageUploadService {
   private readonly http = inject(HttpClient);
 
   private readonly uploadBaseUrl = environment.nginxUploadUrl;
-  private readonly imageBaseUrl = environment.nginxImageBaseUrl;
+  private readonly imageBaseUrl = environment.imageBaseUrl;
 
   generateRandomImageName(file: File): string {
     const extension = this.getFileExtension(file.name);

@@ -31,12 +31,22 @@ export class ProductService {
     return this.http.get<PageDto<ProductDto>>(this.apiUrl, { params });
   }
 
-  create(request: SaveProductRequestDto): Observable<ProductDto> {
-    return this.http.post<ProductDto>(this.apiUrl, request);
+  create(request: SaveProductRequestDto, image?: File | null): Observable<ProductDto> {
+    const formData = new FormData();
+    formData.append('data', new Blob([JSON.stringify(request)], { type: 'application/json' }));
+    if (image) {
+      formData.append('image', image);
+    }
+    return this.http.post<ProductDto>(this.apiUrl, formData);
   }
 
-  update(id: string, request: SaveProductRequestDto): Observable<ProductDto> {
-    return this.http.put<ProductDto>(`${this.apiUrl}/${encodeURIComponent(id)}`, request);
+  update(id: string, request: SaveProductRequestDto, image?: File | null): Observable<ProductDto> {
+    const formData = new FormData();
+    formData.append('data', new Blob([JSON.stringify(request)], { type: 'application/json' }));
+    if (image) {
+      formData.append('image', image);
+    }
+    return this.http.put<ProductDto>(`${this.apiUrl}/${encodeURIComponent(id)}`, formData);
   }
 
   delete(id: string): Observable<void> {

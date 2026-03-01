@@ -5,13 +5,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductSearchFilter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.SaveProductRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.service.ProductService;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Factory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Product;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseInventoryRepository;
 
@@ -28,17 +30,24 @@ public class ProductController {
     private final ProductService productService;
     private final WarehouseInventoryRepository inventoryRepository;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.CREATED)
-    public ProductDto createProduct(@RequestBody @Valid SaveProductRequest request) {
-        return mapToDto(productService.createProduct(request));
+    public ProductDto createProduct(
+            @RequestPart("data") @Valid SaveProductRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        return mapToDto(productService.createProduct(request, image));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
-    public ProductDto updateProduct(@PathVariable UUID id, @RequestBody @Valid SaveProductRequest request) {
-        return mapToDto(productService.updateProduct(id, request));
+    public ProductDto updateProduct(
+            @PathVariable UUID id,
+            @RequestPart("data") @Valid SaveProductRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        return mapToDto(productService.updateProduct(id, request, image));
     }
 
     /** Manager product management — all products, no stock info. */

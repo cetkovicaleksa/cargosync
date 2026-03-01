@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -18,7 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "products")
-public class Product extends AbstractAuditable {
+public class Product extends AbstractPersistable {
 
     @NotBlank
     @Column(nullable = false)

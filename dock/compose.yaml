@@ -28,6 +28,9 @@ services:
   mailhog:
     image: mailhog/mailhog:latest
     expose: ["1025", "8025"]
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
     networks:
       - cargo-net
 
