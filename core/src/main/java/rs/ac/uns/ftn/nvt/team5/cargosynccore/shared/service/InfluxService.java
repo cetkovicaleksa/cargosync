@@ -33,7 +33,7 @@ public class InfluxService {
         writeApi = client.getWriteApiBlocking();
     }
 
-    public void writeTemperature(UUID warehouseId, String sector, double temp, Instant time) {
+    public void writeWarehouseTemperature(UUID warehouseId, String sector, double temp, Instant time) {
         if (writeApi == null) return;
         try {
             var point = Point.measurement("temperature")
@@ -47,7 +47,7 @@ public class InfluxService {
         }
     }
 
-    public void writeAvailabilityEvent(UUID warehouseId, boolean online, Instant time) {
+    public void writeWarehouseAvailabilityEvent(UUID warehouseId, boolean online, Instant time) {
         if (writeApi == null) return;
         try {
             var point = Point.measurement("warehouse_availability")
