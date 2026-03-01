@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.AbstractAuditable;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Company;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.model.Company;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Customer;
 
 import java.math.BigDecimal;
