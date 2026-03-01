@@ -7,8 +7,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Warehouse;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.WarehouseRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.Warehouse;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.dto.WarehouseQueryParams;
 
 import java.util.UUID;
@@ -22,7 +22,7 @@ public class QueryWarehousesUC {
 
     @Transactional(readOnly = true)
     public Page<Warehouse> getWarehouses(WarehouseQueryParams params, Pageable pageable) {
-        Specification<Warehouse> spec = Specification.where((Specification<Warehouse>) null);
+        Specification<Warehouse> spec = (root, query, cb) -> cb.conjunction();
 
         if (StringUtils.hasText(params.getName())) {
             String pattern = "%" + params.getName().toLowerCase() + "%";

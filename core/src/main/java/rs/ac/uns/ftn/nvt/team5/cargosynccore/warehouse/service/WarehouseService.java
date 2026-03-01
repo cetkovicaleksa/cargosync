@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.NotFoundException;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Warehouse;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.WarehouseRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.Warehouse;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;
 
 import java.util.List;

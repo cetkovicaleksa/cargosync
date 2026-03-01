@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.WarehouseRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.InfluxService;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.dto.WarehouseHeartbeatMessage;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.dto.WarehouseTemperatureMessage;

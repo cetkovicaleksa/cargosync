@@ -1,16 +1,21 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.NotFoundException;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.GeoLocation;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Warehouse;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.WarehouseSector;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.CountryRepository;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.WarehouseRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.Warehouse;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.WarehouseSector;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.dto.UpdateWarehouseForm;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.dto.WarehouseForm;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,7 +26,9 @@ public class UpdateWarehouseUC {
     private final WarehouseRepository warehouses;
     private final CountryRepository countries;
     private final WarehouseService warehouseService;
+    private final ObjectMapper objectMapper;
 
+    @SneakyThrows
     @Transactional
     public Warehouse updateWarehouse(UUID id, UpdateWarehouseForm form) {
         var warehouse = warehouseService.getWarehouse(id);
@@ -54,8 +61,10 @@ public class UpdateWarehouseUC {
         }
 
         if (form.getSectors() != null) {
+            List<WarehouseForm.SectorForm> sectorForms =
+                    objectMapper.readValue(form.getSectors(), new TypeReference<>() {});
             warehouse.getSectors().clear();
-            for (var sf : form.getSectors()) {
+            for (var sf : sectorForms) {
                 var sector = new WarehouseSector();
                 sector.setWarehouse(warehouse);
                 sector.setName(sf.getName());
