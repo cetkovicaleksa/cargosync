@@ -19,8 +19,8 @@ spring:
   rabbitmq:
     host: ${CARGOSYNC_RABBITMQ_HOST:localhost}
     port: ${CARGOSYNC_RABBITMQ_PORT:5672}
-    username: ${CARGOSYNC_RABBITMQ_USERNAME:guest}
-    password: ${CARGOSYNC_RABBITMQ_PASSWORD:guest}
+    username: ${CARGOSYNC_RABBITMQ_USERNAME}
+    password: ${CARGOSYNC_RABBITMQ_PASSWORD}
   jpa:
     properties:
       hibernate:
