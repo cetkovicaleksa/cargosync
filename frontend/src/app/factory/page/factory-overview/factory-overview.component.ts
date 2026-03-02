@@ -34,11 +34,11 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const REALTIME_EVENT_SECONDS = 5;
 
 const PLOT_WIDTH = 840;
-const PLOT_HEIGHT = 220;
+const PLOT_HEIGHT = 260;
 const PLOT_LEFT = 24;
 const PLOT_RIGHT = PLOT_WIDTH - 16;
 const PLOT_TOP = 12;
-const PLOT_BOTTOM = PLOT_HEIGHT - 18;
+const PLOT_BOTTOM = PLOT_HEIGHT - 58;
 
 type ProductionPeriodPreset = '7d' | '1m' | '3m' | '6m' | '1y' | 'custom';
 type AvailabilityPeriodPreset = '1h' | '3h' | '12h' | '24h' | '7d' | '1m' | '3m' | '1y' | 'custom';
@@ -552,6 +552,45 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
     return `${point.periodStart} → ${point.periodEnd}`;
   }
 
+  productionTickIndices(): number[] {
+    const series = this.productionSeries;
+    if (!series || series.points.length === 0) return [];
+
+    const count = series.points.length;
+    const maxTicks = 10;
+
+    if (count <= maxTicks) {
+      return Array.from({ length: count }, (_, i) => i);
+    }
+
+    const step = Math.ceil(count / maxTicks);
+    const indices = new Set<number>();
+    for (let i = 0; i < count; i += step) {
+      indices.add(i);
+    }
+    indices.add(count - 1);
+
+    return Array.from(indices).sort((a, b) => a - b);
+  }
+
+  productionTickLabel(index: number): string {
+    const series = this.productionSeries;
+    if (!series || !series.points[index]) return '';
+
+    const point = series.points[index];
+    const date = new Date(point.periodStart);
+
+    if (series.bucket === 'day') {
+      return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    if (series.bucket === 'week') {
+      return `W ${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  }
+
   availabilityPieGradient(): string {
     if (!this.availabilitySeries) return 'conic-gradient(#4caf50 0%, #f44336 0%)';
     const online = Math.max(0, Math.min(100, this.availabilitySeries.onlinePercent));
@@ -599,6 +638,32 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
     if (!series || series.points.length <= 1) return PLOT_LEFT;
     const step = (PLOT_RIGHT - PLOT_LEFT) / (series.points.length - 1);
     return PLOT_LEFT + step * index;
+  }
+
+  availabilityTickLabel(index: number): string {
+    const series = this.availabilitySeries;
+    if (!series || !series.points[index]) return '';
+
+    const date = new Date(series.points[index].periodStart);
+
+    if (series.bucket === 'hour') {
+      return `${String(date.getHours()).padStart(2, '0')}:00`;
+    }
+
+    if (series.bucket === 'day') {
+      return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    if (series.bucket === 'week') {
+      return `W ${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  availabilityTickTransform(index: number): string {
+    const x = this.availabilityTickX(index);
+    return `translate(${x}, ${PLOT_BOTTOM + 24}) rotate(-35)`;
   }
 
   availabilityLabel(iso: string): string {
