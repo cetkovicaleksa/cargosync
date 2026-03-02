@@ -9,11 +9,13 @@ import lombok.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @Setter
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @ToString
 @Table(
         name = "company_requests",
@@ -28,6 +30,10 @@ public class CompanyRequest extends AbstractAuditable {
 
     @NotNull
     @ManyToOne
+    @JoinColumns({
+            @JoinColumn(name = "city_country_code", referencedColumnName = "country_code"),
+            @JoinColumn(name = "city_code", referencedColumnName = "code")
+    })
     private City city;
 
     @NotBlank
@@ -55,6 +61,27 @@ public class CompanyRequest extends AbstractAuditable {
 
     public enum Status {
         PENDING, APPROVED, REJECTED
+    }
+
+    @Transient
+    public boolean isPending() {
+        return Optional.ofNullable(status)
+                .map(Status.PENDING::equals)
+                .orElse(false);
+    }
+
+    @Transient
+    public boolean isApproved() {
+        return Optional.ofNullable(status)
+                .map(Status.APPROVED::equals)
+                .orElseThrow();
+    }
+
+    @Transient
+    public boolean isRejected() {
+        return Optional.ofNullable(status)
+                .map(Status.REJECTED::equals)
+                .orElseThrow();
     }
 
 }
