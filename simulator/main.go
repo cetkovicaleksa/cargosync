@@ -9,20 +9,27 @@ import (
 
 func main() {
 	cfg := loadConfig()
+	rand.Seed(time.Now().UnixNano())
 
-	log.Printf("starting simulator for warehouse %s with %d sector(s)", cfg.WarehouseID, len(cfg.Sectors))
-	log.Printf("heartbeat every %v, temperature every %v", cfg.HeartbeatInterval, cfg.TemperatureInterval)
+	if cfg.Mode == "factory" {
+		log.Printf("starting simulator for factory %s with %d product(s)", cfg.FactoryID, len(cfg.Products))
+		log.Printf("heartbeat every %v, production every %v", cfg.HeartbeatInterval, cfg.ProductionInterval)
+	} else {
+		log.Printf("starting simulator for warehouse %s with %d sector(s)", cfg.WarehouseID, len(cfg.Sectors))
+		log.Printf("heartbeat every %v, temperature every %v", cfg.HeartbeatInterval, cfg.TemperatureInterval)
+	}
 
 	pub := newPublisher(cfg.RabbitMQURL)
 	defer pub.close()
 
 	done := make(chan struct{})
-
-	// One goroutine sends heartbeats for the whole warehouse.
-	go runHeartbeat(pub, cfg, done)
-
-	// One goroutine sends temperature readings for ALL sectors together.
-	go runTemperature(pub, cfg, done)
+	if cfg.Mode == "factory" {
+		go runFactoryHeartbeat(pub, cfg, done)
+		go runFactoryProduction(pub, cfg, done)
+	} else {
+		go runHeartbeat(pub, cfg, done)
+		go runTemperature(pub, cfg, done)
+	}
 
 	// Block forever (Ctrl-C to stop).
 	<-done
@@ -107,6 +114,80 @@ func sendTemperature(pub *Publisher, cfg *Config, current []float64) {
 	routingKey := fmt.Sprintf("warehouse.%s.temperature", cfg.WarehouseID)
 	if err := pub.publish(dataExchange, routingKey, msg); err != nil {
 		log.Printf("temperature publish error: %v", err)
+	}
+}
+
+func runFactoryHeartbeat(pub *Publisher, cfg *Config, done chan struct{}) {
+	ticker := time.NewTicker(cfg.HeartbeatInterval)
+	defer ticker.Stop()
+
+	sendFactoryHeartbeat(pub, cfg)
+
+	for {
+		select {
+		case <-ticker.C:
+			sendFactoryHeartbeat(pub, cfg)
+		case <-done:
+			return
+		}
+	}
+}
+
+func sendFactoryHeartbeat(pub *Publisher, cfg *Config) {
+	msg := FactoryHeartbeatMessage{
+		FactoryID: cfg.FactoryID,
+		Type:      "heartbeat",
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
+	}
+	routingKey := fmt.Sprintf("factory.%s.heartbeat", cfg.FactoryID)
+	if err := pub.publish(factoryHeartbeatExchange, routingKey, msg); err != nil {
+		log.Printf("factory heartbeat publish error: %v", err)
+	} else {
+		log.Printf("[heartbeat] factory=%s", cfg.FactoryID)
+	}
+}
+
+func runFactoryProduction(pub *Publisher, cfg *Config, done chan struct{}) {
+	ticker := time.NewTicker(cfg.ProductionInterval)
+	defer ticker.Stop()
+
+	sendFactoryProduction(pub, cfg)
+
+	for {
+		select {
+		case <-ticker.C:
+			sendFactoryProduction(pub, cfg)
+		case <-done:
+			return
+		}
+	}
+}
+
+func sendFactoryProduction(pub *Publisher, cfg *Config) {
+	readings := make([]ProductReading, len(cfg.Products))
+	for i, p := range cfg.Products {
+		amount := p.MinAmount
+		if p.MaxAmount > p.MinAmount {
+			amount = p.MinAmount + rand.Int63n(p.MaxAmount-p.MinAmount+1)
+		}
+		readings[i] = ProductReading{
+			ProductID:   p.ProductID,
+			ProductName: p.ProductName,
+			Amount:      amount,
+		}
+		log.Printf("[production] factory=%s product=%s amount=%d", cfg.FactoryID, p.ProductName, amount)
+	}
+
+	msg := FactoryProductionMessage{
+		FactoryID: cfg.FactoryID,
+		Type:      "production",
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
+		Readings:  readings,
+	}
+
+	routingKey := fmt.Sprintf("factory.%s.production", cfg.FactoryID)
+	if err := pub.publish(factoryDataExchange, routingKey, msg); err != nil {
+		log.Printf("factory production publish error: %v", err)
 	}
 }
 
