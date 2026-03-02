@@ -54,11 +54,14 @@
           }
         </mat-form-field>
 
-        <div class="avatar-row">
-          <button type="button" mat-stroked-button (click)="onAvatarClick()">
-            <mat-icon>upload</mat-icon>
-            {{ avatarFile ? avatarFile.name : 'Choose avatar' }}
-          </button>
+        <div class="avatar-picker" (click)="onAvatarClick()">
+          <div class="avatar-circle">
+            <img *ngIf="avatarPreviewUrl" [src]="avatarPreviewUrl" alt="Preview" class="avatar-img" />
+            <span *ngIf="!avatarPreviewUrl" class="avatar-initials">
+              <mat-icon>person</mat-icon>
+            </span>
+          </div>
+          <span class="avatar-hint">{{ avatarFile ? 'Change photo' : 'Add photo (optional)' }}</span>
           <input #fileInput type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="onFileChange($event)" />
         </div>
 
