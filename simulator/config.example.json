@@ -1,0 +1,11 @@
+{
+  "warehouse_id": "7f000001-9cac-10da-819c-ace118fd0015",
+  "rabbitmq_url": "amqp://guest:guest@localhost:5672/",
+  "heartbeat_interval": "30s",
+  "temperature_interval": "10m",
+  "sectors": [
+    { "sector_id": "sec-1", "sector_name": "Frozen",       "base_temperature": -18.0, "variance": 1.0 },
+    { "sector_id": "sec-2", "sector_name": "Refrigerated", "base_temperature":   4.0, "variance": 1.5 },
+    { "sector_id": "sec-3", "sector_name": "Ambient",      "base_temperature":  20.0, "variance": 2.0 }
+  ]
+}
