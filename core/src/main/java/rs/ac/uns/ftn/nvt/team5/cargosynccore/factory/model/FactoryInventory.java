@@ -14,7 +14,10 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "factory_inventory")
+@Table(
+    name = "factory_inventory",
+    uniqueConstraints = @UniqueConstraint(name = "uk_factory_inventory_factory_product", columnNames = {"factory_id", "product_id"})
+)
 public class FactoryInventory extends AbstractPersistable {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

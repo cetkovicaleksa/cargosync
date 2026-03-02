@@ -62,12 +62,14 @@ public class FactoryService {
     @CachePut(value = "factories", key = "#id")
     @Transactional
     public Factory updateFactory(UUID id, SaveFactoryRequest request, List<MultipartFile> images) {
+        if (request.version() == null) {
+            throw new BadRequestException("Version is required for factory updates");
+        }
+
         Factory factory = factoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Factory not found"));
 
-        if (request.version() != null) {
-            factory.setVersion(request.version());
-        }
+        factory.setVersion(request.version());
 
         return saveOrUpdate(factory, request, images);
     }
@@ -114,14 +116,6 @@ public class FactoryService {
     public void deleteFactory(UUID id) {
         factoryStatusRepository.deleteFactoryStatusByFactoryId(id);
         factoryRepository.deleteById(id);
-    }
-
-    // 5 minutes TTL
-    @Cacheable(value = "productAnalytics", key = "#factoryId.toString() + '-' + #productId.toString() + '-' + #period")
-    @Transactional(readOnly = true)
-    public List<Integer> getProductionAnalytics(UUID factoryId, UUID productId, String period) {
-        // TODO: implement, swap Integer to Analytics DTO
-        return List.of();
     }
 
     private Factory saveOrUpdate(Factory factory, SaveFactoryRequest request, List<MultipartFile> images) {

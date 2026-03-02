@@ -45,6 +45,8 @@ public class RedisConfig {
         return builder -> builder
                 .withCacheConfiguration("productAnalytics",
                         cacheConfiguration.entryTtl(Duration.ofMinutes(5)))
+                .withCacheConfiguration("availabilityAnalytics",
+                        cacheConfiguration.entryTtl(Duration.ofMinutes(5)))
                 .withCacheConfiguration("catalogue",
                         cacheConfiguration.entryTtl(Duration.ofMinutes(5)))
                 .withCacheConfiguration("temperatureChart",
