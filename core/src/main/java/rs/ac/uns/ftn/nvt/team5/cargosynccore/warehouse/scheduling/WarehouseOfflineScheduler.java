@@ -26,7 +26,7 @@ public class WarehouseOfflineScheduler {
                     status.getWarehouse().getId(), status.getLastHeartbeat());
             status.setOnline(false);
             statuses.save(status);
-            influx.writeWarehouseAvailabilityEvent(status.getWarehouse().getId(), false, Instant.now());
+            influx.writeWarehouseAvailabilityEvent(status.getWarehouse().getId(), "offline", Instant.now());
         }
     }
 }

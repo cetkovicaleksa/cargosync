@@ -1,0 +1,15 @@
+# compiled binary
+simulator
+simulator.exe
+
+# real config (contains secrets/UUIDs)
+config.json
+
+# test artifacts
+*.test
+*.out
+coverage.out
+
+# env
+.env
+.idea

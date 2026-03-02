@@ -4,6 +4,9 @@ services:
   rabbitmq:
     image: rabbitmq:4-alpine
     expose: ["5672"]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${CARGOSYNC_RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${CARGOSYNC_RABBITMQ_PASSWORD}
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq:rw
     networks:

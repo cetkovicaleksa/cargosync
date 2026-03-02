@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.nvt.team5.cargosynccore.config;
 import jakarta.annotation.Nonnull;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,16 +16,20 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.repository.CompanyRepositor
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.repository.ProductRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.*;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.ClimateZone;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.Warehouse;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.WarehouseInventory;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.WarehouseSector;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.model.WarehouseStatus;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseInventoryRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseSectorRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseStatusRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j
 @Profile("dev")
 @RequiredArgsConstructor
 @Component
@@ -58,6 +63,7 @@ public class DevDatabaseSeeder implements CommandLineRunner {
     private final CompanyRepository companyRepository;
     private final WarehouseRepository warehouseRepository;
     private final WarehouseStatusRepository warehouseStatusRepository;
+    private final WarehouseSectorRepository warehouseSectorRepository;
     private final WarehouseInventoryRepository inventoryRepository;
     private final ProductCategoryRepository categoryRepository;
     private final ProductRepository productRepository;
@@ -124,6 +130,17 @@ public class DevDatabaseSeeder implements CommandLineRunner {
             inventoryRepository.save(new WarehouseInventory(wh3, forklift,   10L));
         }
 
+        // ---- Simulator test warehouse ----
+        Warehouse simWh = warehouseRepository.findByName("Simulator Test Warehouse")
+                .orElseGet(() -> createWarehouse("Simulator Test Warehouse", "Bulevar Evrope 1", noviSad,
+                        new GeoLocation("45.2550", "19.8450")));
+        if (warehouseSectorRepository.findByWarehouseId(simWh.getId()).isEmpty()) {
+            addSector(simWh, "Frozen",       ClimateZone.FROZEN);
+            addSector(simWh, "Refrigerated", ClimateZone.REFRIGERATED);
+            addSector(simWh, "Ambient",      ClimateZone.AMBIENT);
+        }
+        log.info("=== SIMULATOR TEST WAREHOUSE ID: {} ===", simWh.getId());
+
         // ---- Companies (always ensure these exist) ----
         Customer devCustomer = customerRepository.findAll().stream()
                 .filter(c -> "customer@cargosync.rs".equals(c.getEmail()))
@@ -171,6 +188,14 @@ public class DevDatabaseSeeder implements CommandLineRunner {
         var saved = warehouseRepository.save(wh);
         warehouseStatusRepository.save(new WarehouseStatus(saved));
         return saved;
+    }
+
+    private void addSector(Warehouse wh, String name, ClimateZone zone) {
+        WarehouseSector sector = new WarehouseSector();
+        sector.setWarehouse(wh);
+        sector.setName(name);
+        sector.setClimateZone(zone);
+        warehouseSectorRepository.save(sector);
     }
 
 }

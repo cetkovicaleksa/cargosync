@@ -13,4 +13,8 @@ public interface WarehouseRepository extends JpaRepository<Warehouse, UUID>, Jpa
 
     @Query("SELECT w FROM Warehouse w LEFT JOIN FETCH w.sectors LEFT JOIN FETCH w.city c LEFT JOIN FETCH c.country WHERE w.id = :id")
     Optional<Warehouse> findByIdWithSectors(@Param("id") UUID id);
+
+    boolean existsByName(String name);
+
+    Optional<Warehouse> findByName(String name);
 }

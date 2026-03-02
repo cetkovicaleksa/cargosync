@@ -25,19 +25,29 @@ public class WarehouseMessageConsumer {
     @RabbitListener(queues = RabbitMQConfig.WAREHOUSE_HEARTBEAT_QUEUE)
     public void handleHeartbeat(WarehouseHeartbeatMessage msg) {
         statuses.findByWarehouseId(msg.warehouseId()).ifPresentOrElse(status -> {
+            boolean wasOffline = !status.isOnline();
             status.setOnline(true);
             status.setLastHeartbeat(Instant.now());
             statuses.save(status);
+            if (wasOffline) {
+                log.info("Warehouse {} is back ONLINE", msg.warehouseId());
+                influx.writeWarehouseAvailabilityEvent(status.getWarehouse().getId(), "online", Instant.now());
+            }
         }, () -> log.warn("Heartbeat for unknown warehouse: {}", msg.warehouseId()));
     }
 
     @RabbitListener(queues = RabbitMQConfig.WAREHOUSE_TEMPERATURE_QUEUE)
     public void handleTemperature(WarehouseTemperatureMessage msg) {
-        sectors.findByWarehouseIdAndName(msg.warehouseId(), msg.sectorName()).ifPresentOrElse(sector -> {
-            sector.setLastTemperature(msg.temperature());
-            sector.setLastTemperatureAt(msg.timestamp());
-            sectors.save(sector);
-            influx.writeWarehouseTemperature(msg.warehouseId(), msg.sectorName(), msg.temperature(), msg.timestamp());
-        }, () -> log.warn("Temperature for unknown sector: {}/{}", msg.warehouseId(), msg.sectorName()));
+        if (msg.readings() == null) return;
+        for (var reading : msg.readings()) {
+            sectors.findByWarehouseIdAndName(msg.warehouseId(), reading.sectorName()).ifPresentOrElse(sector -> {
+                sector.setLastTemperature(reading.temperature());
+                sector.setLastTemperatureAt(msg.timestamp() != null ? msg.timestamp() : Instant.now());
+                sectors.save(sector);
+                influx.writeWarehouseTemperature(
+                        msg.warehouseId(), reading.sectorId(), reading.sectorName(),
+                        reading.temperature(), sector.getLastTemperatureAt());
+            }, () -> log.warn("Temperature for unknown sector: {}/{}", msg.warehouseId(), reading.sectorName()));
+        }
     }
 }
