@@ -156,6 +156,10 @@
               </div>
             </div>
 
+            <div class="x-ticks" *ngIf="s.points.length > 0">
+              <span class="tick-label" *ngFor="let i of productionTickIndices()">{{ productionTickLabel(i) }}</span>
+            </div>
+
             <div class="table-wrap">
               <table class="table compact">
                 <thead>
@@ -284,14 +288,14 @@
             <section class="panel-block">
               <h3>Availability Plot</h3>
               <div class="line-wrap" *ngIf="a.points.length > 0">
-                <svg viewBox="0 0 840 220" preserveAspectRatio="none">
+                <svg viewBox="0 0 840 260" preserveAspectRatio="none">
                   <line x1="24" y1="202" x2="824" y2="202" class="axis"></line>
                   <line x1="24" y1="12" x2="24" y2="202" class="axis"></line>
                   <polyline [attr.points]="availabilityLinePoints()" class="line"></polyline>
 
                   <g class="tick" *ngFor="let i of availabilityTickIndices()">
                     <line [attr.x1]="availabilityTickX(i)" y1="202" [attr.x2]="availabilityTickX(i)" y2="208" class="tick-line"></line>
-                    <text [attr.x]="availabilityTickX(i)" y="218" text-anchor="middle">{{ availabilityLabel(a.points[i].periodStart) }}</text>
+                    <text [attr.transform]="availabilityTickTransform(i)" text-anchor="end">{{ availabilityTickLabel(i) }}</text>
                   </g>
                 </svg>
               </div>
