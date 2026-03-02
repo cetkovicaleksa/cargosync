@@ -1,5 +1,8 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.product.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,6 +22,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Product;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Tag(name = "Products")
 @RestController
 @RequestMapping("/products")
 @RequiredArgsConstructor
@@ -26,6 +30,8 @@ public class ProductController {
 
     private final ProductService productService;
 
+    @Operation(summary = "Create product", description = "Creates a new product with optional image. Requires MANAGER role.")
+    @ApiResponse(responseCode = "201", description = "Product created")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.CREATED)
@@ -36,6 +42,7 @@ public class ProductController {
         return mapToDto(productService.createProduct(request, image));
     }
 
+    @Operation(summary = "Update product", description = "Updates an existing product. Requires MANAGER role.")
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
     public ProductDto updateProduct(
@@ -46,25 +53,22 @@ public class ProductController {
         return mapToDto(productService.updateProduct(id, request, image));
     }
 
-    /** Manager product management — all products, no stock info. */
+    @Operation(summary = "Search products (Manager)", description = "Paginated product list for managers — all products including those not for sale. Filter by name, category, price range.")
     @GetMapping
     @PreAuthorize("hasRole('MANAGER')")
     public Page<ProductDto> searchProducts(ProductSearchFilter filter, Pageable pageable) {
         return productService.searchProducts(filter, pageable).map(this::mapToDto);
     }
 
-    /**
-     * Customer product catalogue — only isForSale products, enriched with
-     * total stock across all warehouses. Results are cached (TTL 5 min).
-     *
-     * Query params: name, categoryName, minPrice, maxPrice
-     */
+    @Operation(summary = "Product catalogue (Customer)", description = "Paginated catalogue of products available for purchase, enriched with total stock across all warehouses. Results cached in Redis (TTL 5 min). Filter by name, categoryName, minPrice, maxPrice.")
     @GetMapping("/catalogue")
     @PreAuthorize("hasRole('CUSTOMER')")
     public Page<ProductDto> getCatalogue(ProductSearchFilter filter, Pageable pageable) {
         return productService.getCatalogue(filter, pageable).toPage(pageable);
     }
 
+    @Operation(summary = "Delete product", description = "Deletes a product. Requires MANAGER role.")
+    @ApiResponse(responseCode = "204", description = "Deleted")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.NO_CONTENT)

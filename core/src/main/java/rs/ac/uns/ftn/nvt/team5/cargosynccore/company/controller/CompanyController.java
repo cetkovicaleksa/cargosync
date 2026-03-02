@@ -1,5 +1,7 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.company.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,6 +14,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.repository.CompanyRepositor
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "Companies")
 @RestController
 @RequestMapping("/companies")
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class CompanyController {
 
     public record CompanyOptionDto(UUID id, String name, String address) {}
 
+    @Operation(summary = "My companies", description = "Returns all companies owned by the authenticated customer. Used for order destination selection.")
     @GetMapping("/mine")
     @PreAuthorize("hasRole('CUSTOMER')")
     public List<CompanyOptionDto> getMyCompanies(@AuthenticationPrincipal Account account) {

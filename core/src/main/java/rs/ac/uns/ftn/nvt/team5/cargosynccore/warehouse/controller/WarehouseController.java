@@ -1,5 +1,10 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
@@ -24,6 +29,7 @@ import java.util.UUID;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.*;
 
+@Tag(name = "Warehouses")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(value = "/warehouses", produces = APPLICATION_JSON_VALUE)
@@ -41,6 +47,7 @@ public class WarehouseController {
     public record CountryOptionDto(String code, String name) {}
     public record CityOptionDto(String code, String name) {}
 
+    @Operation(summary = "List warehouses", description = "Paginated, filterable list of all warehouses. Filter by name, country, city or online status.")
     @GetMapping
     Page<WarehouseDto> getWarehouses(
             @ModelAttribute WarehouseQueryParams params,
@@ -49,11 +56,18 @@ public class WarehouseController {
         return queryWarehousesUC.getWarehouses(params, pageable).toPage(pageable);
     }
 
+    @Operation(summary = "Get warehouse", description = "Returns a single warehouse with its sectors and current status.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Warehouse found"),
+            @ApiResponse(responseCode = "404", description = "Warehouse not found")
+    })
     @GetMapping("/{id}")
     WarehouseDto getWarehouse(@PathVariable UUID id) {
         return queryWarehousesUC.getWarehouse(id);
     }
 
+    @Operation(summary = "Create warehouse", description = "Creates a new warehouse with sectors and optional images. Requires MANAGER role.")
+    @ApiResponse(responseCode = "201", description = "Warehouse created")
     @PostMapping(consumes = MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
     @Caching(evict = {
@@ -66,6 +80,7 @@ public class WarehouseController {
                 .body(modelMapper.map(warehouse, WarehouseDto.class));
     }
 
+    @Operation(summary = "Update warehouse", description = "Updates warehouse fields, sectors and images. Requires MANAGER role.")
     @PutMapping(path = "/{id}", consumes = MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
     @Caching(evict = {
@@ -76,6 +91,11 @@ public class WarehouseController {
         return modelMapper.map(updateWarehouseUC.updateWarehouse(id, form), WarehouseDto.class);
     }
 
+    @Operation(summary = "Delete warehouse", description = "Hard-deletes a warehouse. Fails if the warehouse still has stock inventory. Requires MANAGER role.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Deleted"),
+            @ApiResponse(responseCode = "409", description = "Warehouse still has stock")
+    })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(NO_CONTENT)
@@ -87,6 +107,7 @@ public class WarehouseController {
         deleteWarehouseUC.deleteWarehouse(id);
     }
 
+    @Operation(summary = "List countries", description = "Returns all available countries for warehouse/company city selection.")
     @GetMapping("/countries")
     @PreAuthorize("isAuthenticated()")
     List<CountryOptionDto> getAllCountries() {
@@ -96,22 +117,36 @@ public class WarehouseController {
                 .toList();
     }
 
+    @Operation(summary = "List cities by country", description = "Returns cities filtered by country code (e.g. RS, BA).")
     @GetMapping("/cities")
     @PreAuthorize("isAuthenticated()")
-    List<CityOptionDto> getCitiesByCountry(@RequestParam String countryCode) {
+    List<CityOptionDto> getCitiesByCountry(
+            @Parameter(description = "ISO country code, e.g. RS") @RequestParam String countryCode) {
         return cityRepository.findByCountryCodeOrderByNameAsc(countryCode).stream()
                 .map(c -> new CityOptionDto(c.getCode(), c.getName()))
                 .toList();
     }
 
+    @Operation(
+            summary = "Temperature chart",
+            description = "Returns aggregated temperature readings for a warehouse sector. " +
+                    "Preset periods: LAST_7D, LAST_30D, LAST_3M, LAST_6M, LAST_1Y. " +
+                    "Use CUSTOM with `from` and `to` (ISO-8601) for a custom range (max 1 year). " +
+                    "Results are cached in Redis for 5 minutes. Requires MANAGER role."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Chart data returned"),
+            @ApiResponse(responseCode = "400", description = "Invalid period or date range"),
+            @ApiResponse(responseCode = "404", description = "Warehouse or sector not found")
+    })
     @GetMapping("/{id}/sectors/{sectorId}/temperature-chart")
     @PreAuthorize("hasRole('MANAGER')")
     TemperatureChartDto getTemperatureChart(
             @PathVariable UUID id,
             @PathVariable UUID sectorId,
-            @RequestParam(defaultValue = "LAST_7D") TemperatureChartPeriod period,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to
+            @Parameter(description = "Preset period or CUSTOM") @RequestParam(defaultValue = "LAST_7D") TemperatureChartPeriod period,
+            @Parameter(description = "Range start (ISO-8601), required when period=CUSTOM") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+            @Parameter(description = "Range end (ISO-8601), required when period=CUSTOM")  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to
     ) {
         return temperatureChartService.getChart(id, sectorId, period, from, to);
     }
