@@ -26,6 +26,7 @@ import { CityOptionDto } from '../../dto/city-option.dto';
 import { SaveFactoryRequestDto } from '../../dto/save-factory-request.dto';
 import { ImagePreviewDialogComponent } from '../../../shared/dialog/image-preview-dialog/image-preview-dialog.component';
 import { ProtectedImageComponent } from "../../../shared/util/protected-image.component";
+import { CountryService } from '../../../shared/service/country.service';
 
 const leafletIconRetinaUrl = new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).toString();
 const leafletIconUrl = new URL('leaflet/dist/images/marker-icon.png', import.meta.url).toString();
@@ -73,6 +74,7 @@ export type FactoryEditDialogData =
 export class FactoryEditDialogComponent implements AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly factories = inject(FactoryService);
+  private readonly countryService = inject(CountryService);
   private readonly snack = inject(MatSnackBar);
   private readonly dialogRef = inject(MatDialogRef<FactoryEditDialogComponent, FactoryDto | undefined>);
   private readonly dialog = inject(MatDialog);
@@ -113,7 +115,7 @@ export class FactoryEditDialogComponent implements AfterViewInit, OnDestroy {
       this.existingImageUrls = [...(data.factory.imageUrls ?? [])];
     }
 
-    this.factories.getCountries().subscribe({
+    this.countryService.getCountries().subscribe({
       next: (countries) => {
         this.countries = countries ?? [];
       },
@@ -145,7 +147,7 @@ export class FactoryEditDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   private loadCities(countryCode: string) {
-    this.factories.getCities(countryCode).subscribe({
+    this.countryService.getCities(countryCode).subscribe({
       next: (cities) => {
         this.cities = cities ?? [];
 

@@ -1,5 +1,7 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -8,6 +10,7 @@ import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,7 +19,8 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "factories")
-public class Factory extends AbstractPersistable {
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+public class Factory extends AbstractPersistable implements Serializable {
 
     @NotBlank
     @Column(nullable = false)
@@ -45,6 +49,7 @@ public class Factory extends AbstractPersistable {
     @Column(nullable = false)
     private Long version;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "factories")
     @BatchSize(size = 24)
     private Set<Product> products = new HashSet<>();

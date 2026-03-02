@@ -6,6 +6,9 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -56,7 +59,7 @@ public class FactoryService {
         return savedFactory;
     }
 
-//    @CachePut(value = "factories", key = "#id")
+    @CachePut(value = "factories", key = "#id")
     @Transactional
     public Factory updateFactory(UUID id, SaveFactoryRequest request, List<MultipartFile> images) {
         Factory factory = factoryRepository.findById(id)
@@ -69,13 +72,13 @@ public class FactoryService {
         return saveOrUpdate(factory, request, images);
     }
 
-//    @Cacheable(value = "factories", key = "#id")
+    @Cacheable(value = "factories", key = "#id")
     @Transactional(readOnly = true)
     public Factory getFactoryById(UUID id) {
         Factory factory = factoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Factory not found"));
 
-        Hibernate.initialize(factory.getImageUrls());
+        factory.setImageUrls(new HashSet<>(factory.getImageUrls()));
         return factory;
     }
 
@@ -106,11 +109,19 @@ public class FactoryService {
         return factoryRepository.findAll(spec, pageable);
     }
 
-//    @CacheEvict(value = "factories", key = "#id")
+    @CacheEvict(value = "factories", key = "#id")
     @Transactional
     public void deleteFactory(UUID id) {
         factoryStatusRepository.deleteFactoryStatusByFactoryId(id);
         factoryRepository.deleteById(id);
+    }
+
+    // 5 minutes TTL
+    @Cacheable(value = "productAnalytics", key = "#factoryId.toString() + '-' + #productId.toString() + '-' + #period")
+    @Transactional(readOnly = true)
+    public List<Integer> getProductionAnalytics(UUID factoryId, UUID productId, String period) {
+        // TODO: implement, swap Integer to Analytics DTO
+        return List.of();
     }
 
     private Factory saveOrUpdate(Factory factory, SaveFactoryRequest request, List<MultipartFile> images) {
@@ -128,7 +139,9 @@ public class FactoryService {
         mergedImageUrls.addAll(saveImages(images));
         factory.setImageUrls(mergedImageUrls);
 
-        return factoryRepository.save(factory);
+        Factory newFactory = factoryRepository.save(factory);
+        newFactory.setImageUrls(new HashSet<>(newFactory.getImageUrls()));
+        return newFactory;
     }
 
     private List<String> saveImages(List<MultipartFile> images) {

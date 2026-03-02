@@ -1,7 +1,11 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.product.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Join;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductSearchFilter;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductSummaryDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.SaveProductRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.repository.ProductRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
@@ -24,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,13 +44,16 @@ public class ProductService {
     private final ProductCategoryRepository categoryRepository;
     private final FactoryRepository factoryRepository;
     private final ContentStore contentStore;
+    private final ModelMapper modelMapper;
 
+    @CacheEvict(cacheNames = {"productCategories", "factoryProducts"}, allEntries = true)
     @Transactional
     public Product createProduct(SaveProductRequest request, MultipartFile image) {
         Product product = new Product();
         return saveOrUpdate(product, request, image);
     }
 
+    @CacheEvict(cacheNames = {"productCategories", "factoryProducts"}, allEntries = true)
     @Transactional
     public Product updateProduct(UUID id, SaveProductRequest request, MultipartFile image) {
         Product product = productRepository.findById(id)
@@ -151,8 +160,39 @@ public class ProductService {
         return productRepository.findAll(spec, pageable);
     }
 
+    @Cacheable(cacheNames = "productCategories", key = "'all'")
+    @Transactional(readOnly = true)
+    public List<String> getAllCategoryNames() {
+        return categoryRepository.findAll().stream()
+                .map(ProductCategory::getName)
+                .collect(Collectors.toList());
+    }
+
+    @Cacheable(value = "factoryProducts", key = "#factoryId")
+    @Transactional(readOnly = true)
+    public List<ProductSummaryDto> getProductsByFactoryId(UUID factoryId) {
+        Specification<Product> spec = (root, query, cb) -> {
+            query.distinct(true);
+            Join<Product, Factory> join = root.join("factories");
+            return cb.equal(join.get("id"), factoryId);
+        };
+        return productRepository.findAll(spec).stream()
+                .map(this::mapToSummaryDto)
+                .collect(Collectors.toList());
+    }
+
+    @CacheEvict(cacheNames = {"productCategories"}, allEntries = true)
     @Transactional
     public void deleteProduct(UUID id) {
         productRepository.deleteById(id);
+    }
+
+    private ProductSummaryDto mapToSummaryDto(Product product) {
+        return new ProductSummaryDto(
+                product.getId(),
+                product.getName(),
+                product.getCategory().getName(),
+                product.getImageUrl()
+        );
     }
 }

@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 import org.springframework.data.domain.Persistable;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ import static lombok.AccessLevel.PROTECTED;
 @Setter(PROTECTED)
 @ToString
 @MappedSuperclass
-public abstract class AbstractPersistable implements Persistable<UUID> {
+public abstract class AbstractPersistable implements Persistable<UUID>, Serializable {
 
     @Id
     @UuidGenerator(style = UuidGenerator.Style.TIME)
