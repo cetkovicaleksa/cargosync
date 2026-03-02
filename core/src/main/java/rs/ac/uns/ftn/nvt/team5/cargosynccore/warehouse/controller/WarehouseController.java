@@ -2,6 +2,8 @@ package rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -44,17 +46,20 @@ public class WarehouseController {
             @ModelAttribute WarehouseQueryParams params,
             Pageable pageable
     ) {
-        return queryWarehousesUC.getWarehouses(params, pageable)
-                .map(w -> modelMapper.map(w, WarehouseDto.class));
+        return queryWarehousesUC.getWarehouses(params, pageable).toPage(pageable);
     }
 
     @GetMapping("/{id}")
     WarehouseDto getWarehouse(@PathVariable UUID id) {
-        return modelMapper.map(queryWarehousesUC.getWarehouse(id), WarehouseDto.class);
+        return queryWarehousesUC.getWarehouse(id);
     }
 
     @PostMapping(consumes = MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "warehouseList", allEntries = true),
+            @CacheEvict(cacheNames = "warehouseDetail", allEntries = true)
+    })
     ResponseEntity<WarehouseDto> createWarehouse(@ModelAttribute WarehouseForm form) {
         var warehouse = createWarehouseUC.createWarehouse(form);
         return ResponseEntity.created(URI.create("/warehouses/" + warehouse.getId()))
@@ -63,6 +68,10 @@ public class WarehouseController {
 
     @PutMapping(path = "/{id}", consumes = MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "warehouseList", allEntries = true),
+            @CacheEvict(cacheNames = "warehouseDetail", key = "#id")
+    })
     WarehouseDto updateWarehouse(@PathVariable UUID id, @ModelAttribute UpdateWarehouseForm form) {
         return modelMapper.map(updateWarehouseUC.updateWarehouse(id, form), WarehouseDto.class);
     }
@@ -70,6 +79,10 @@ public class WarehouseController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(NO_CONTENT)
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "warehouseList", allEntries = true),
+            @CacheEvict(cacheNames = "warehouseDetail", key = "#id")
+    })
     void deleteWarehouse(@PathVariable UUID id) {
         deleteWarehouseUC.deleteWarehouse(id);
     }

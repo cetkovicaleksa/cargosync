@@ -1,6 +1,7 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.BadRequestException;
@@ -24,6 +25,10 @@ public class TemperatureChartService {
     private final WarehouseSectorRepository sectorRepository;
     private final InfluxService influxService;
 
+    @Cacheable(
+            cacheNames = "temperatureChart",
+            key = "#warehouseId + ':' + #sectorId + ':' + #period + ':' + #from + ':' + #to"
+    )
     @Transactional(readOnly = true)
     public TemperatureChartDto getChart(
             UUID warehouseId,
