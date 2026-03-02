@@ -9,11 +9,14 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryAvailabilitySeriesDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryLookupDto;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryProductionSeriesDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactorySearchFilter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.SaveFactoryRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.service.FactoryAnalyticsService;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.service.FactoryService;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductSummaryDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.service.ProductService;
@@ -27,6 +30,10 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.CountryService;
 
 import java.util.Comparator;
 import java.util.List;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.UUID;
 
 @RestController
@@ -35,6 +42,7 @@ import java.util.UUID;
 public class FactoryController {
 
     private final FactoryService factoryService;
+    private final FactoryAnalyticsService factoryAnalyticsService;
     private final CityRepository cityRepository;
     private final ProductService productService;
 
@@ -92,6 +100,58 @@ public class FactoryController {
     @PreAuthorize("hasRole('MANAGER')")
     public List<ProductSummaryDto> getFactoryProducts(@PathVariable UUID id) {
         return productService.getProductsByFactoryId(id);
+    }
+
+    @GetMapping("/{id}/products/{productId}/production")
+    @PreAuthorize("hasRole('MANAGER')")
+    public FactoryProductionSeriesDto getFactoryProductProduction(
+            @PathVariable UUID id,
+            @PathVariable UUID productId,
+            @RequestParam String from,
+            @RequestParam String to
+    ) {
+        return factoryAnalyticsService.getProductionSeries(
+                id,
+                productId,
+                parseToInstant(from, false),
+                parseToInstant(to, true)
+        );
+    }
+
+    @GetMapping("/{id}/availability")
+    @PreAuthorize("hasRole('MANAGER')")
+    public FactoryAvailabilitySeriesDto getFactoryAvailability(
+            @PathVariable UUID id,
+            @RequestParam String from,
+            @RequestParam String to
+    ) {
+        return factoryAnalyticsService.getAvailabilitySeries(
+                id,
+                parseToInstant(from, false),
+                parseToInstant(to, true)
+        );
+    }
+
+    private Instant parseToInstant(String value, boolean endOfDayForDateOnly) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("'from' and 'to' query params are required");
+        }
+
+        try {
+            return Instant.parse(value);
+        } catch (DateTimeParseException ignored) {
+            // fallback to date-only values (yyyy-MM-dd)
+        }
+
+        try {
+            LocalDate date = LocalDate.parse(value);
+            if (endOfDayForDateOnly) {
+                return date.plusDays(1).atStartOfDay().minusNanos(1).toInstant(ZoneOffset.UTC);
+            }
+            return date.atStartOfDay().toInstant(ZoneOffset.UTC);
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException("Invalid datetime format for value: " + value);
+        }
     }
 
     @DeleteMapping("/{id}")

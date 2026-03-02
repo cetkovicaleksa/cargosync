@@ -13,6 +13,8 @@ import (
 const (
 	heartbeatExchange = "warehouse.heartbeat"
 	dataExchange      = "warehouse.data"
+	factoryHeartbeatExchange = "factory.heartbeat"
+	factoryDataExchange      = "factory.data"
 )
 
 // HeartbeatMessage matches the spec format (snake_case JSON)
@@ -35,6 +37,25 @@ type TemperatureMessage struct {
 	Type        string          `json:"type"`
 	Timestamp   string          `json:"timestamp"`
 	Readings    []SectorReading `json:"readings"`
+}
+
+type FactoryHeartbeatMessage struct {
+	FactoryID string `json:"factory_id"`
+	Type      string `json:"type"`
+	Timestamp string `json:"timestamp"`
+}
+
+type ProductReading struct {
+	ProductID   string `json:"product_id"`
+	ProductName string `json:"product_name"`
+	Amount      int64  `json:"amount"`
+}
+
+type FactoryProductionMessage struct {
+	FactoryID string           `json:"factory_id"`
+	Type      string           `json:"type"`
+	Timestamp string           `json:"timestamp"`
+	Readings  []ProductReading `json:"readings"`
 }
 
 // Publisher wraps an AMQP connection and channel.
@@ -67,7 +88,7 @@ func (p *Publisher) connect() error {
 	}
 
 	// Declare both exchanges — idempotent, must match Spring Boot config
-	for _, ex := range []string{heartbeatExchange, dataExchange} {
+	for _, ex := range []string{heartbeatExchange, dataExchange, factoryHeartbeatExchange, factoryDataExchange} {
 		if err := ch.ExchangeDeclare(
 			ex, "topic",
 			true,  // durable

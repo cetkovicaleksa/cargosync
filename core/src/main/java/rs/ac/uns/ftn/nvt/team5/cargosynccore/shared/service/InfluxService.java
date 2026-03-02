@@ -17,6 +17,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.dto.TemperatureDataPointD
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,7 @@ public class InfluxService {
             log.warn("InfluxDB token not configured — metrics disabled");
             return;
         }
+        log.info("InfluxDB configured url={} org={} bucket={}", props.url(), props.org(), props.bucket());
         client = InfluxDBClientFactory.create(
                 props.url(), props.token().toCharArray(), props.org(), props.bucket());
         writeApi = client.getWriteApiBlocking();
@@ -65,6 +67,33 @@ public class InfluxService {
             writeApi.writePoint(point);
         } catch (Exception e) {
             log.error("Failed to write availability event to InfluxDB", e);
+        }
+    }
+
+    public void writeFactoryAvailabilityEvent(UUID factoryId, String status, Instant time) {
+        if (writeApi == null) return;
+        try {
+            var point = Point.measurement("factory_availability")
+                    .addTag("factory_id", factoryId.toString())
+                    .addField("status", status)
+                    .time(time, WritePrecision.MS);
+            writeApi.writePoint(point);
+        } catch (Exception e) {
+            log.error("Failed to write factory availability event to InfluxDB", e);
+        }
+    }
+
+    public void writeFactoryProduction(UUID factoryId, UUID productId, long amount, Instant time) {
+        if (writeApi == null) return;
+        try {
+            var point = Point.measurement("production")
+                    .addTag("factory_id", factoryId.toString())
+                    .addTag("product_id", productId.toString())
+                    .addField("amount", amount)
+                    .time(time, WritePrecision.MS);
+            writeApi.writePoint(point);
+        } catch (Exception e) {
+            log.error("Failed to write factory production event to InfluxDB", e);
         }
     }
 
@@ -101,6 +130,68 @@ public class InfluxService {
         }
     }
 
+    public List<FactoryProductionAggregate> queryFactoryProduction(
+            String factoryId,
+            String productId,
+            Instant start,
+            Instant stop,
+            String windowPeriod
+    ) {
+        if (client == null) return List.of();
+
+        String flux = buildFactoryProductionFlux(factoryId, productId, start, stop, windowPeriod);
+        try {
+            QueryApi queryApi = client.getQueryApi();
+            return queryApi.query(flux).stream()
+                    .flatMap(table -> table.getRecords().stream())
+                    .map(record -> new FactoryProductionAggregate(
+                            record.getTime(),
+                            record.getValue() instanceof Number n ? n.longValue() : 0L))
+                    .toList();
+        } catch (Exception e) {
+            log.error("InfluxDB production query failed for factory={} product={}", factoryId, productId, e);
+            return List.of();
+        }
+    }
+
+    public List<FactoryAvailabilityEvent> queryFactoryAvailabilityEvents(
+            String factoryId,
+            Instant start,
+            Instant stop
+    ) {
+        if (client == null) return List.of();
+
+        String flux = buildFactoryAvailabilityFlux(factoryId, start, stop);
+        try {
+            QueryApi queryApi = client.getQueryApi();
+            return queryApi.query(flux).stream()
+                    .flatMap(table -> table.getRecords().stream())
+                    .map(this::toFactoryAvailabilityEvent)
+                    .filter(event -> event.timestamp() != null && event.status() != null)
+                    .toList();
+        } catch (Exception e) {
+            log.error("InfluxDB availability query failed for factory={}", factoryId, e);
+            return List.of();
+        }
+    }
+
+    public Optional<String> queryFactoryAvailabilityLastStatusBefore(String factoryId, Instant before) {
+        if (client == null) return Optional.empty();
+
+        String flux = buildFactoryLastAvailabilityStatusFlux(factoryId, before);
+        try {
+            QueryApi queryApi = client.getQueryApi();
+            return queryApi.query(flux).stream()
+                    .flatMap(table -> table.getRecords().stream())
+                    .map(record -> record.getValue() != null ? String.valueOf(record.getValue()) : null)
+                    .filter(value -> value != null && !value.isBlank())
+                    .findFirst();
+        } catch (Exception e) {
+            log.error("InfluxDB availability previous-status query failed for factory={}", factoryId, e);
+            return Optional.empty();
+        }
+    }
+
     private String buildTemperatureFlux(
             String warehouseId,
             String sectorName,
@@ -128,10 +219,78 @@ public class InfluxService {
                 safeBucket, startStr, stopStr, safeWarehouseId, safeSector, windowPeriod);
     }
 
+        private String buildFactoryProductionFlux(
+                        String factoryId,
+                        String productId,
+                        Instant start,
+                        Instant stop,
+                        String windowPeriod
+        ) {
+                String startStr = DateTimeFormatter.ISO_INSTANT.format(start);
+                String stopStr = DateTimeFormatter.ISO_INSTANT.format(stop);
+                String safeFactoryId = factoryId.replace("'", "\\'");
+                String safeProductId = productId.replace("'", "\\'");
+                String safeBucket = props.bucket().replace("\"", "\\\"");
+
+                return String.format("""
+                                from(bucket: "%s")
+                                    |> range(start: %s, stop: %s)
+                                    |> filter(fn: (r) => r["_measurement"] == "production")
+                                    |> filter(fn: (r) => r["factory_id"] == "%s")
+                                    |> filter(fn: (r) => r["product_id"] == "%s")
+                                    |> filter(fn: (r) => r["_field"] == "amount")
+                                    |> aggregateWindow(every: %s, fn: sum, createEmpty: false)
+                                    |> sort(columns: ["_time"])
+                                """, safeBucket, startStr, stopStr, safeFactoryId, safeProductId, windowPeriod);
+        }
+
+        private String buildFactoryAvailabilityFlux(String factoryId, Instant start, Instant stop) {
+                String startStr = DateTimeFormatter.ISO_INSTANT.format(start);
+                String stopStr = DateTimeFormatter.ISO_INSTANT.format(stop);
+                String safeFactoryId = factoryId.replace("'", "\\'");
+                String safeBucket = props.bucket().replace("\"", "\\\"");
+
+                return String.format("""
+                                from(bucket: "%s")
+                                    |> range(start: %s, stop: %s)
+                                    |> filter(fn: (r) => r["_measurement"] == "factory_availability")
+                                    |> filter(fn: (r) => r["factory_id"] == "%s")
+                                    |> filter(fn: (r) => r["_field"] == "status")
+                                    |> sort(columns: ["_time"])
+                                """, safeBucket, startStr, stopStr, safeFactoryId);
+        }
+
+        private String buildFactoryLastAvailabilityStatusFlux(String factoryId, Instant before) {
+                String stopStr = DateTimeFormatter.ISO_INSTANT.format(before);
+                String safeFactoryId = factoryId.replace("'", "\\'");
+                String safeBucket = props.bucket().replace("\"", "\\\"");
+
+                return String.format("""
+                                from(bucket: "%s")
+                                    |> range(start: time(v: 0), stop: %s)
+                                    |> filter(fn: (r) => r["_measurement"] == "factory_availability")
+                                    |> filter(fn: (r) => r["factory_id"] == "%s")
+                                    |> filter(fn: (r) => r["_field"] == "status")
+                                    |> sort(columns: ["_time"])
+                                    |> tail(n: 1)
+                                """, safeBucket, stopStr, safeFactoryId);
+        }
+
     private TemperatureDataPointDto toDataPoint(FluxRecord record) {
         Instant time = record.getTime();
         Object val   = record.getValue();
         Double temp  = val instanceof Number n ? n.doubleValue() : null;
         return new TemperatureDataPointDto(time, temp);
     }
+
+    private FactoryAvailabilityEvent toFactoryAvailabilityEvent(FluxRecord record) {
+        Instant time = record.getTime();
+        Object val = record.getValue();
+        String status = val != null ? String.valueOf(val) : null;
+        return new FactoryAvailabilityEvent(time, status);
+    }
+
+    public record FactoryProductionAggregate(Instant periodStart, long units) {}
+
+    public record FactoryAvailabilityEvent(Instant timestamp, String status) {}
 }
