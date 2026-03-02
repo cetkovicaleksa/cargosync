@@ -9,5 +9,6 @@
         "npm run build": true,
         "Push-Location": true,
         "Pop-Location": true
-    }
+    },
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

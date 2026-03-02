@@ -19,7 +19,6 @@ import { FactoryAnalyticsService } from '../../service/factory-analytics.service
 import { FactoryDto } from '../../dto/factory.dto';
 import { CityOptionDto } from '../../dto/city-option.dto';
 import { CountryOptionDto } from '../../dto/country-option.dto';
-import { FactoryAnalyticsProductDto } from '../../dto/factory-analytics-product.dto';
 import { ProductionSeriesDto } from '../../dto/production-series.dto';
 import {
   FactoryAvailabilityRealtimeEventDto,
@@ -27,6 +26,9 @@ import {
 } from '../../dto/factory-availability.dto';
 import { ProtectedImageComponent } from '../../../shared/util/protected-image.component';
 import { ImagePreviewDialogComponent } from '../../../shared/dialog/image-preview-dialog/image-preview-dialog.component';
+import { CountryService } from '../../../shared/service/country.service';
+import { FactoryLookupDto } from '../../dto/factory-lookup.dto';
+import { ProductSummaryDto } from '../../../product/dto/product-summary.dto';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const REALTIME_EVENT_SECONDS = 5;
@@ -67,6 +69,7 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly factories = inject(FactoryService);
+  private readonly countryService = inject(CountryService);
   private readonly analytics = inject(FactoryAnalyticsService);
   private readonly snack = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
@@ -76,16 +79,16 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
 
   countries: CountryOptionDto[] = [];
   cities: CityOptionDto[] = [];
-  factoriesData: FactoryDto[] = [];
+  factoriesData: FactoryLookupDto[] = [];
 
-  products: FactoryAnalyticsProductDto[] = [];
+  products: ProductSummaryDto[] = [];
   productionSeries: ProductionSeriesDto | null = null;
 
   availabilitySeries: FactoryAvailabilitySeriesDto | null = null;
   realtimeActive = false;
 
   selectedFactory: FactoryDto | null = null;
-  selectedProduct: FactoryAnalyticsProductDto | null = null;
+  selectedProduct: ProductSummaryDto | null = null;
 
   loadingFactories = false;
   loadingProducts = false;
@@ -119,7 +122,7 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    this.factories.getCountries().subscribe({
+    this.countryService.getCountries().subscribe({
       next: (countries) => (this.countries = countries ?? []),
       error: () => this.snack.open('Failed to load countries.', 'Close', { duration: 3000 }),
     });
@@ -131,7 +134,7 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
         this.cities = [];
 
         if (!countryCode) return;
-        this.factories.getCities(countryCode).subscribe({
+        this.countryService.getCities(countryCode).subscribe({
           next: (cities) => (this.cities = cities ?? []),
           error: () => this.snack.open('Failed to load cities.', 'Close', { duration: 3000 }),
         });
@@ -163,15 +166,7 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const factoryId = params.get('factoryId');
       if (!factoryId) return;
-
-      this.factories.getByIds([factoryId]).subscribe({
-        next: (list) => {
-          const selected = list?.[0];
-          if (selected) {
-            this.chooseFactory(selected);
-          }
-        },
-      });
+      this.selectFactory(factoryId);
     });
   }
 
@@ -209,7 +204,7 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
     this.loadingFactories = true;
 
     this.factories
-      .search(this.getFactoryFilter(), 0, 50, sort.by, sort.direction)
+      .searchLookup(this.getFactoryFilter(), 0, 50, sort.by, sort.direction)
       .pipe(finalize(() => (this.loadingFactories = false)))
       .subscribe({
         next: (page) => {
@@ -218,12 +213,22 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
           if (this.selectedFactory) {
             const refreshed = this.factoriesData.find((f) => f.id === this.selectedFactory?.id);
             if (refreshed) {
-              this.selectedFactory = refreshed;
+              this.selectFactory(refreshed.id);
             }
           }
         },
         error: () => this.snack.open('Failed to load factories.', 'Close', { duration: 3500 }),
       });
+  }
+
+  selectFactory(factoryId: string) {
+    this.factories.getById(factoryId).subscribe({
+      next: (factory) => {
+        if (factory) {
+          this.chooseFactory(factory);
+        }
+      },
+    });
   }
 
   chooseFactory(factory: FactoryDto) {
@@ -265,7 +270,7 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
       });
   }
 
-  chooseProduct(product: FactoryAnalyticsProductDto) {
+  chooseProduct(product: ProductSummaryDto) {
     this.selectedProduct = product;
     this.loadProductionSeries();
   }

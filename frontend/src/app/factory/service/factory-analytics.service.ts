@@ -3,7 +3,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, defer, interval, map, Observable, of } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
 import { environment } from '../../../environments/environment';
-import { FactoryAnalyticsProductDto } from '../dto/factory-analytics-product.dto';
 import { ProductionBucket, ProductionSeriesDto } from '../dto/production-series.dto';
 import {
   AvailabilityBucket,
@@ -11,6 +10,7 @@ import {
   FactoryAvailabilityRealtimeEventDto,
   FactoryAvailabilitySeriesDto,
 } from '../dto/factory-availability.dto';
+import { ProductSummaryDto } from '../../product/dto/product-summary.dto';
 
 @Injectable({ providedIn: 'root' })
 export class FactoryAnalyticsService {
@@ -18,11 +18,11 @@ export class FactoryAnalyticsService {
 
   private readonly apiBase = environment.apiHost;
 
-  getFactoryProducts(factoryId: string): Observable<FactoryAnalyticsProductDto[]> {
+  getFactoryProducts(factoryId: string): Observable<ProductSummaryDto[]> {
     const url = `${this.apiBase}factories/${encodeURIComponent(factoryId)}/products`;
 
-    return this.http.get<FactoryAnalyticsProductDto[]>(url).pipe(
-      catchError(() => of(this.mockProducts(factoryId))),
+    return this.http.get<ProductSummaryDto[]>(url).pipe(
+      // catchError(() => of(this.mockProducts(factoryId))),
     );
   }
 
@@ -56,7 +56,7 @@ export class FactoryAnalyticsService {
     );
   }
 
-  private mockProducts(factoryId: string): FactoryAnalyticsProductDto[] {
+  private mockProducts(factoryId: string): ProductSummaryDto[] {
     const seed = this.hash(factoryId);
     const names = ['Steel Beam', 'Copper Wire', 'Aluminum Plate', 'Industrial Valve', 'Hydraulic Pump', 'Smart Sensor'];
 

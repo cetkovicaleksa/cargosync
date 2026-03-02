@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,7 +20,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "products")
-public class Product extends AbstractPersistable {
+public class Product extends AbstractPersistable implements Serializable {
 
     @NotBlank
     @Column(nullable = false)

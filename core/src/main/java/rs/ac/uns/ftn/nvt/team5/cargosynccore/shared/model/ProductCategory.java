@@ -8,12 +8,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
 @Table(name = "product_categories")
-public class ProductCategory extends AbstractPersistable {
+public class ProductCategory extends AbstractPersistable implements Serializable {
 
     @NotBlank
     @Column(nullable = false, unique = true)

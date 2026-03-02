@@ -5,6 +5,17 @@ server:
 spring:
   application:
     name: CargoSyncCore
+  cache:
+    type: redis
+    redis:
+      time-to-live: ${CARGOSYNC_CACHE_TTL:24h}
+      cache-null-values: false
+      use-key-prefix: true
+  data:
+    redis:
+      host: ${CARGOSYNC_REDIS_HOST:localhost}
+      port: ${CARGOSYNC_REDIS_PORT:6379}
+      password: ${CARGOSYNC_REDIS_PASSWORD:}
   rabbitmq:
     host: ${CARGOSYNC_RABBITMQ_HOST:localhost}
     port: ${CARGOSYNC_RABBITMQ_PORT:5672}

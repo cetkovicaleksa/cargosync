@@ -44,7 +44,7 @@ export class ForcePasswordChangeComponent implements OnInit{
       const username = params['username'];
       if (!username) {
         this.snack.open('Invalid request.', 'Close', { duration: 3500 });
-        this.router.navigate(['/home']);
+        this.router.navigate(['/']);
         return;
       }
       this.username = username;
@@ -66,7 +66,7 @@ export class ForcePasswordChangeComponent implements OnInit{
       .subscribe({
         next: () => {
           this.snack.open('Password updated successfully.', 'Close', { duration: 2500 });
-          this.router.navigate(['/home']);
+          this.router.navigate(['/']);
         },
         error: () => {
           this.snack.open('Password change failed. Please verify your old password.', 'Close', {

@@ -18,6 +18,7 @@ import { FactoryEditDialogComponent, FactoryEditDialogData } from '../factory-ed
 import { ConfirmDeleteDialogComponent } from '../../../shared/dialog/confirm-delete-dialog/confirm-delete-dialog.component';
 import { ImagePreviewDialogComponent } from '../../../shared/dialog/image-preview-dialog/image-preview-dialog.component';
 import { ProtectedImageComponent } from "../../../shared/util/protected-image.component";
+import { CountryService } from '../../../shared/service/country.service';
 
 @Component({
   selector: 'app-factory-list',
@@ -41,6 +42,7 @@ import { ProtectedImageComponent } from "../../../shared/util/protected-image.co
 export class FactoryListComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly factories = inject(FactoryService);
+  private readonly countryService = inject(CountryService);
   private readonly snack = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
@@ -66,7 +68,7 @@ export class FactoryListComponent implements OnDestroy {
   });
 
   constructor() {
-    this.factories.getCountries().subscribe({
+    this.countryService.getCountries().subscribe({
       next: (countries) => {
         this.countries = countries ?? [];
       },
@@ -82,7 +84,7 @@ export class FactoryListComponent implements OnDestroy {
           return;
         }
 
-        this.factories.getCities(countryCode).subscribe({
+        this.countryService.getCities(countryCode).subscribe({
           next: (cities) => {
             this.cities = cities ?? [];
           },

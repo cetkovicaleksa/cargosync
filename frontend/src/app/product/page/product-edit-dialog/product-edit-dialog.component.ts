@@ -18,17 +18,11 @@ import { SaveProductRequestDto } from '../../dto/save-product-request.dto';
 import { ProductCategoryService } from '../../service/product-category.service';
 import { FactoryService } from '../../../factory/service/factory.service';
 import { FactoryDto } from '../../../factory/dto/factory.dto';
+import { FactoryLookupDto } from '../../../factory/dto/factory-lookup.dto';
 
 export type ProductEditDialogData =
   | { mode: 'create' }
   | { mode: 'edit'; product: ProductDto };
-
-type SelectedFactory = {
-  id: string;
-  name: string;
-  cityName: string;
-  countryCode: string;
-};
 
 @Component({
   selector: 'app-product-edit-dialog',
@@ -69,8 +63,8 @@ export class ProductEditDialogComponent implements OnDestroy {
   filteredCategoryOptions: Observable<string[]> = of([]);
 
   factoryQuery = '';
-  factoryResults: FactoryDto[] = [];
-  selectedFactories: SelectedFactory[] = [];
+  factoryResults: FactoryLookupDto[] = [];
+  selectedFactories: FactoryLookupDto[] = [];
   factoriesLoading = false;
   factoriesLoadingMore = false;
   factoriesPage = 0;
@@ -99,12 +93,14 @@ export class ProductEditDialogComponent implements OnDestroy {
       this.selectedFactories = (p.factoryIds ?? []).map((id) => ({
         id,
         name: id,
+        street: '',
         cityName: '',
+        countryName: '',
         countryCode: '',
       }));
 
       if ((p.factoryIds ?? []).length > 0) {
-        this.factories.getByIds(p.factoryIds).subscribe({
+        this.factories.getByIdsLookup(p.factoryIds).subscribe({
           next: (resolved) => {
             const byId = new Map(resolved.map((x) => [x.id, x]));
             this.selectedFactories = (p.factoryIds ?? []).map((id) => {
@@ -112,8 +108,10 @@ export class ProductEditDialogComponent implements OnDestroy {
               return {
                 id,
                 name: factory?.name ?? id,
+                street: factory?.street ?? '',
                 cityName: factory?.cityName ?? '',
                 countryCode: factory?.countryCode ?? '',
+                countryName: factory?.countryName ?? '',
               };
             });
           },
@@ -214,7 +212,7 @@ export class ProductEditDialogComponent implements OnDestroy {
     return this.selectedFactories.some((x) => x.id === id);
   }
 
-  addFactory(factory: FactoryDto) {
+  addFactory(factory: FactoryLookupDto) {
     if (this.isFactorySelected(factory.id)) return;
 
     this.selectedFactories = [
@@ -224,6 +222,8 @@ export class ProductEditDialogComponent implements OnDestroy {
         name: factory.name,
         cityName: factory.cityName,
         countryCode: factory.countryCode,
+        countryName: factory.countryName,
+        street: factory.street,
       },
     ];
   }

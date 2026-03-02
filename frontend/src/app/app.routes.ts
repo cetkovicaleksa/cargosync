@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './shared/home/home/home.component';
 import { AuthGuard } from './auth.guard';
 import { RoleGuard } from './role.guard';
 
@@ -12,6 +11,7 @@ import { ProductListComponent } from './product/page/product-list/product-list.c
 import { CatalogueComponent } from './order/page/catalogue/catalogue.component';
 import { OrderListComponent } from './order/page/order-list/order-list.component';
 import { WarehouseListComponent } from './warehouse/page/warehouse-list/warehouse-list.component';
+import { rootRedirectGuard } from './root-redirect.guard';
 
 // paramaters:
 //   path - url
@@ -19,8 +19,12 @@ import { WarehouseListComponent } from './warehouse/page/warehouse-list/warehous
 //   canActivate: [AuthGuard, RoleGuard] - guards
 //   data: {roles: [list of roles]} - roles allowed to access the route
 export const routes: Routes = [
-    {path: '', redirectTo: 'home', pathMatch: 'full'},
-    {path: 'home', component: HomeComponent},
+    {
+      path: '', 
+      pathMatch: 'full',
+      canActivate: [rootRedirectGuard],
+      children: []
+    },
 
     { path: 'signin', component: SignInComponent },
     { path: 'register', component: RegisterComponent },
@@ -90,5 +94,5 @@ export const routes: Routes = [
       data: { authorities: ['ROLE_MANAGER'] },
     },
 
-    {path: '**', redirectTo: 'home'},
+    {path: '**', redirectTo: ''},
 ];

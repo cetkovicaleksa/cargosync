@@ -17,7 +17,7 @@ export class RoleGuard implements CanActivate {
     const ok = expectedAuthorities.every(a => this.authService.hasAuthority(a));
     if (ok) return true;
 
-    this.router.navigate(['/home']);
+    this.router.navigate(['/']);
     return false;
   }
 }

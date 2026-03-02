@@ -63,7 +63,7 @@
             <td>{{ factory.name }}</td>
             <td>{{ factory.street }}, {{ factory.cityName }}, {{ factory.countryName }}</td>
             <td>
-              <button mat-stroked-button (click)="chooseFactory(factory)">Select</button>
+              <button mat-stroked-button (click)="selectFactory(factory.id)">Select</button>
             </td>
           </tr>
         </tbody>

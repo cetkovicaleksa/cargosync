@@ -25,6 +25,14 @@ services:
     networks:
       - cargo-net
 
+  redis:
+    image: redis:8-alpine
+    expose: ["6379"]
+    volumes:
+      - redis-data:/data:rw
+    networks:
+      - cargo-net
+
   mailhog:
     image: mailhog/mailhog:latest
     expose: ["1025", "8025"]
@@ -38,6 +46,7 @@ volumes:
   rabbitmq-data:
   postgres-data:
   influxdb-data:
+  redis-data:
 
 networks:
   cargo-net:

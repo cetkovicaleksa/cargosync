@@ -27,6 +27,11 @@ services:
       - "8086:8086"
     <<: *service-defaults
 
+  redis:
+    ports:
+      - "6379:6379"
+    <<: *service-defaults
+
   mailhog:
     ports:
       - "1025:1025"   # SMTP

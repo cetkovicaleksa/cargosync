@@ -15,7 +15,7 @@ services:
       - ${CARGOSYNC_ROOT}/passwords:/app/shared
     networks:
       - cargo-net
-    depends_on: [postgres, rabbitmq, influxdb2]
+    depends_on: [postgres, rabbitmq, influxdb2, redis]
 
   nginx:
     image: nginx:1.28-alpine
@@ -58,6 +58,12 @@ services:
     restart: unless-stopped
     ports:
       - "8086:8086"
+    env_file: ./.env.test
+
+  redis:
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
     env_file: ./.env.test
 
 volumes:

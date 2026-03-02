@@ -7,6 +7,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 import static lombok.AccessLevel.PROTECTED;
@@ -15,7 +16,7 @@ import static lombok.AccessLevel.PROTECTED;
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor
 @Embeddable
-public class GeoLocation {
+public class GeoLocation implements Serializable {
 
     @NotNull
     @DecimalMin("-90.0")
