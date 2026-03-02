@@ -66,10 +66,10 @@ app:
   supermanager-email: ${CARGOSYNC_SUPERMANAGER_EMAIL:admin@cargosync.rs}
   supermanager-username: ${CARGOSYNC_SUPERMANAGER_USERNAME:admin}
   influx:
-    url: ${CARGOSYNC_INFLUX_URL:http://localhost:8086}
-    token: ${CARGOSYNC_INFLUX_TOKEN:}
-    org: ${CARGOSYNC_INFLUX_ORG:cargosync}
-    bucket: ${CARGOSYNC_INFLUX_BUCKET:cargosync}
+    url: ${CARGOSYNC_INFLUX_URL:${DOCKER_INFLUXDB_INIT_URL:http://localhost:8086}}
+    token: ${CARGOSYNC_INFLUX_TOKEN:${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN:}}
+    org: ${CARGOSYNC_INFLUX_ORG:${DOCKER_INFLUXDB_INIT_ORG:cargosync}}
+    bucket: ${CARGOSYNC_INFLUX_BUCKET:${DOCKER_INFLUXDB_INIT_BUCKET:cargosync}}
 
 security:
   public-endpoints:

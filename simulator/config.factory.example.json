@@ -1,0 +1,33 @@
+{
+  "mode": "factory",
+  "factory_id": "9a4a7d1f-63c1-4c4b-8a5e-7b4f114f22d2",
+  "rabbitmq_url": "amqp://guest:guest@localhost:5672/",
+  "heartbeat_interval": "30s",
+  "production_interval": "12h",
+  "products": [
+    {
+      "product_id": "f44fbe4d-7f95-42e8-b7a4-8514e31d2201",
+      "product_name": "Cola Classic 2L",
+      "min_amount": 100,
+      "max_amount": 350
+    },
+    {
+      "product_id": "577db2ed-7daa-4db3-9df3-b538fd24777a",
+      "product_name": "Orange Zero 1.5L",
+      "min_amount": 80,
+      "max_amount": 260
+    },
+    {
+      "product_id": "d5dcb5f7-6078-4f4e-ac72-f84490311c49",
+      "product_name": "Berry Blast Energy 0.5L",
+      "min_amount": 120,
+      "max_amount": 420
+    },
+    {
+      "product_id": "8a2fd286-ac2e-480f-a0d1-b4f434e5fc05",
+      "product_name": "Peach Natural Tea 1L",
+      "min_amount": 70,
+      "max_amount": 210
+    }
+  ]
+}

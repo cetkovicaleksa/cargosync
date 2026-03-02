@@ -231,6 +231,14 @@ normalize_lp_in_container() {
   run_compose exec -T "$service" sh -lc "sed -i 's/\r$//' '$path'"
 }
 
+influx_write_file() {
+  local service="$1"
+  local file="$2"
+  local errors_file="$3"
+
+  run_compose exec -T "$service" sh -lc "influx write --host 'http://localhost:8086' --token '$INFLUX_TOKEN' --org '$INFLUX_ORG' --bucket '$INFLUX_BUCKET' --precision ns --format lp --errors-file '$errors_file' --file '$file' < /dev/null"
+}
+
 csv_loads=(
   "product_categories|id,name|product_categories.csv"
   "products|id,name,image_url,price,weight,is_for_sale,version,category_id|products.csv"
@@ -251,6 +259,7 @@ csv_loads=(
 
 lp_loads=(
   "factory_production.lp"
+  "factory_availability.lp"
   "warehouse_temperature.lp"
   "van_distance.lp"
 )
@@ -267,7 +276,7 @@ if [[ ${#INFLUX_FILES[@]} -gt 0 ]]; then
       fi
     done
     if [[ $found -eq 0 ]]; then
-      die "Unknown --influx-file: $wanted (allowed: factory_production.lp, warehouse_temperature.lp, van_distance.lp)"
+      die "Unknown --influx-file: $wanted (allowed: factory_production.lp, factory_availability.lp, warehouse_temperature.lp, van_distance.lp)"
     fi
   done
   lp_loads=("${selected[@]}")
@@ -370,15 +379,7 @@ if [[ $SKIP_INFLUX -eq 0 ]]; then
     for item in "${lp_loads[@]}"; do
       file="$item"
       log_step "Influx write (parallel): $file"
-      run_compose exec -T "$INFLUX_SERVICE" influx write \
-        --host http://localhost:8086 \
-        --token "$INFLUX_TOKEN" \
-        --org "$INFLUX_ORG" \
-        --bucket "$INFLUX_BUCKET" \
-        --precision ns \
-        --format lp \
-        --errors-file "$INFLUX_TMP_DIR/$file.errors" \
-        --file "$INFLUX_TMP_DIR/$file" &
+      influx_write_file "$INFLUX_SERVICE" "$INFLUX_TMP_DIR/$file" "$INFLUX_TMP_DIR/$file.errors" &
       pids+=("$!")
     done
 
@@ -393,15 +394,7 @@ if [[ $SKIP_INFLUX -eq 0 ]]; then
     for item in "${lp_loads[@]}"; do
       file="$item"
       log_step "Influx write: $file"
-      run_compose exec -T "$INFLUX_SERVICE" influx write \
-        --host http://localhost:8086 \
-        --token "$INFLUX_TOKEN" \
-        --org "$INFLUX_ORG" \
-        --bucket "$INFLUX_BUCKET" \
-        --precision ns \
-        --format lp \
-        --errors-file "$INFLUX_TMP_DIR/$file.errors" \
-        --file "$INFLUX_TMP_DIR/$file"
+      influx_write_file "$INFLUX_SERVICE" "$INFLUX_TMP_DIR/$file" "$INFLUX_TMP_DIR/$file.errors"
     done
   fi
 
@@ -416,5 +409,6 @@ echo "  bash scripts/load_generated_data.sh --use-test-stack --truncate-first"
 echo "  bash scripts/load_generated_data.sh --use-test-stack --skip-copy-if-exists --skip-postgres"
 echo "  bash scripts/load_generated_data.sh --use-test-stack --skip-copy-if-exists --skip-postgres --influx-parallel"
 echo "  bash scripts/load_generated_data.sh --use-test-stack --skip-postgres --influx-file factory_production.lp"
+echo "  bash scripts/load_generated_data.sh --use-test-stack --skip-postgres --influx-file factory_availability.lp"
 echo "  bash scripts/load_generated_data.sh --use-test-stack --dry-run"
 echo "  bash scripts/load_generated_data.sh --data-dir /path/to/generated_data"

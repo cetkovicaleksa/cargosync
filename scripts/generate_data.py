@@ -65,6 +65,7 @@ class Config:
     factories: int
     warehouses: int
     vans: int
+    only: tuple[str, ...]
 
 
 def deterministic_uuid(entity: str, idx: int) -> str:
@@ -500,6 +501,36 @@ def generate_production_lp(cfg: Config, product_ids: list[str]) -> int:
     return total_rows
 
 
+def generate_factory_availability_lp(cfg: Config) -> int:
+    out_path = cfg.output_dir / "factory_availability.lp"
+
+    years = 4
+    days = int(years * 365.25)  # 1461
+
+    # Factory availability transitions: online at 06:00, offline at 22:00.
+    # 1000 factories * 1461 days * 2 events/day = 2,922,000 rows.
+    start = datetime.now(timezone.utc) - timedelta(days=days)
+
+    total_rows = 0
+    with out_path.open("w", encoding="utf-8", newline="\n") as fh:
+        for fi in range(FACTORIES_FOR_PRODUCTION_TS):
+            factory_id = deterministic_uuid("factory", fi)
+
+            for day in range(days):
+                base_day = start + timedelta(days=day)
+                online_ts = int((base_day.replace(hour=6, minute=0, second=0, microsecond=0)).timestamp() * 1_000_000_000)
+                offline_ts = int((base_day.replace(hour=22, minute=0, second=0, microsecond=0)).timestamp() * 1_000_000_000)
+
+                fh.write(f'factory_availability,factory_id={factory_id} status="online" {online_ts}\n')
+                fh.write(f'factory_availability,factory_id={factory_id} status="offline" {offline_ts}\n')
+                total_rows += 2
+
+            if fi > 0 and fi % 100 == 0:
+                print(f"  factory availability LP done: {fi}")
+
+    return total_rows
+
+
 def generate_warehouse_temperature_lp(cfg: Config) -> int:
     out_path = cfg.output_dir / "warehouse_temperature.lp"
     rng = random.Random(cfg.seed + 2)
@@ -624,7 +655,22 @@ def parse_args() -> Config:
     parser.add_argument("--factories", type=int, default=MIN_FACTORIES)
     parser.add_argument("--warehouses", type=int, default=MIN_WAREHOUSES)
     parser.add_argument("--vans", type=int, default=MIN_VANS)
+    parser.add_argument(
+        "--only",
+        action="append",
+        choices=[
+            "all",
+            "relational",
+            "factory_production",
+            "factory_availability",
+            "warehouse_temperature",
+            "van_distance",
+        ],
+        help="Generate only selected dataset(s). Repeatable. Example: --only factory_availability",
+    )
     args = parser.parse_args()
+
+    only = tuple(args.only) if args.only else ("all",)
 
     return Config(
         output_dir=args.output_dir,
@@ -635,6 +681,7 @@ def parse_args() -> Config:
         factories=max(args.factories, MIN_FACTORIES),
         warehouses=max(args.warehouses, MIN_WAREHOUSES),
         vans=max(args.vans, MIN_VANS),
+        only=only,
     )
 
 
@@ -642,36 +689,65 @@ def main() -> None:
     cfg = parse_args()
     repo_root = Path(__file__).resolve().parent.parent
 
+    requested = set(cfg.only)
+    if "all" in requested:
+        requested = {
+            "relational",
+            "factory_production",
+            "factory_availability",
+            "warehouse_temperature",
+            "van_distance",
+        }
+
     print("=== CargoSync bulk data generation started ===")
     print(f"Output directory: {cfg.output_dir}")
     print(
         f"Relational targets -> customers={cfg.customers:,}, companies={cfg.companies:,}, "
         f"managers={cfg.managers:,}, factories={cfg.factories:,}, warehouses={cfg.warehouses:,}, vans={cfg.vans:,}"
     )
+    print(f"Requested datasets: {', '.join(sorted(requested))}")
 
-    relational = generate_relational_data(cfg, repo_root)
+    relational_summary: dict[str, int] = {}
+    product_ids: list[str] = [deterministic_uuid("product", i) for i in range(NUM_PRODUCTS)]
 
-    print("Generating LP: factory production (target 29,220,000 rows)...")
-    production_rows = generate_production_lp(cfg, relational["product_ids"])
+    if "relational" in requested:
+        relational = generate_relational_data(cfg, repo_root)
+        relational_summary = relational["summary"]
+        product_ids = relational["product_ids"]
 
-    print("Generating LP: warehouse temperatures (target 31,557,600 rows)...")
-    temp_rows = generate_warehouse_temperature_lp(cfg)
+    ts_summary: dict[str, int] = {}
 
-    print("Generating LP: van distance (target 26,298,000 rows)...")
-    van_rows = generate_van_distance_lp(cfg)
+    if "factory_production" in requested:
+        print("Generating LP: factory production (target 29,220,000 rows)...")
+        production_rows = generate_production_lp(cfg, product_ids)
+        ts_summary["factory_production.lp"] = production_rows
 
-    ts_summary = {
-        "factory_production.lp": production_rows,
-        "warehouse_temperature.lp": temp_rows,
-        "van_distance.lp": van_rows,
-    }
+    if "factory_availability" in requested:
+        print("Generating LP: factory availability statuses (target 2,922,000 rows)...")
+        factory_availability_rows = generate_factory_availability_lp(cfg)
+        ts_summary["factory_availability.lp"] = factory_availability_rows
 
-    write_manifest(cfg, relational["summary"], ts_summary)
+    if "warehouse_temperature" in requested:
+        print("Generating LP: warehouse temperatures (target 31,557,600 rows)...")
+        temp_rows = generate_warehouse_temperature_lp(cfg)
+        ts_summary["warehouse_temperature.lp"] = temp_rows
+
+    if "van_distance" in requested:
+        print("Generating LP: van distance (target 26,298,000 rows)...")
+        van_rows = generate_van_distance_lp(cfg)
+        ts_summary["van_distance.lp"] = van_rows
+
+    write_manifest(cfg, relational_summary, ts_summary)
 
     print("=== Data generation completed ===")
-    print(f"Production rows: {production_rows:,}")
-    print(f"Warehouse temperature rows: {temp_rows:,}")
-    print(f"Van distance rows: {van_rows:,}")
+    if "factory_production.lp" in ts_summary:
+        print(f"Production rows: {ts_summary['factory_production.lp']:,}")
+    if "factory_availability.lp" in ts_summary:
+        print(f"Factory availability rows: {ts_summary['factory_availability.lp']:,}")
+    if "warehouse_temperature.lp" in ts_summary:
+        print(f"Warehouse temperature rows: {ts_summary['warehouse_temperature.lp']:,}")
+    if "van_distance.lp" in ts_summary:
+        print(f"Van distance rows: {ts_summary['van_distance.lp']:,}")
     print(f"Manifest: {cfg.output_dir / 'generation_manifest.json'}")
 
 

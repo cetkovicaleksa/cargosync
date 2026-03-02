@@ -136,7 +136,14 @@ function Invoke-Compose {
         return ""
     }
 
-    & docker @all
+    $prevErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & docker @all
+    } finally {
+        $ErrorActionPreference = $prevErrorActionPreference
+    }
+
     if ($LASTEXITCODE -ne 0) {
         throw "Command failed: $printable"
     }
@@ -152,7 +159,14 @@ function Get-ContainerId {
         return ""
     }
 
-    $id = (& docker @($ComposeArgs + @("ps", "-q", $Service))) | Select-Object -First 1
+    $prevErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $id = (& docker @($ComposeArgs + @("ps", "-q", $Service)) 2>$null) | Select-Object -First 1
+    } finally {
+        $ErrorActionPreference = $prevErrorActionPreference
+    }
+
     if ([string]::IsNullOrWhiteSpace($id)) {
         throw "No running container for service '$Service'. Start docker compose stack first."
     }
@@ -178,7 +192,14 @@ function Copy-ToContainer {
         return
     }
 
-    & docker cp $HostPath "$ContainerId`:$ContainerPath"
+    $prevErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & docker cp $HostPath "$ContainerId`:$ContainerPath"
+    } finally {
+        $ErrorActionPreference = $prevErrorActionPreference
+    }
+
     if ($LASTEXITCODE -ne 0) {
         throw "Failed to copy to container: $HostPath -> $ContainerPath"
     }
@@ -195,7 +216,14 @@ function Test-ContainerFileExists {
         return $false
     }
 
-    & docker @($ComposeArgs + @("exec", "-T", $Service, "sh", "-lc", "test -f '$ContainerPath'")) *> $null
+    $prevErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & docker @($ComposeArgs + @("exec", "-T", $Service, "sh", "-lc", "test -f '$ContainerPath'")) *> $null
+    } finally {
+        $ErrorActionPreference = $prevErrorActionPreference
+    }
+
     return $LASTEXITCODE -eq 0
 }
 
@@ -213,6 +241,40 @@ function Normalize-LpFileInContainer {
     )
 }
 
+function Escape-ShArg {
+    param([string]$Value)
+    if ($null -eq $Value) {
+        return '""'
+    }
+    return '"' + ($Value -replace '"', '\\"') + '"'
+}
+
+function Invoke-InfluxWrite {
+    param(
+        [string[]]$ComposeArgs,
+        [string]$Service,
+        [string]$InfluxHost,
+        [string]$Token,
+        [string]$Org,
+        [string]$Bucket,
+        [string]$ErrorsFile,
+        [string]$File
+    )
+
+    $cmd = "influx write --host {0} --token {1} --org {2} --bucket {3} --precision ns --format lp --errors-file {4} --file {5} < /dev/null" -f `
+        (Escape-ShArg $InfluxHost),
+        (Escape-ShArg $Token),
+        (Escape-ShArg $Org),
+        (Escape-ShArg $Bucket),
+        (Escape-ShArg $ErrorsFile),
+        (Escape-ShArg $File)
+
+    Invoke-Compose -ComposeArgs $ComposeArgs -Rest @(
+        "exec", "-T", $Service,
+        "sh", "-lc", $cmd
+    )
+}
+
 Resolve-DefaultPaths
 
 Write-Step "Using data dir: $DataDir"
@@ -227,6 +289,13 @@ $dbName = $envVars["POSTGRES_DB"]
 $influxToken = $envVars["DOCKER_INFLUXDB_INIT_ADMIN_TOKEN"]
 $influxOrg = $envVars["DOCKER_INFLUXDB_INIT_ORG"]
 $influxBucket = $envVars["DOCKER_INFLUXDB_INIT_BUCKET"]
+
+if ([string]::IsNullOrWhiteSpace($env:CARGOSYNC_RABBITMQ_USERNAME)) {
+    $env:CARGOSYNC_RABBITMQ_USERNAME = $envVars["RABBITMQ_DEFAULT_USER"]
+}
+if ([string]::IsNullOrWhiteSpace($env:CARGOSYNC_RABBITMQ_PASSWORD)) {
+    $env:CARGOSYNC_RABBITMQ_PASSWORD = $envVars["RABBITMQ_DEFAULT_PASS"]
+}
 
 if (-not $SkipPostgres -and ([string]::IsNullOrWhiteSpace($dbUser) -or [string]::IsNullOrWhiteSpace($dbName))) {
     throw "POSTGRES_USER/POSTGRES_DB missing in env file: $EnvFile"
@@ -262,6 +331,7 @@ $csvLoads = @(
 
 $lpLoads = @(
     @{ file = "factory_production.lp" },
+    @{ file = "factory_availability.lp" },
     @{ file = "warehouse_temperature.lp" },
     @{ file = "van_distance.lp" }
 )
@@ -274,7 +344,7 @@ if ($InfluxFiles.Count -gt 0) {
 
     $lpLoads = @($lpLoads | Where-Object { $requested.Contains($_.file) })
     if ($lpLoads.Count -eq 0) {
-        throw "No LP files selected. Available: factory_production.lp, warehouse_temperature.lp, van_distance.lp"
+        throw "No LP files selected. Available: factory_production.lp, factory_availability.lp, warehouse_temperature.lp, van_distance.lp"
     }
 }
 
@@ -393,18 +463,18 @@ if (-not $SkipInflux) {
             $containerFile = "$influxTmpDir/$($lp.file)"
             $errorsFile = "$influxTmpDir/$($lp.file).errors"
             Write-Step "Influx write (parallel): $($lp.file)"
+            $cmd = "influx write --host {0} --token {1} --org {2} --bucket {3} --precision ns --format lp --errors-file {4} --file {5} < /dev/null" -f `
+                (Escape-ShArg "http://localhost:8086"),
+                (Escape-ShArg $influxToken),
+                (Escape-ShArg $influxOrg),
+                (Escape-ShArg $influxBucket),
+                (Escape-ShArg $errorsFile),
+                (Escape-ShArg $containerFile)
+
             $dockerArgs = @(
                 $composeArgs + @(
                     "exec", "-T", $InfluxService,
-                    "influx", "write",
-                    "--host", "http://localhost:8086",
-                    "--token", $influxToken,
-                    "--org", $influxOrg,
-                    "--bucket", $influxBucket,
-                    "--precision", "ns",
-                    "--format", "lp",
-                    "--errors-file", $errorsFile,
-                    "--file", $containerFile
+                    "sh", "-lc", $cmd
                 )
             )
 
@@ -428,18 +498,7 @@ if (-not $SkipInflux) {
             $errorsFile = "$influxTmpDir/$($lp.file).errors"
             Write-Step "Influx write: $($lp.file)"
             try {
-                Invoke-Compose -ComposeArgs $composeArgs -Rest @(
-                    "exec", "-T", $InfluxService,
-                    "influx", "write",
-                    "--host", "http://localhost:8086",
-                    "--token", $influxToken,
-                    "--org", $influxOrg,
-                    "--bucket", $influxBucket,
-                    "--precision", "ns",
-                    "--format", "lp",
-                    "--errors-file", $errorsFile,
-                    "--file", $containerFile
-                )
+                Invoke-InfluxWrite -ComposeArgs $composeArgs -Service $InfluxService -InfluxHost "http://localhost:8086" -Token $influxToken -Org $influxOrg -Bucket $influxBucket -ErrorsFile $errorsFile -File $containerFile
             } catch {
                 Write-Step "Influx write failed, printing error rows from $errorsFile"
                 try {
@@ -465,5 +524,6 @@ Write-Host "  powershell -ExecutionPolicy Bypass -File scripts/load_generated_da
 Write-Host "  powershell -ExecutionPolicy Bypass -File scripts/load_generated_data.ps1 -UseTestStack -SkipCopyIfExists -SkipPostgres"
 Write-Host "  powershell -ExecutionPolicy Bypass -File scripts/load_generated_data.ps1 -UseTestStack -SkipCopyIfExists -SkipPostgres -InfluxParallel"
 Write-Host "  powershell -ExecutionPolicy Bypass -File scripts/load_generated_data.ps1 -UseTestStack -SkipPostgres -InfluxFiles factory_production.lp"
+Write-Host "  powershell -ExecutionPolicy Bypass -File scripts/load_generated_data.ps1 -UseTestStack -SkipPostgres -InfluxFiles factory_availability.lp"
 Write-Host "  powershell -ExecutionPolicy Bypass -File scripts/load_generated_data.ps1 -DryRun"
 Write-Host "  powershell -ExecutionPolicy Bypass -File scripts/load_generated_data.ps1 -DataDir D:/path/to/generated_data"
