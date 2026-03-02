@@ -183,6 +183,9 @@ $RECYCLE.BIN/
 !*.env.test
 *.env.secret
 passwords
+*.venv
+*/__pycache__
+scripts/results
 
 # local plugin files
 s2.md
