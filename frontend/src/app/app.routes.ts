@@ -67,6 +67,16 @@ export const routes: Routes = [
     },
 
     {
+      path: 'warehouses/:id',
+      loadComponent: () =>
+        import('./warehouse/page/warehouse-overview/warehouse-overview.component').then(
+          (m) => m.WarehouseOverviewComponent,
+        ),
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_MANAGER'] },
+    },
+
+    {
       path: 'factories',
       loadComponent: () => import('./factory/page/factory-list/factory-list.component').then((m) => m.FactoryListComponent),
       canActivate: [AuthGuard, RoleGuard],
