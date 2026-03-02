@@ -1,5 +1,9 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.order.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +22,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.order.service.OrderService;
 
 import java.util.UUID;
 
+@Tag(name = "Orders")
 @RestController
 @RequestMapping("/orders")
 @RequiredArgsConstructor
@@ -25,6 +30,12 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    @Operation(summary = "Create order", description = "Places an order for the authenticated customer. Atomically checks and deducts stock across warehouses. Generates and emails a PDF invoice. Requires CUSTOMER role.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Order placed successfully"),
+            @ApiResponse(responseCode = "400", description = "Insufficient stock or invalid request"),
+            @ApiResponse(responseCode = "404", description = "Product or company not found")
+    })
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
     @ResponseStatus(HttpStatus.CREATED)
@@ -35,6 +46,7 @@ public class OrderController {
         return mapToDto(orderService.createOrder(account, request));
     }
 
+    @Operation(summary = "My orders", description = "Returns paginated order history for the authenticated customer.")
     @GetMapping("/mine")
     @PreAuthorize("hasRole('CUSTOMER')")
     public Page<OrderDto> getMyOrders(
@@ -44,6 +56,11 @@ public class OrderController {
         return orderService.getMyOrders(account, pageable).map(this::mapToDto);
     }
 
+    @Operation(summary = "Get order", description = "Returns a single order belonging to the authenticated customer.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Order found"),
+            @ApiResponse(responseCode = "404", description = "Order not found or not owned by this customer")
+    })
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('CUSTOMER')")
     public OrderDto getMyOrder(
