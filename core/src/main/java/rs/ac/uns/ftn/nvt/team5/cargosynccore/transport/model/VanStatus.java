@@ -14,21 +14,18 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(
-        name = "van_statuses"
-)
 public class VanStatus {
 
     private static final Duration ONLINE_THRESHOLD = Duration.ofMinutes(2);
 
-    @Id
-    private UUID vanId;
-
-    @MapsId
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "van_id", nullable = false, unique = true, updatable = false)
-    private Van van; // NOTE: Possibly bidirectional
+//     @MapsId
+//     @OneToOne(fetch = FetchType.LAZY)
+//     @JoinColumns({
+//         @JoinColumn(name = "van_vi", referencedColumnName = "vi"),
+//         @JoinColumn(name = "van_wmi", referencedColumnName = "wmi"),
+//         @JoinColumn(name = "van_vd", referencedColumnName = "vd")
+//     })
+//     private Van van; // NOTE: Possibly bidirectional
 
     @Valid
     @Embedded
