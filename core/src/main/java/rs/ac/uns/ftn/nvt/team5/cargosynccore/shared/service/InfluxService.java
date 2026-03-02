@@ -40,13 +40,14 @@ public class InfluxService {
         writeApi = client.getWriteApiBlocking();
     }
 
-    public void writeWarehouseTemperature(UUID warehouseId, String sector, double temp, Instant time) {
+    public void writeWarehouseTemperature(UUID warehouseId, String sectorId, String sectorName, double temp, Instant time) {
         if (writeApi == null) return;
         try {
-            var point = Point.measurement("temperature")
+            var point = Point.measurement("warehouse_temperature")
                     .addTag("warehouse_id", warehouseId.toString())
-                    .addTag("sector", sector)
-                    .addField("value", temp)
+                    .addTag("sector_id", sectorId != null ? sectorId : "")
+                    .addTag("sector_name", sectorName)
+                    .addField("temperature", temp)
                     .time(time, WritePrecision.MS);
             writeApi.writePoint(point);
         } catch (Exception e) {
@@ -54,12 +55,12 @@ public class InfluxService {
         }
     }
 
-    public void writeWarehouseAvailabilityEvent(UUID warehouseId, boolean online, Instant time) {
+    public void writeWarehouseAvailabilityEvent(UUID warehouseId, String status, Instant time) {
         if (writeApi == null) return;
         try {
             var point = Point.measurement("warehouse_availability")
                     .addTag("warehouse_id", warehouseId.toString())
-                    .addField("online", online)
+                    .addField("status", status)
                     .time(time, WritePrecision.MS);
             writeApi.writePoint(point);
         } catch (Exception e) {
@@ -117,10 +118,10 @@ public class InfluxService {
         return String.format("""
                 from(bucket: "%s")
                   |> range(start: %s, stop: %s)
-                  |> filter(fn: (r) => r["_measurement"] == "temperature")
+                  |> filter(fn: (r) => r["_measurement"] == "warehouse_temperature")
                   |> filter(fn: (r) => r["warehouse_id"] == "%s")
-                  |> filter(fn: (r) => r["sector"] == "%s")
-                  |> filter(fn: (r) => r["_field"] == "value")
+                  |> filter(fn: (r) => r["sector_name"] == "%s")
+                  |> filter(fn: (r) => r["_field"] == "temperature")
                   |> aggregateWindow(every: %s, fn: mean, createEmpty: false)
                   |> yield(name: "mean")
                 """,
