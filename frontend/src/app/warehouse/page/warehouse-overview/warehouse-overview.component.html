@@ -1,0 +1,232 @@
+<section class="page">
+
+  <div *ngIf="loadingWarehouse" class="empty">Loading warehouse…</div>
+
+  <ng-container *ngIf="warehouse as w">
+
+    <!-- ── Header ────────────────────────────────────────────────────────── -->
+    <header class="page-header panel">
+      <div class="header-main">
+        <div>
+          <h1>{{ w.name }}</h1>
+          <p class="sub">{{ w.address }}<span *ngIf="w.city"> — {{ cityLabel(w) }}</span></p>
+        </div>
+        <span class="badge big" [class.online]="w.online" [class.off]="!w.online">
+          {{ w.online ? 'Online' : 'Offline' }}
+        </span>
+      </div>
+
+      <!-- Meta row -->
+      <div class="meta-row">
+        <span *ngIf="w.lastHeartbeat" class="meta-item">
+          <strong>Last heartbeat:</strong> {{ w.lastHeartbeat | date:'medium' }}
+        </span>
+        <span *ngIf="w.location" class="meta-item">
+          <strong>Coordinates:</strong>
+          {{ w.location.latitude | number:'1.4-6' }}, {{ w.location.longitude | number:'1.4-6' }}
+        </span>
+        <span class="meta-item">
+          <strong>Sectors:</strong> {{ w.sectors.length }}
+        </span>
+      </div>
+
+      <!-- Image gallery -->
+      <div class="image-gallery" *ngIf="w.images.length > 0">
+        <button
+          class="image-btn"
+          *ngFor="let img of w.images"
+          (click)="openImage(img)"
+        >
+          <app-protected-image class="thumb" [src]="img" [alt]="w.name" />
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Sectors ────────────────────────────────────────────────────────── -->
+    <section class="panel">
+      <h2>Sectors</h2>
+
+      <div *ngIf="w.sectors.length === 0" class="empty">
+        This warehouse has no sectors defined.
+      </div>
+
+      <div class="table-wrap" *ngIf="w.sectors.length > 0">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Climate Zone</th>
+              <th>Last Temperature</th>
+              <th>Recorded At</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let s of w.sectors; trackBy: trackById"
+              [class.selected]="selectedSector?.id === s.id"
+            >
+              <td><strong>{{ s.name }}</strong></td>
+              <td class="muted">{{ s.climateZone ?? '—' }}</td>
+              <td>
+                <span [class.temp-value]="s.lastTemperature != null">
+                  {{ formatTemp(s.lastTemperature) }}
+                </span>
+              </td>
+              <td class="muted">
+                {{ s.lastTemperatureAt ? (s.lastTemperatureAt | date:'medium') : '—' }}
+              </td>
+              <td>
+                <button mat-stroked-button color="primary" (click)="chooseSector(s)">
+                  View chart
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Temperature Chart ─────────────────────────────────────────────── -->
+    <section class="panel" *ngIf="selectedSector as sector">
+
+      <div class="chart-section-header">
+        <div>
+          <h2>Temperature Analytics — {{ sector.name }}</h2>
+          <p class="sub" *ngIf="sector.lastTemperature != null">
+            Last reading: <strong>{{ formatTemp(sector.lastTemperature) }}</strong>
+            <span *ngIf="sector.lastTemperatureAt">
+              at {{ sector.lastTemperatureAt | date:'short' }}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Period controls -->
+      <section class="filters">
+        <mat-form-field appearance="outline" class="filter-item">
+          <mat-label>Period</mat-label>
+          <mat-select [formControl]="periodForm.controls.preset">
+            <mat-option value="LAST_7D">Last 7 days</mat-option>
+            <mat-option value="LAST_30D">Last 30 days</mat-option>
+            <mat-option value="LAST_3M">Last 3 months</mat-option>
+            <mat-option value="LAST_6M">Last 6 months</mat-option>
+            <mat-option value="LAST_1Y">Last 1 year</mat-option>
+            <mat-option value="CUSTOM">Custom range</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-item">
+          <mat-label>From</mat-label>
+          <input matInput [matDatepicker]="fromPicker" [formControl]="periodForm.controls.fromDate" readonly />
+          <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
+          <mat-datepicker #fromPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-item">
+          <mat-label>To</mat-label>
+          <input matInput [matDatepicker]="toPicker" [formControl]="periodForm.controls.toDate" readonly />
+          <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
+          <mat-datepicker #toPicker></mat-datepicker>
+        </mat-form-field>
+
+        <div class="filter-item actions">
+          <button mat-flat-button color="primary" (click)="loadChart()" [disabled]="loadingChart">
+            {{ loadingChart ? 'Loading…' : 'Load chart' }}
+          </button>
+        </div>
+      </section>
+
+      <!-- Chart output -->
+      <div *ngIf="chartData as chart">
+
+        <div *ngIf="chart.dataPoints.length === 0" class="empty">
+          No temperature data available for the selected period.
+        </div>
+
+        <!-- Stats cards -->
+        <div class="stats-grid" *ngIf="chartStats as s">
+          <div class="stat-card">
+            <div class="stat-label">Min</div>
+            <div class="stat-value">{{ formatTemp(s.min) }}</div>
+          </div>
+          <div class="stat-card avg">
+            <div class="stat-label">Avg</div>
+            <div class="stat-value">{{ formatTemp(s.avg) }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Max</div>
+            <div class="stat-value">{{ formatTemp(s.max) }}</div>
+          </div>
+          <div class="stat-card info">
+            <div class="stat-label">Aggregation</div>
+            <div class="stat-value small">{{ chart.windowPeriod }}</div>
+          </div>
+          <div class="stat-card info">
+            <div class="stat-label">Data points</div>
+            <div class="stat-value small">{{ chart.dataPoints.length }}</div>
+          </div>
+        </div>
+
+        <!-- SVG line chart -->
+        <div class="line-wrap" *ngIf="chart.dataPoints.length > 0">
+          <svg viewBox="0 0 840 220" preserveAspectRatio="none">
+
+            <ng-container *ngFor="let temp of yGridValues()">
+              <line
+                [attr.x1]="48" [attr.y1]="tempToY(temp)"
+                [attr.x2]="824" [attr.y2]="tempToY(temp)"
+                class="grid-line"
+              ></line>
+              <text [attr.x]="44" [attr.y]="tempToY(temp) + 4" text-anchor="end" class="y-label">
+                {{ temp }}°
+              </text>
+            </ng-container>
+
+            <line x1="48" y1="202" x2="824" y2="202" class="axis"></line>
+            <line x1="48" y1="12"  x2="48"  y2="202" class="axis"></line>
+
+            <path [attr.d]="temperatureAreaPath()" class="area"></path>
+            <polyline [attr.points]="temperatureLinePoints()" class="line"></polyline>
+
+            <circle
+              *ngIf="chart.dataPoints.length === 1"
+              [attr.cx]="tickX(0)"
+              [attr.cy]="tempToY(chart.dataPoints[0].temperature)"
+              r="4" class="dot"
+            ></circle>
+
+            <g class="tick" *ngFor="let i of tickIndices()">
+              <line [attr.x1]="tickX(i)" y1="202" [attr.x2]="tickX(i)" y2="208" class="tick-line"></line>
+              <text [attr.x]="tickX(i)" y="218" text-anchor="middle">
+                {{ tickLabel(chart.dataPoints[i].time) }}
+              </text>
+            </g>
+
+          </svg>
+        </div>
+
+        <!-- Data table -->
+        <div class="table-wrap" *ngIf="chart.dataPoints.length > 0">
+          <table class="table compact">
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th>Avg Temperature</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of chart.dataPoints; trackBy: trackByTime">
+                <td>{{ tickLabel(p.time) }}</td>
+                <td>{{ formatTemp(p.temperature) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+  </ng-container>
+
+</section>
