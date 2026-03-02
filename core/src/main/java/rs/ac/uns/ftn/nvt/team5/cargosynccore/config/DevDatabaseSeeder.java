@@ -53,6 +53,7 @@ public class DevDatabaseSeeder implements CommandLineRunner {
 
     private final AccountRepository accounts;
     private final CountryRepository countries;
+    private final CityRepository cityRepository;
     private final PasswordEncoder passwordEncoder;
     private final CompanyRepository companyRepository;
     private final WarehouseRepository warehouseRepository;
@@ -87,23 +88,14 @@ public class DevDatabaseSeeder implements CommandLineRunner {
     }
 
     private void seedOrderDemoData() {
-        // Reload country/city references after potential save above
-        Country serbia  = countries.findById("RS").orElseThrow();
-        Country bosnia  = countries.findById("BA").orElseThrow();
-        City noviSad  = serbia.getCities().get("NVS");
-        City beograd  = serbia.getCities().get("BEG");
-        City sarajevo = bosnia.getCities().get("SJJ");
+        // Load cities directly from DB to avoid any Hibernate first-level cache issues
+        // with composite FK resolution (City has @IdClass with Country + code)
+        City noviSad  = cityRepository.findByCountryCodeAndCode("RS", "NVS").orElseThrow();
+        City beograd  = cityRepository.findByCountryCodeAndCode("RS", "BEG").orElseThrow();
+        City sarajevo = cityRepository.findByCountryCodeAndCode("BA", "SJJ").orElseThrow();
 
         if (warehouseRepository.count() > 0) {
-            // Repair city FK on seeded warehouses if it was null (stale schema migration)
-            warehouseRepository.findAll().forEach(w -> {
-                if (w.getCity() != null) return;
-                switch (w.getName()) {
-                    case "Novi Sad Warehouse" -> { w.setCity(noviSad);   warehouseRepository.save(w); }
-                    case "Beograd Warehouse"  -> { w.setCity(beograd);   warehouseRepository.save(w); }
-                    case "Sarajevo Warehouse" -> { w.setCity(sarajevo);  warehouseRepository.save(w); }
-                }
-            });
+            // no-op: warehouses already seeded
         } else {
             // ---- Product categories + products ----
             ProductCategory electronics = categoryRepository.findByNameIgnoreCase("Electronics")
@@ -160,9 +152,7 @@ public class DevDatabaseSeeder implements CommandLineRunner {
     }
 
     private void createCompany(Customer owner, String name, String address, City city, String imageUrl) {
-        boolean exists = companyRepository.findAll().stream()
-                .anyMatch(c -> name.equals(c.getName()));
-        if (exists) return;
+        if (companyRepository.existsByName(name)) return;
         Company company = new Company();
         company.setOwner(owner);
         company.setName(name);
