@@ -17,15 +17,17 @@
 
     <div class="grid-2">
       <mat-form-field appearance="outline">
-        <mat-label>Country code</mat-label>
-        <input matInput formControlName="countryCode" placeholder="e.g. RS" maxlength="2" />
-        <mat-hint>2-letter ISO code</mat-hint>
+        <mat-label>Country</mat-label>
+        <mat-select formControlName="countryCode">
+          <mat-option *ngFor="let c of countries" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+        </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <mat-label>City code</mat-label>
-        <input matInput formControlName="cityCode" placeholder="e.g. NVS" maxlength="3" />
-        <mat-hint>3-character LOCODE</mat-hint>
+        <mat-label>City</mat-label>
+        <mat-select formControlName="cityCode">
+          <mat-option *ngFor="let c of cities" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+        </mat-select>
       </mat-form-field>
     </div>
 

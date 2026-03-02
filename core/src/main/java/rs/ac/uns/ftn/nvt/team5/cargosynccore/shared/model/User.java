@@ -23,8 +23,7 @@ public abstract class User extends AbstractPersistable {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @NotBlank
-    @Column(name = "avatar", nullable = false)
+    @Column(name = "avatar")
     private String avatar;
 
 }

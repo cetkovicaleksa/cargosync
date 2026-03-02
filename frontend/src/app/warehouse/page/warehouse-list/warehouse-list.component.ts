@@ -1,5 +1,6 @@
 import { Component, inject, OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, finalize, Subject, takeUntil } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -11,7 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { NgFor, NgIf } from '@angular/common';
 
 import { AuthService } from '../../../auth/service/auth.service';
-import { WarehouseService } from '../../service/warehouse.service';
+import { CityOptionDto, CountryOptionDto, WarehouseService } from '../../service/warehouse.service';
 import { WarehouseDto } from '../../dto/warehouse.dto';
 import { WarehouseEditDialogComponent, WarehouseEditDialogData } from '../warehouse-edit-dialog/warehouse-edit-dialog.component';
 import { ConfirmDeleteDialogComponent } from '../../../shared/dialog/confirm-delete-dialog/confirm-delete-dialog.component';
@@ -40,10 +41,14 @@ export class WarehouseListComponent implements OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly dialog = inject(MatDialog);
   private readonly snack = inject(MatSnackBar);
+  private readonly router = inject(Router);
 
   private readonly destroy$ = new Subject<void>();
 
   readonly canManage = () => this.auth.hasAuthority('ROLE_MANAGER');
+
+  countries: CountryOptionDto[] = [];
+  cities: CityOptionDto[] = [];
 
   page = 0;
   size = 20;
@@ -53,14 +58,35 @@ export class WarehouseListComponent implements OnDestroy {
 
   items: WarehouseDto[] = [];
 
-  form = this.fb.nonNullable.group({
+  form = this.fb.group({
     name: [''],
     countryCode: [''],
-    cityCode: [''],
+    cityCode: [{ value: '', disabled: true }],
     online: [null as boolean | null],
   });
 
   constructor() {
+    this.warehouseService.getCountries().subscribe({
+      next: countries => { this.countries = countries; },
+      error: () => this.snack.open('Failed to load countries.', 'Close', { duration: 3000 }),
+    });
+
+    this.form.controls.countryCode.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(countryCode => {
+        this.form.controls.cityCode.setValue('', { emitEvent: false });
+        this.cities = [];
+        if (countryCode) {
+          this.form.controls.cityCode.enable({ emitEvent: false });
+          this.warehouseService.getCities(countryCode).subscribe({
+            next: cities => { this.cities = cities; },
+            error: () => this.snack.open('Failed to load cities.', 'Close', { duration: 3000 }),
+          });
+        } else {
+          this.form.controls.cityCode.disable({ emitEvent: false });
+        }
+      });
+
     this.form.valueChanges
       .pipe(
         debounceTime(250),
@@ -172,6 +198,10 @@ export class WarehouseListComponent implements OnDestroy {
         },
       });
     });
+  }
+
+  goToDetail(w: WarehouseDto): void {
+    this.router.navigate(['/warehouses', w.id]);
   }
 
   cityLabel(w: WarehouseDto): string {

@@ -45,6 +45,15 @@ public class QueryWarehousesUC {
             });
         }
 
+        // Eagerly fetch city (ManyToOne — no row multiplication, safe with pagination).
+        // Guard against the count query Spring Data runs internally for Page.
+        spec = spec.and((root, query, cb) -> {
+            if (!Long.class.isAssignableFrom(query.getResultType())) {
+                root.fetch("city", JoinType.LEFT);
+            }
+            return cb.conjunction();
+        });
+
         return warehouses.findAll(spec, pageable);
     }
 

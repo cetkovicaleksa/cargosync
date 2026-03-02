@@ -69,6 +69,11 @@ public class FileAccessController {
                 return ResponseEntity.ok().build();
         }
 
+        if (originalUri.startsWith("/uploads/warehouses/")) {
+            if (isManager(auth))
+                return ResponseEntity.ok().build();
+        }
+
         log.debug("Access denied for URI: {} by user: {}", originalUri, auth.getName());
         return ResponseEntity.status(403).build();
     }

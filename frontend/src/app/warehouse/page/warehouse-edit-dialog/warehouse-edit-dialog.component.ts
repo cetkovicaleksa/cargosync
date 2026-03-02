@@ -9,11 +9,11 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { NgFor, NgIf } from '@angular/common';
-import { finalize } from 'rxjs';
+import { finalize, Subject, takeUntil } from 'rxjs';
 import * as L from 'leaflet';
 
 import { CLIMATE_ZONES, WarehouseDto } from '../../dto/warehouse.dto';
-import { WarehouseService } from '../../service/warehouse.service';
+import { CityOptionDto, CountryOptionDto, WarehouseService } from '../../service/warehouse.service';
 
 export type WarehouseEditDialogData =
   | { mode: 'create' }
@@ -55,12 +55,15 @@ export class WarehouseEditDialogComponent implements AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly warehouseService = inject(WarehouseService);
   private readonly snack = inject(MatSnackBar);
+  private readonly destroy$ = new Subject<void>();
 
   readonly ref = inject(MatDialogRef<WarehouseEditDialogComponent>);
   readonly data = inject<WarehouseEditDialogData>(MAT_DIALOG_DATA);
 
   readonly climateZones = CLIMATE_ZONES;
 
+  countries: CountryOptionDto[] = [];
+  cities: CityOptionDto[] = [];
   loading = false;
   newImageFiles: File[] = [];
   removedImages = new Set<string>();
@@ -72,7 +75,7 @@ export class WarehouseEditDialogComponent implements AfterViewInit, OnDestroy {
     name: ['', Validators.required],
     address: ['', Validators.required],
     countryCode: ['', Validators.required],
-    cityCode: ['', Validators.required],
+    cityCode: [{ value: '', disabled: true }, Validators.required],
     latitude: [null as number | null],
     longitude: [null as number | null],
     sectors: this.fb.array<ReturnType<typeof this.createSectorGroup>>([]),
@@ -85,7 +88,6 @@ export class WarehouseEditDialogComponent implements AfterViewInit, OnDestroy {
         name: w.name,
         address: w.address,
         countryCode: w.city?.countryCode ?? '',
-        cityCode: w.city?.code ?? '',
         latitude: w.location?.latitude ?? null,
         longitude: w.location?.longitude ?? null,
       });
@@ -93,6 +95,42 @@ export class WarehouseEditDialogComponent implements AfterViewInit, OnDestroy {
         this.sectorsArray.push(this.createSectorGroup(s.name, s.climateZone ?? ''))
       );
     }
+
+    this.warehouseService.getCountries().subscribe({
+      next: countries => { this.countries = countries; },
+      error: () => this.snack.open('Failed to load countries.', 'Close', { duration: 3000 }),
+    });
+
+    const initialCountry = this.form.controls.countryCode.value;
+    if (initialCountry) {
+      this.form.controls.cityCode.enable({ emitEvent: false });
+      this.loadCities(initialCountry, this.data.mode === 'edit' ? (this.data.warehouse.city?.code ?? '') : '');
+    }
+
+    this.form.controls.countryCode.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(countryCode => {
+        this.form.controls.cityCode.setValue('');
+        if (!countryCode) {
+          this.cities = [];
+          this.form.controls.cityCode.disable({ emitEvent: false });
+          return;
+        }
+        this.form.controls.cityCode.enable({ emitEvent: false });
+        this.loadCities(countryCode, '');
+      });
+  }
+
+  private loadCities(countryCode: string, preselectCode: string) {
+    this.warehouseService.getCities(countryCode).subscribe({
+      next: cities => {
+        this.cities = cities;
+        if (preselectCode) {
+          this.form.controls.cityCode.setValue(preselectCode);
+        }
+      },
+      error: () => this.snack.open('Failed to load cities.', 'Close', { duration: 3000 }),
+    });
   }
 
   ngAfterViewInit() {
@@ -120,6 +158,8 @@ export class WarehouseEditDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.map?.remove();
   }
 

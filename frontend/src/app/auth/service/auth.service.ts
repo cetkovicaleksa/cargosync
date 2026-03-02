@@ -147,10 +147,12 @@ export class AuthService {
     );
   }
 
-  register(data: RegisterCustomerRequest, avatar: File): Observable<{ message: string }> {
+  register(data: RegisterCustomerRequest, avatar: File | null): Observable<{ message: string }> {
     const formData = new FormData();
     formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
-    formData.append('avatar', avatar);
+    if (avatar) {
+      formData.append('avatar', avatar);
+    }
     return this.http.post<{ message: string }>(`${this.apiUrl}/register`, formData);
   }
 

@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, OnDestroy, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../service/auth.service';
 import { finalize } from 'rxjs';
+import { NgIf } from '@angular/common';
 
 function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password')?.value;
@@ -28,11 +29,12 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
+    NgIf,
   ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -42,6 +44,13 @@ export class RegisterComponent {
 
   loading = false;
   avatarFile: File | null = null;
+  avatarPreviewUrl: string | null = null;
+
+  ngOnDestroy() {
+    if (this.avatarPreviewUrl) {
+      URL.revokeObjectURL(this.avatarPreviewUrl);
+    }
+  }
 
   form = this.fb.nonNullable.group(
     {
@@ -76,15 +85,15 @@ export class RegisterComponent {
       this.snack.open('Image must not exceed 10 MB.', 'Close', { duration: 3500 });
       return;
     }
+    if (this.avatarPreviewUrl) {
+      URL.revokeObjectURL(this.avatarPreviewUrl);
+    }
     this.avatarFile = file;
+    this.avatarPreviewUrl = URL.createObjectURL(file);
   }
 
   submit() {
     if (this.form.invalid || this.loading) return;
-    if (!this.avatarFile) {
-      this.snack.open('Please select an avatar image.', 'Close', { duration: 3500 });
-      return;
-    }
 
     this.loading = true;
     const { firstName, lastName, email, password, confirmPassword } = this.form.getRawValue();
