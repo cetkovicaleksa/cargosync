@@ -5,10 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
 
 import java.util.ArrayList;
@@ -17,6 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
 @NoArgsConstructor
 @ToString
 @Table(name = "companies")

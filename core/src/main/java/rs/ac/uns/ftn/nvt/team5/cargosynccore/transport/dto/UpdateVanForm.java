@@ -1,6 +1,5 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -12,8 +11,8 @@ import java.util.Set;
 @Data
 public class UpdateVanForm {
 
-    @JsonIgnore
-    private String vin;
+    @Null
+    private transient String vin; // not sure how to ignore this with form data
 
     @Nullable
     @Min(5)
@@ -29,5 +28,8 @@ public class UpdateVanForm {
 
     @Nullable
     private Set<String> removeImages;
+
+    @Null
+    private transient Integer version;
 
 }
