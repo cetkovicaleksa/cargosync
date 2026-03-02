@@ -11,11 +11,12 @@ from locust.exception import StopUser
 
 API_PREFIX = os.getenv("CARGOSYNC_API_PREFIX", "/api").rstrip("/")
 
-MANAGER_USERNAME = os.getenv("CARGOSYNC_MANAGER_USERNAME", "manager0")
-MANAGER_PASSWORD = os.getenv("CARGOSYNC_MANAGER_PASSWORD", "1234")
+MANAGER_USERNAME = os.getenv("CARGOSYNC_MANAGER_USERNAME", "manager")
+MANAGER_PASSWORD = os.getenv("CARGOSYNC_MANAGER_PASSWORD", "manager")
 
 SUPERMANAGER_USERNAME = os.getenv("CARGOSYNC_SUPERMANAGER_USERNAME", "admin")
-SUPERMANAGER_PASSWORD = os.getenv("CARGOSYNC_SUPERMANAGER_PASSWORD", "")
+SUPERMANAGER_PASSWORD = os.getenv("CARGOSYNC_SUPERMANAGER_PASSWORD", "12345678")
+SUPERMANAGER_SCENARIO_ENABLED = os.getenv("CARGOSYNC_ENABLE_SUPERMANAGER", "0") == "1"
 
 
 def api_path(path: str) -> str:
@@ -73,64 +74,104 @@ class AuthMixin:
 
 
 class LoginStormUser(HttpUser):
+    abstract = True
     wait_time = constant(0)
 
     @tag("login")
     @task
     def login_storm(self):
-        response = self.client.post(
+        with self.client.post(
             api_path("/auth/login"),
             json={"username": MANAGER_USERNAME, "password": MANAGER_PASSWORD},
             name="POST /auth/login",
-        )
-        if response.status_code != 200:
-            response.failure(f"Login failed with status={response.status_code}")
+            catch_response=True,
+        ) as response:
+            if response.status_code in (200, 429):
+                response.success()
+            else:
+                response.failure(f"Login failed with status={response.status_code}")
 
 
 class ManagerApiUser(HttpUser, AuthMixin):
     wait_time = between(0.05, 0.5)
 
+    def _is_login_only_run(self) -> bool:
+        options = getattr(self.environment, "parsed_options", None)
+        selected_tags = getattr(options, "tags", None) if options else None
+        if not selected_tags:
+            return False
+        return set(selected_tags).issubset({"login"})
+
     def on_start(self):
+        if self._is_login_only_run():
+            self.token = None
+            return
+
         self.token = self.login(MANAGER_USERNAME, MANAGER_PASSWORD)
-        if not self.token:
+        if not self.token and not self._is_login_only_run():
             raise StopUser("Manager login failed; verify credentials and running backend.")
+
+    @tag("login")
+    @task(6)
+    def login_storm(self):
+        with self.client.post(
+            api_path("/auth/login"),
+            json={"username": MANAGER_USERNAME, "password": MANAGER_PASSWORD},
+            name="POST /auth/login",
+            catch_response=True,
+        ) as response:
+            if response.status_code in (200, 429):
+                response.success()
+            else:
+                response.failure(f"Login failed with status={response.status_code}")
 
     @tag("categories")
     @task(8)
     def get_categories(self):
-        response = self.client.get(
+        if not self.token:
+            return
+        with self.client.get(
             api_path("/categories"),
             headers=self.auth_headers(),
             name="GET /api/categories",
-        )
-        if response.status_code != 200:
-            response.failure(f"Unexpected status={response.status_code}")
+            catch_response=True,
+        ) as response:
+            if response.status_code != 200:
+                response.failure(f"Unexpected status={response.status_code}")
 
     @tag("products", "products_unfiltered")
     @task(8)
     def search_products_unfiltered(self):
-        response = self.client.get(
+        if not self.token:
+            return
+        with self.client.get(
             api_path("/products?page=0&size=20"),
             headers=self.auth_headers(),
             name="GET /api/products",
-        )
-        if response.status_code != 200:
-            response.failure(f"Unexpected status={response.status_code}")
+            catch_response=True,
+        ) as response:
+            if response.status_code != 200:
+                response.failure(f"Unexpected status={response.status_code}")
 
     @tag("products", "products_filtered")
     @task(8)
     def search_products_filtered(self):
-        response = self.client.get(
+        if not self.token:
+            return
+        with self.client.get(
             api_path("/products?name=Cola&minPrice=50&page=0&size=20"),
             headers=self.auth_headers(),
             name="GET /api/products?name=Cola&minPrice=50",
-        )
-        if response.status_code != 200:
-            response.failure(f"Unexpected status={response.status_code}")
+            catch_response=True,
+        ) as response:
+            if response.status_code != 200:
+                response.failure(f"Unexpected status={response.status_code}")
 
     @tag("products", "products_create")
     @task(2)
     def create_product(self):
+        if not self.token:
+            return
         if not SharedState.ids or not SharedState.ids.categories:
             return
 
@@ -148,18 +189,21 @@ class ManagerApiUser(HttpUser, AuthMixin):
             "version": 0,
         }
 
-        response = self.client.post(
+        with self.client.post(
             api_path("/products"),
             headers=self.auth_headers(),
             files=multipart_json(payload),
             name="POST /api/products",
-        )
-        if response.status_code not in (201, 409):
-            response.failure(f"Unexpected status={response.status_code}")
+            catch_response=True,
+        ) as response:
+            if response.status_code not in (201, 409):
+                response.failure(f"Unexpected status={response.status_code}")
 
     @tag("products", "products_update", "optimistic_lock")
     @task(6)
     def update_same_product_concurrently(self):
+        if not self.token:
+            return
         target = SharedState.optimistic_target
         if not target:
             return
@@ -192,32 +236,40 @@ class ManagerApiUser(HttpUser, AuthMixin):
     @tag("factories", "factories_search")
     @task(7)
     def search_factories_by_city(self):
-        response = self.client.get(
+        if not self.token:
+            return
+        with self.client.get(
             api_path("/factories?cityCode=BEG&page=0&size=20"),
             headers=self.auth_headers(),
             name="GET /api/factories?cityCode=BEG",
-        )
-        if response.status_code != 200:
-            response.failure(f"Unexpected status={response.status_code}")
+            catch_response=True,
+        ) as response:
+            if response.status_code != 200:
+                response.failure(f"Unexpected status={response.status_code}")
 
     @tag("factories", "factories_get_one", "cache")
     @task(7)
     def get_factory_by_id(self):
+        if not self.token:
+            return
         if not SharedState.ids or not SharedState.ids.factory_ids:
             return
 
         factory_id = random.choice(SharedState.ids.factory_ids)
-        response = self.client.get(
+        with self.client.get(
             api_path(f"/factories/{factory_id}"),
             headers=self.auth_headers(),
             name="GET /api/factories/{id}",
-        )
-        if response.status_code != 200:
-            response.failure(f"Unexpected status={response.status_code}")
+            catch_response=True,
+        ) as response:
+            if response.status_code != 200:
+                response.failure(f"Unexpected status={response.status_code}")
 
     @tag("factory_analytics", "influx_heavy")
     @task(5)
     def get_factory_product_production(self):
+        if not self.token:
+            return
         if not SharedState.ids or not SharedState.ids.factory_product_pairs:
             return
 
@@ -225,19 +277,45 @@ class ManagerApiUser(HttpUser, AuthMixin):
         to_dt = datetime.now(timezone.utc)
         from_dt = to_dt - timedelta(days=180)
 
-        response = self.client.get(
+        with self.client.get(
             api_path(
                 f"/factories/{factory_id}/products/{product_id}/production"
                 f"?from={iso_utc(from_dt)}&to={iso_utc(to_dt)}"
             ),
             headers=self.auth_headers(),
             name="GET /api/factories/{id}/products/{id}/production?6m",
-        )
-        if response.status_code != 200:
-            response.failure(f"Unexpected status={response.status_code}")
+            catch_response=True,
+        ) as response:
+            if response.status_code != 200:
+                response.failure(f"Unexpected status={response.status_code}")
+
+    @tag("factory_analytics", "influx_heavy")
+    @task(5)
+    def get_factory_availability(self):
+        if not self.token:
+            return
+        if not SharedState.ids or not SharedState.ids.factory_ids:
+            return
+
+        factory_id = random.choice(SharedState.ids.factory_ids)
+        to_dt = datetime.now(timezone.utc)
+        from_dt = to_dt - timedelta(days=180)
+
+        with self.client.get(
+            api_path(
+                f"/factories/{factory_id}/availability"
+                f"?from={iso_utc(from_dt)}&to={iso_utc(to_dt)}"
+            ),
+            headers=self.auth_headers(),
+            name="GET /api/factories/{id}/availability?6m",
+            catch_response=True,
+        ) as response:
+            if response.status_code != 200:
+                response.failure(f"Unexpected status={response.status_code}")
 
 
 class SuperManagerApiUser(HttpUser, AuthMixin):
+    abstract = not SUPERMANAGER_SCENARIO_ENABLED
     wait_time = between(0.05, 0.4)
 
     def on_start(self):
@@ -251,13 +329,14 @@ class SuperManagerApiUser(HttpUser, AuthMixin):
     @tag("managers_search")
     @task
     def search_managers(self):
-        response = self.client.get(
+        with self.client.get(
             api_path("/managers?query=manager555&page=0&size=20"),
             headers=self.auth_headers(),
             name="GET /api/managers?query=manager555",
-        )
-        if response.status_code != 200:
-            response.failure(f"Unexpected status={response.status_code}")
+            catch_response=True,
+        ) as response:
+            if response.status_code != 200:
+                response.failure(f"Unexpected status={response.status_code}")
 
 
 @events.test_start.add_listener
@@ -266,11 +345,17 @@ def preload_ids(environment, **kwargs):
     if not host:
         return
 
+    options = getattr(environment, "parsed_options", None)
+    selected_tags = getattr(options, "tags", None) if options else None
+    if selected_tags and set(selected_tags).issubset({"login"}):
+        return
+
     class BootstrapUser(HttpUser, AuthMixin):
         abstract = True
 
+    BootstrapUser.host = host
+
     bootstrap = BootstrapUser(environment)
-    bootstrap.host = host
 
     token = bootstrap.login(MANAGER_USERNAME, MANAGER_PASSWORD)
     if not token:
@@ -284,12 +369,18 @@ def preload_ids(environment, **kwargs):
         payload = category_res.json()
         if isinstance(payload, list):
             categories = [
-                name
+                item
                 for item in payload
-                if isinstance(item, dict)
-                for name in [item.get("name")]
-                if isinstance(name, str) and name
+                if isinstance(item, str) and item
             ]
+            if not categories:
+                categories = [
+                    name
+                    for item in payload
+                    if isinstance(item, dict)
+                    for name in [item.get("name")]
+                    if isinstance(name, str) and name
+                ]
 
     product_ids = []
     products_res = bootstrap.client.get(api_path("/products?page=0&size=100"), headers=headers, name="bootstrap products")

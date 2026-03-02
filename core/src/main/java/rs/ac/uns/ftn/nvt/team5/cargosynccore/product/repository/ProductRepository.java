@@ -10,4 +10,6 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpecificationExecutor<Product> {
+
+	boolean existsByIdAndFactories_Id(UUID productId, UUID factoryId);
 }

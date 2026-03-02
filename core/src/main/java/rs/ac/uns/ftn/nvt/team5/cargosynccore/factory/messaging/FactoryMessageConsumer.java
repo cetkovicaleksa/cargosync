@@ -8,6 +8,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.config.RabbitMQConfig;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryHeartbeatMessage;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryProductionMessage;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository.FactoryStatusRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.service.FactoryInventoryIngestionService;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.InfluxService;
 
 import java.time.Instant;
@@ -21,6 +22,7 @@ public class FactoryMessageConsumer {
 
     private final FactoryStatusRepository statuses;
     private final InfluxService influx;
+    private final FactoryInventoryIngestionService factoryInventoryIngestionService;
 
     @RabbitListener(queues = RabbitMQConfig.FACTORY_HEARTBEAT_QUEUE)
     public void handleHeartbeat(FactoryHeartbeatMessage msg) {
@@ -55,6 +57,14 @@ public class FactoryMessageConsumer {
             if (reading == null || reading.productId() == null || reading.amount() < 0) {
                 continue;
             }
+
+            factoryInventoryIngestionService.applyProducedAmount(
+                    msg.factoryId(),
+                    reading.productId(),
+                    reading.amount(),
+                    eventTime
+            );
+
             influx.writeFactoryProduction(msg.factoryId(), reading.productId(), reading.amount(), eventTime);
         }
     }

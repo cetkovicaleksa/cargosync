@@ -66,12 +66,14 @@ public class ProductService {
     })
     @Transactional
     public Product updateProduct(UUID id, SaveProductRequest request, MultipartFile image) {
+        if (request.version() == null) {
+            throw new BadRequestException("Version is required for product updates");
+        }
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
 
-        if (request.version() != null) {
-            product.setVersion(request.version());
-        }
+        product.setVersion(request.version());
 
         return saveOrUpdate(product, request, image);
     }

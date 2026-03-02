@@ -1,0 +1,15 @@
+Count,Message,Traceback,Nodes
+266,"Tried to set status on a request that has not yet been made. Make sure you use a with-block, like this:
+
+with self.client.request(..., catch_response=True) as response:
+    response.failure(...)","  File ""D:\Fakultet\NWT\cargosync\load\.venv\Lib\site-packages\locust\user\task.py"", line 362, in run
+    self.execute_next_task()
+  File ""D:\Fakultet\NWT\cargosync\load\.venv\Lib\site-packages\locust\user\task.py"", line 395, in execute_next_task
+    self.execute_task(self._task_queue.popleft())
+  File ""D:\Fakultet\NWT\cargosync\load\.venv\Lib\site-packages\locust\user\task.py"", line 512, in execute_task
+    task(self.user)
+  File ""D:\Fakultet\NWT\cargosync\load\tests\cargosync_locust.py"", line 109, in login_storm
+    response.failure(f""Login failed with status={response.status_code}"")
+  File ""D:\Fakultet\NWT\cargosync\load\.venv\Lib\site-packages\locust\clients.py"", line 478, in failure
+    raise LocustError(
+",local
