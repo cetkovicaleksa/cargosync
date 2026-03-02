@@ -74,6 +74,13 @@ The repository includes scripts for importing generated data directly into Docke
 powershell -ExecutionPolicy Bypass -File scripts/load_generated_data.ps1 -UseTestStack -TruncateFirst
 ```
 
+Script may get stuck after uploading the influx data. You can upload files separately with the following command:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File load_generated_data.ps1 -UseTestStack -SkipPostgres -SkipCopyIfExists -InfluxFiles file.lp
+```
+Run this for .lp file in the `scripts/results/generated_data` directory.
+
 #### Dry run (print commands only)
 
 ```powershell
