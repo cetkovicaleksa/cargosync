@@ -87,14 +87,25 @@ public class DevDatabaseSeeder implements CommandLineRunner {
     }
 
     private void seedOrderDemoData() {
-        if (warehouseRepository.count() > 0) return; // already seeded
-
         // Reload country/city references after potential save above
         Country serbia  = countries.findById("RS").orElseThrow();
         Country bosnia  = countries.findById("BA").orElseThrow();
         City noviSad  = serbia.getCities().get("NVS");
         City beograd  = serbia.getCities().get("BEG");
         City sarajevo = bosnia.getCities().get("SJJ");
+
+        if (warehouseRepository.count() > 0) {
+            // Repair city FK on seeded warehouses if it was null (stale schema migration)
+            warehouseRepository.findAll().forEach(w -> {
+                if (w.getCity() != null) return;
+                switch (w.getName()) {
+                    case "Novi Sad Warehouse" -> { w.setCity(noviSad);   warehouseRepository.save(w); }
+                    case "Beograd Warehouse"  -> { w.setCity(beograd);   warehouseRepository.save(w); }
+                    case "Sarajevo Warehouse" -> { w.setCity(sarajevo);  warehouseRepository.save(w); }
+                }
+            });
+            return;
+        }
 
         // ---- Product categories + products ----
         ProductCategory electronics = categoryRepository.findByNameIgnoreCase("Electronics")
