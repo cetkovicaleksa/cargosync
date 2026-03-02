@@ -21,13 +21,19 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="filter-item">
-        <mat-label>Country code</mat-label>
-        <input matInput [formControl]="form.controls.countryCode" placeholder="e.g. RS" maxlength="2" />
+        <mat-label>Country</mat-label>
+        <mat-select [formControl]="form.controls.countryCode">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let c of countries" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+        </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="filter-item">
-        <mat-label>City code</mat-label>
-        <input matInput [formControl]="form.controls.cityCode" placeholder="e.g. NVS" maxlength="3" />
+        <mat-label>City</mat-label>
+        <mat-select [formControl]="form.controls.cityCode">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let c of cities" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+        </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="filter-item">
@@ -47,12 +53,9 @@
             <tr>
               <th>Name</th>
               <th>Address</th>
-              <th>City</th>
               <th>Sectors</th>
               <th>Status</th>
-              @if (canManage()) {
-                <th class="actions-col">Actions</th>
-              }
+              <th class="actions-col">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -61,19 +64,19 @@
                 <span class="name">{{ w.name }}</span>
               </td>
               <td class="muted">{{ w.address }}</td>
-              <td class="muted">{{ cityLabel(w) }}</td>
               <td>{{ w.sectors.length }}</td>
               <td>
                 <span class="badge" [class.online]="w.online" [class.off]="!w.online">
                   {{ w.online ? 'Online' : 'Offline' }}
                 </span>
               </td>
-              @if (canManage()) {
-                <td class="actions actions-col">
+              <td class="actions actions-col">
+                <button mat-stroked-button color="primary" (click)="goToDetail(w)">Details</button>
+                @if (canManage()) {
                   <button mat-stroked-button (click)="openEdit(w)">Edit</button>
                   <button mat-stroked-button color="warn" (click)="delete(w)">Delete</button>
-                </td>
-              }
+                }
+              </td>
             </tr>
           </tbody>
         </table>
