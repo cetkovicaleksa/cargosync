@@ -1,0 +1,43 @@
+spring:
+  web:
+    error:
+      include-message: always
+  rabbitmq:
+    listener:
+      simple:
+        auto-startup: true
+  jpa:
+    show-sql: true
+    generate-ddl: true
+    properties:
+      hibernate:
+        format_sql: true
+        hbm2ddl:
+          auto: update # alias for spring.jpa.hibernate.ddl-auto
+          create_output: ddl.sql
+  mail:
+    host: ${CARGOSYNC_MAIL_HOST:localhost}
+    port: ${CARGOSYNC_MAIL_PORT:1025}
+    username: ${CARGOSYNC_MAIL_USERNAME:}
+    password: ${CARGOSYNC_MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+logging:
+  level:
+    root: INFO
+    rs.ac.uns.ftn.nvt.team5.cargosynccore: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.security: DEBUG
+    org.springframework.cache: TRACE
+security:
+  cors:
+    allowed-headers: ["*"]
+    allowed-origins:
+      - "*"
+  auth:
+    jwt:
+      access-token:
+        ttl: 24h
+  public-endpoints: ["/**"]

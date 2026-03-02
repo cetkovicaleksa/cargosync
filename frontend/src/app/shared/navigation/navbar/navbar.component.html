@@ -1,0 +1,58 @@
+<nav class="navbar-header" aria-label="Top Toolbar">
+  <a mat-button routerLink="/" class="brand">
+    CargoSync
+  </a>
+
+  @for (item of items; track item.key) {
+    <a mat-button class="navbar-hide-small"
+       [routerLink]="item.key"
+       routerLinkActive="navbar-header-item-selected">
+      {{ item.label }}
+    </a>
+  }
+
+  <div class="flex-spacer"></div>
+
+  @if (isLoggedIn) {
+    <div class="profile navbar-hide-small" aria-label="Current user profile">
+      <div class="avatar" [attr.aria-label]="displayName || 'Account'">
+        @if (avatarSrc) {
+          <app-protected-image [src]="avatarSrc" [alt]="displayName || 'Account'" />
+        } @else {
+          <span>{{ avatarInitial }}</span>
+        }
+      </div>
+      <span class="user">{{ displayName || 'Account' }}</span>
+    </div>
+
+    <div class="avatar navbar-show-small" [attr.aria-label]="displayName || 'Account'">
+      @if (avatarSrc) {
+        <app-protected-image [src]="avatarSrc" [alt]="displayName || 'Account'" />
+      } @else {
+        <span>{{ avatarInitial }}</span>
+      }
+    </div>
+
+    <button mat-button class="navbar-hide-small" (click)="signOut()">
+      Sign out
+    </button>
+    <button mat-icon-button class="navbar-show-small" (click)="signOut()" aria-label="Sign out">
+      <mat-icon>logout</mat-icon>
+    </button>
+  } @else {
+    <button mat-button class="navbar-hide-small" (click)="signIn()">
+      Sign in
+    </button>
+    <button mat-icon-button class="navbar-show-small" (click)="signIn()" aria-label="Sign in">
+      <mat-icon>login</mat-icon>
+    </button>
+  }
+</nav>
+
+<nav class="navbar navbar-show-small" aria-label="Section Nav Bar">
+  @for (item of items; track item.key) {
+    <a mat-button class="navbar-link" [routerLink]="item.key">
+      {{ item.label }}
+    </a>
+  }
+</nav>

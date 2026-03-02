@@ -1,0 +1,102 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<div mat-dialog-content class="content">
+  <form [formGroup]="form" class="form">
+    <div class="grid-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
+
+      <div class="file-upload">
+        <mat-form-field appearance="outline" class="file-field">
+          <mat-label>Image file</mat-label>
+          <input matInput [value]="selectedImageName || 'No file selected'" readonly />
+          <button mat-button matSuffix type="button" (click)="productImageInput.click()">Browse</button>
+        </mat-form-field>
+        <input
+          #productImageInput
+          class="hidden-file-input"
+          type="file"
+          accept="image/*"
+          (change)="onImageSelected($event)"
+        />
+        <div class="file-name" *ngIf="!selectedImageName && existingImageUrl">Current image kept</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Price</mat-label>
+        <input matInput type="number" formControlName="price" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Weight (kg)</mat-label>
+        <input matInput type="number" formControlName="weight" />
+      </mat-form-field>
+    </div>
+
+    <div class="grid-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Category name</mat-label>
+        <input matInput formControlName="categoryName" [matAutocomplete]="categoryAuto" />
+        <mat-hint>Select existing or type a new category</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Select factories</mat-label>
+        <input matInput formControlName="factorySearch" placeholder="Type at least 2 characters" />
+        <mat-hint>Search factories by name</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <mat-autocomplete #categoryAuto="matAutocomplete">
+      <mat-option *ngFor="let category of filteredCategoryOptions | async" [value]="category">
+        {{ category }}
+      </mat-option>
+    </mat-autocomplete>
+
+    <section class="factory-picker">
+      <div class="selected" *ngIf="selectedFactories.length > 0">
+        <div class="selected-title">Selected factories</div>
+        <mat-chip-set aria-label="Selected factories">
+          <mat-chip-row *ngFor="let sf of selectedFactories" removable="true" (removed)="removeFactory(sf.id)">
+            {{ sf.name }}<span *ngIf="sf.cityName || sf.countryCode"> ({{ sf.cityName }}{{ sf.cityName && sf.countryCode ? ', ' : '' }}{{ sf.countryCode }})</span>
+            <button matChipRemove type="button" aria-label="Remove factory">x</button>
+          </mat-chip-row>
+        </mat-chip-set>
+      </div>
+
+      <div class="results" *ngIf="factoryQuery.trim().length >= 2">
+        <button
+          type="button"
+          mat-stroked-button
+          class="factory-result"
+          *ngFor="let f of factoryResults"
+          [disabled]="isFactorySelected(f.id)"
+          (click)="addFactory(f)"
+        >
+          <span class="factory-name">{{ f.name }}</span>
+          &nbsp;
+          <span class="factory-meta">{{ f.cityName }}, {{ f.countryCode }}</span>
+        </button>
+
+        <div class="results-footer" *ngIf="!factoriesLoading && !factoriesLast">
+          <button mat-button type="button" (click)="loadMoreFactories()" [disabled]="factoriesLoadingMore">
+            {{ factoriesLoadingMore ? 'Loading…' : 'Load more factories' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <mat-slide-toggle formControlName="isForSale" color="primary">For sale</mat-slide-toggle>
+  </form>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="loading">Cancel</button>
+  <button mat-flat-button color="primary" (click)="save()" [disabled]="loading || form.invalid">
+    {{ loading ? 'Saving…' : 'Save' }}
+  </button>
+</div>

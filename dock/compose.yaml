@@ -1,0 +1,55 @@
+name: cargosync
+
+services:
+  rabbitmq:
+    image: rabbitmq:4-alpine
+    expose: ["5672"]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${CARGOSYNC_RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${CARGOSYNC_RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq:rw
+    networks:
+      - cargo-net
+
+  postgres:
+    image: postgres:18-alpine
+    expose: ["5432"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data:rw
+    networks:
+      - cargo-net
+
+  influxdb2:
+    image: influxdb:2.8
+    expose: ["8086"]
+    volumes:
+      - influxdb-data:/var/lib/influxdb2:rw
+    networks:
+      - cargo-net
+
+  redis:
+    image: redis:8-alpine
+    expose: ["6379"]
+    volumes:
+      - redis-data:/data:rw
+    networks:
+      - cargo-net
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    expose: ["1025", "8025"]
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    networks:
+      - cargo-net
+
+volumes:
+  rabbitmq-data:
+  postgres-data:
+  influxdb-data:
+  redis-data:
+
+networks:
+  cargo-net:

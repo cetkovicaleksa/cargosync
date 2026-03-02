@@ -1,0 +1,73 @@
+<section class="page">
+  <header class="page-header">
+    <div class="title">
+      <h1>My Orders</h1>
+      <p>View your order history.</p>
+    </div>
+    <button mat-button (click)="reload()">Refresh</button>
+  </header>
+
+  <section class="panel">
+    <div class="loading" *ngIf="loading">
+      <mat-spinner diameter="36" />
+    </div>
+
+    <mat-accordion *ngIf="!loading && orders.length > 0">
+      <mat-expansion-panel *ngFor="let o of orders; trackBy: trackById">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="panel-title">
+            <span class="order-id">#{{ o.id.slice(0, 8) }}…</span>
+            <span class="badge status-{{ o.status.toLowerCase() }}">{{ o.status }}</span>
+          </mat-panel-title>
+          <mat-panel-description class="panel-desc">
+            <span>{{ o.companyName }}</span>
+            <span class="order-total">€{{ o.totalAmount | number:'1.2-2' }}</span>
+            <span class="order-date">{{ o.createdDate | date:'dd.MM.yyyy' }}</span>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="order-detail">
+          <p class="detail-info">
+            <mat-icon>business</mat-icon>
+            {{ o.companyName }}<span class="muted" *ngIf="o.companyAddress"> — {{ o.companyAddress }}</span>
+          </p>
+
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Unit price</th>
+                <th>Line total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of o.items">
+                <td>{{ item.productName }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>€{{ item.unitPrice | number:'1.2-2' }}</td>
+                <td class="bold">€{{ item.lineTotal | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" class="grand-label">Grand Total</td>
+                <td class="grand-total">€{{ o.totalAmount | number:'1.2-2' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+
+    <div class="empty" *ngIf="!loading && orders.length === 0">
+      You haven't placed any orders yet.
+    </div>
+
+    <div class="footer" *ngIf="!loading && !last">
+      <button mat-button (click)="loadMore()" [disabled]="loadingMore">
+        {{ loadingMore ? 'Loading…' : 'Load more' }}
+      </button>
+    </div>
+  </section>
+</section>

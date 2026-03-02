@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Order Confirmation</title>
+    <style>
+        body { margin: 0; padding: 0; background: #f5f5f5; font-family: 'Helvetica Neue', Arial, sans-serif; color: #333; }
+        .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { background: green; padding: 28px 32px; }
+        .header h1 { margin: 0; color: #ffffff; font-size: 24px; letter-spacing: 1px; }
+        .header p { margin: 4px 0 0; color: rgba(255,255,255,0.75); font-size: 13px; }
+        .body { padding: 32px; }
+        .greeting { font-size: 16px; margin-bottom: 16px; }
+        .info-box { background: #EDE7F6; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px; }
+        .info-box p { margin: 4px 0; font-size: 14px; }
+        .info-box strong { color: green; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 20px; }
+        thead th { background: green; color: #fff; padding: 10px 12px; text-align: left; }
+        tbody tr:nth-child(even) { background: #F3EEF9; }
+        tbody td { padding: 9px 12px; border-bottom: 1px solid #e8e0f0; }
+        .total-row { font-weight: bold; font-size: 15px; text-align: right; color: green; margin-top: 8px; }
+        .footer { background: #FAFAFA; padding: 20px 32px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; }
+        .footer a { color: green; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="header">
+        <h1>CargoSync</h1>
+        <p>Smart Logistics Platform</p>
+    </div>
+
+    <div class="body">
+        <p class="greeting">Hi <strong th:text="${firstName}">Customer</strong>,</p>
+        <p>Your order has been confirmed! Please find your invoice attached to this email.</p>
+
+        <div class="info-box">
+            <p><strong>Order ID:</strong> <span th:text="${orderId}">—</span></p>
+            <p><strong>Date:</strong> <span th:text="${#temporals.format(order.createdDate, 'dd.MM.yyyy HH:mm')}">—</span></p>
+            <p><strong>Delivery to:</strong>
+                <span th:text="${order.company.name}">Company</span>,
+                <span th:text="${order.company.address}">Address</span>,
+                <span th:text="${order.company.city.name}">City</span>
+            </p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${order.items}">
+                    <td th:text="${item.product.name}">Product</td>
+                    <td th:text="${item.quantity}">1</td>
+                    <td th:text="'€' + ${item.unitPrice}">€0.00</td>
+                    <td th:text="'€' + ${item.unitPrice * item.quantity}">€0.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="total-row">Grand Total: <span th:text="'€' + ${order.totalAmount}">€0.00</span></p>
+
+        <p style="color:#666; font-size:13px;">
+            A PDF invoice is attached to this email for your records.
+            If you have any questions, please contact our support team.
+        </p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2025 CargoSync. All rights reserved.</p>
+        <p><a href="#">Privacy Policy</a> &bull; <a href="#">Terms of Service</a></p>
+    </div>
+</div>
+</body>
+</html>

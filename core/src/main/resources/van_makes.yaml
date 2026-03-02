@@ -1,0 +1,197 @@
+# Does not use real (ISO 3779) wim and vd, but some more intuitive codes.
+# All are valid according to the standard.
+
+---
+wmi: 'MAN'
+name: "MAN Truck & Bus"
+models:
+  TGX440:
+    name: "MAN TGX 18.440 (Long-haul truck, 18-ton GVW)"
+  TGL180:
+    name: "MAN TGL 8.180 (Light-duty truck for local cargo transport)"
+  CLA280:
+    name: "MAN CLA 19.280 (Light-duty distribution truck)"
+---
+wmi: 'BNZ'
+name: "Mercedes-Benz (Germany)"
+models:
+  SPR906:
+    name: "Mercedes-Benz Sprinter (Cargo Van)"
+  V1T063:
+    name: "Mercedes-Benz Vito (Compact Cargo Van)"
+  ACT963:
+    name: "Mercedes-Benz Actros (Heavy-duty Truck)"
+  ATG967:
+    name: "Mercedes-Benz Atego (Medium-duty Truck)"
+  EC0957:
+    name: "Mercedes-Benz Econic (Low-entry truck)"
+---
+wmi: 'FRD'
+name: "Ford (USA/UK)"
+models:
+  TRANS7:
+    name: "Ford Transit (Cargo Van)"
+  TCUSTM:
+    name: "Ford Transit Custom (Mid-size Cargo Van)"
+  RANGER:
+    name: "Ford Ranger (Pickup Truck)"
+  FMAXTR:
+    name: "Ford F-Max (Heavy-duty Truck)"
+---
+wmi: 'VWG'
+name: "Volkswagen (Germany)"
+models:
+  TRNPTR:
+    name: "Volkswagen Transporter (Cargo Van)"
+  CRAFTR:
+    name: "Volkswagen Crafter (Large Cargo Van)"
+  AMAR0K:
+    name: "Volkswagen Amarok (Pickup Truck)"
+  CADDY5:
+    name: "Volkswagen Caddy (Compact Cargo Van)"
+  1DBUZZ:
+    name: "Volkswagen ID. Buzz Cargo (Electric Cargo Van)"
+---
+wmi: 'REN'
+name: "Renault (France)"
+models:
+  MASTER:
+    name: "Renault Master (Large Cargo Van)"
+  KANG00:
+    name: "Renault Kangoo (Compact Cargo Van)"
+  TRAF1C:
+    name: "Renault Trafic (Mid-size Cargo Van)"
+  ALASKA:
+    name: "Renault Alaskan (Pickup Truck)"
+  D0KKER:
+    name: "Renault Dokker (Small Van)"
+---
+wmi: 'F1A'
+name: "Fiat (Italy)"
+models:
+  DUCAT0:
+    name: "Fiat Ducato (Large Cargo Van)"
+  F10R1N:
+    name: "Fiat Fiorino (Small Cargo Van)"
+  PANVAN:
+    name: "Fiat Panda Van (Small Van)"
+  D0BL0V:
+    name: "Fiat Doblo Cargo (Medium Cargo Van)"
+  TALENT:
+    name: "Fiat Talento (Mid-size Cargo Van)"
+---
+wmi: 'C1T'
+name: "Citroën (France)"
+models:
+  BRLNGO:
+    name: "Citroën Berlingo (Compact Cargo Van)"
+  JUMPER:
+    name: "Citroën Jumper (Large Cargo Van)"
+  RELAYV:
+    name: "Citroën Relay (Large Cargo Van)"
+  D1SPAT:
+    name: "Citroën Dispatch (Mid-size Cargo Van)"
+  AMICGO:
+    name: "Citroën Ami Cargo (Electric Small Van)"
+---
+wmi: 'PEU'
+name: "Peugeot (France)"
+models:
+  PARTNR:
+    name: "Peugeot Partner (Compact Cargo Van)"
+  B0XERR:
+    name: "Peugeot Boxer (Large Cargo Van)"
+  EXPERT:
+    name: "Peugeot Expert (Medium Cargo Van)"
+  508WGN:
+    name: "Peugeot 508 SW (Station Wagon for Cargo Use)"
+  3008SV:
+    name: "Peugeot 3008 (SUV for Cargo Use)"
+---
+wmi: 'NSN'
+name: "Nissan (Japan)"
+models:
+  NV200V:
+    name: "Nissan NV200 (Compact Cargo Van)"
+  NAVARA:
+    name: "Nissan Navara (Pickup Truck)"
+  NV300V:
+    name: "Nissan NV300 (Mid-size Cargo Van)"
+  FR0NTR:
+    name: "Nissan Frontier (Pickup Truck)"
+---
+wmi: 'TYT'
+name: "Toyota (Japan)"
+models:
+  H1ACEV:
+    name: "Toyota HiAce (Cargo Van)"
+  LNDCSR:
+    name: "Toyota Land Cruiser 70 (Pickup Truck)"
+  TAC0MA:
+    name: "Toyota Tacoma (Pickup Truck)"
+---
+wmi: 'HND'
+name: "Honda (Japan)"
+models:
+  ACTYKT:
+    name: "Honda Acty (Kei Truck)"
+  ACTYKV:
+    name: "Honda Acty Van (Kei Van)"
+---
+wmi: 'DA1'
+name: "Daihatsu (Japan)"
+models:
+  H1JETT:
+    name: "Daihatsu Hijet (Mini Truck)"
+  H1JETV:
+    name: "Daihatsu Hijet Van (Mini Van)"
+---
+wmi: 'SUB'
+name: "Subaru (Japan)"
+models:
+  SAMBAT:
+    name: "Subaru Sambar Truck (Kei Truck)"
+  SAMBAV:
+    name: "Subaru Sambar Van (Kei Van)"
+---
+wmi: 'MAZ'
+name: "Mazda (Japan)"
+models:
+  B0NG0T:
+    name: "Mazda Bongo (Mini Truck)"
+  SCRUMV:
+    name: "Mazda Scrum (Kei Van)"
+---
+wmi: '1VE'
+name: "Iveco (Italy)"
+models:
+  DA1LYV:
+    name: "Iveco Daily (Medium-duty Cargo Van)"
+  EURCG0:
+    name: "Iveco Eurocargo (Medium-duty Truck)"
+---
+wmi: 'M1T'
+name: "Mitsubishi (Japan)"
+models:
+  CANTER:
+    name: "Mitsubishi Canter (Light-duty Truck)"
+  M1N1CB:
+    name: "Mitsubishi Minicab (Kei Van)"
+---
+wmi: '1SU'
+name: "Isuzu (Japan)"
+models:
+  ELFTRK:
+    name: "Isuzu Elf (Light-duty Truck)"
+  DMAXPK:
+    name: "Isuzu D-Max (Pickup Truck)"
+---
+wmi: 'ZAS'
+name: "Zastava (Serbia)"
+models:
+  YUGO45:
+    name: "Zastava Yugo 45 (Compact Car, converted to light-duty cargo)"
+  ZSTAVA:
+    name: "Zastava 101 (Small Van for Cargo)"
+  ZKLEC0:
+    name: "Zastava Kleco (Light cargo vehicle)"

@@ -1,0 +1,22 @@
+<div class="page">
+  <mat-card class="card">
+    <mat-card-header>
+      <mat-card-title>Account Activation</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content class="content">
+      @if (status === 'loading') {
+        <mat-spinner diameter="40" />
+        <p>Activating your account…</p>
+      } @else if (status === 'success') {
+        <div class="icon success-icon">✓</div>
+        <p>{{ message }}</p>
+        <button mat-flat-button color="primary" routerLink="/signin">Sign in</button>
+      } @else {
+        <div class="icon error-icon">✕</div>
+        <p>{{ message }}</p>
+        <button mat-stroked-button routerLink="/signin">Back to sign in</button>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

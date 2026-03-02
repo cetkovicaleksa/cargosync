@@ -1,0 +1,14 @@
+{
+    "terminal.integrated.env.linux": {
+        "CARGOSYNC_ROOT": "${workspaceFolder}"
+    },
+    "terminal.integrated.env.windows": {
+        "CARGOSYNC_ROOT": "${workspaceFolder}"
+    },
+    "chat.tools.terminal.autoApprove": {
+        "npm run build": true,
+        "Push-Location": true,
+        "Pop-Location": true
+    },
+    "java.configuration.updateBuildConfiguration": "interactive"
+}

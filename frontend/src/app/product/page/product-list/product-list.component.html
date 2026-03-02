@@ -1,0 +1,127 @@
+<section class="page">
+  <header class="page-header">
+    <div class="title">
+      <h1>Products</h1>
+      <p>Search and view products.</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-button (click)="reload()">Refresh</button>
+      @if (canManage()) {
+        <button mat-flat-button color="primary" (click)="openCreate()">New product</button>
+      }
+    </div>
+  </header>
+
+  <section class="panel">
+    <section class="filters" aria-label="Product filters">
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Name</mat-label>
+        <input matInput [formControl]="form.controls.name" placeholder="" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Min price</mat-label>
+        <input matInput type="number" [formControl]="form.controls.minPrice" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Max price</mat-label>
+        <input matInput type="number" [formControl]="form.controls.maxPrice" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Category name</mat-label>
+        <input
+          matInput
+          [formControl]="form.controls.categoryName"
+          [matAutocomplete]="categoryListAuto"
+          placeholder=""
+        />
+      </mat-form-field>
+
+      <mat-autocomplete #categoryListAuto="matAutocomplete">
+        <mat-option *ngFor="let category of filteredCategoryOptions" [value]="category">
+          {{ category }}
+        </mat-option>
+      </mat-autocomplete>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>For sale</mat-label>
+        <mat-select [formControl]="form.controls.isForSale">
+          <mat-option [value]="null">All</mat-option>
+          <mat-option [value]="true">For sale</mat-option>
+          <mat-option [value]="false">Not for sale</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Sort</mat-label>
+        <mat-select [formControl]="form.controls.sort">
+          <mat-option value="name,asc">Name (A-Z)</mat-option>
+          <mat-option value="name,desc">Name (Z-A)</mat-option>
+          <mat-option value="price,asc">Price ascending</mat-option>
+          <mat-option value="price,desc">Price descending</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </section>
+
+    <section class="results">
+      <div class="table-wrap" *ngIf="items.length > 0">
+        <table class="table" aria-label="Products list">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Weight (kg)</th>
+              <th>Price</th>
+              <th>Factories</th>
+              <th>Status</th>
+              @if (canManage()) {
+                <th class="actions-col">Actions</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row" *ngFor="let p of items; trackBy: trackById">
+              <td class="image-col">
+                @if (p.imageUrl) {
+                  <app-protected-image class="thumb" [src]="p.imageUrl" [alt]="p.name" (click)="openImagePreview(p.imageUrl)" />
+                } @else {
+                  <span class="no-image">-</span>
+                }
+              </td>
+              <td class="name-cell">
+                <span class="name">{{ p.name }}</span>
+              </td>
+              <td class="muted">{{ p.categoryName }}</td>
+              <td>{{ p.weight }}</td>
+              <td class="price">{{ p.price | number:'1.2-2' }}</td>
+              <td>{{ p.factoryIds.length || 0 }}</td>
+              <td>
+                <span class="badge" [class.off]="!p.isForSale">{{ p.isForSale ? 'For sale' : 'Not for sale' }}</span>
+              </td>
+              @if (canManage()) {
+                <td class="actions actions-col">
+                  <button mat-stroked-button (click)="openEdit(p)">Edit</button>
+                  <button mat-stroked-button color="warn" (click)="delete(p)">Delete</button>
+                </td>
+              }
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer" *ngIf="!loading && !last">
+        <button mat-button (click)="loadMore()" [disabled]="loadingMore">
+          {{ loadingMore ? 'Loading…' : 'Load more' }}
+        </button>
+      </div>
+
+      <div class="empty" *ngIf="!loading && items.length === 0">
+        No products found.
+      </div>
+    </section>
+  </section>
+</section>

@@ -1,0 +1,99 @@
+:host {
+  display: block;
+}
+
+.content {
+  padding-top: 8px;
+  max-height: calc(92vh - 170px);
+  overflow: auto;
+}
+
+.spacer {
+  width: 10px;
+}
+
+.form {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.form mat-form-field {
+  width: 100%;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.file-upload {
+  display: grid;
+  gap: 6px;
+  align-content: center;
+}
+
+.file-field {
+  width: 100%;
+}
+
+.file-label {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.file-name {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.factory-picker {
+  display: grid;
+  gap: 8px;
+}
+
+.selected {
+  display: grid;
+  gap: 6px;
+}
+
+.selected-title {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.results {
+  display: grid;
+  gap: 8px;
+}
+
+.factory-result {
+  justify-content: space-between;
+  text-align: left;
+  width: 100%;
+}
+
+.factory-name {
+  font-weight: 600;
+}
+
+.factory-meta {
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.results-footer {
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 720px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

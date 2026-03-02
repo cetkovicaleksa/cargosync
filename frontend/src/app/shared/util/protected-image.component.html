@@ -1,0 +1,19 @@
+<ng-container *ngIf="!loading; else loadingTpl">
+  <img
+    *ngIf="!error"
+    [src]="imageUrl"
+    [alt]="alt"
+    style="display:block; width:100%; height:100%; object-fit:cover;" />
+
+  <img
+    *ngIf="error"
+    [src]="fallback"
+    [alt]="alt"
+    style="display:block; width:100%; height:100%; object-fit:cover;" />
+</ng-container>
+
+<ng-template #loadingTpl>
+  <div class="image-loading">
+    Loading...
+  </div>
+</ng-template>

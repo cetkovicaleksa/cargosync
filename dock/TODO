@@ -1,0 +1,4 @@
+Maybe we could add initial data on influx/postgre container startup, to replace spring data seeders. 
+
+Add compose for production with swarm. First deploy images to gitlab registry of the repo. 
+Should recheck core and frontend dockerfiles. 

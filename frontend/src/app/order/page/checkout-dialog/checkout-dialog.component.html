@@ -1,0 +1,50 @@
+<h2 mat-dialog-title>Place Order</h2>
+
+<mat-dialog-content>
+  <div class="items">
+    <div class="item" *ngFor="let i of items">
+      <span class="item-name">{{ i.product.name }}</span>
+      <span class="item-meta">{{ i.quantity }} × €{{ i.product.price | number:'1.2-2' }}</span>
+      <span class="item-total">€{{ (i.quantity * i.product.price) | number:'1.2-2' }}</span>
+    </div>
+    <div class="total-row">
+      <span>Total</span>
+      <span class="total-amount">€{{ total | number:'1.2-2' }}</span>
+    </div>
+  </div>
+
+  <form [formGroup]="form" class="form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Company</mat-label>
+      <mat-select formControlName="companyId">
+        @if (loadingCompanies) {
+          <mat-option disabled>Loading…</mat-option>
+        } @else if (companies.length === 0) {
+          <mat-option disabled>No companies found</mat-option>
+        } @else {
+          <mat-option *ngFor="let c of companies" [value]="c.id">
+            {{ c.name }} — {{ c.address }}
+          </mat-option>
+        }
+      </mat-select>
+      @if (companies.length === 0 && !loadingCompanies) {
+        <mat-hint>You have no registered companies.</mat-hint>
+      }
+      @if (form.controls.companyId.hasError('required')) {
+        <mat-error>Please select a company</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="submitting">Cancel</button>
+  <button mat-flat-button (click)="submit()"
+          [disabled]="form.invalid || submitting || loadingCompanies || companies.length === 0">
+    @if (submitting) {
+      <mat-spinner diameter="18" />
+    } @else {
+      Confirm Order
+    }
+  </button>
+</mat-dialog-actions>

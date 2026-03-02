@@ -1,0 +1,100 @@
+<section class="page">
+  <header class="page-header">
+    <div class="title">
+      <h1>Warehouses</h1>
+      <p>Manage storage facilities and sectors.</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-button (click)="reload()">Refresh</button>
+      @if (canManage()) {
+        <button mat-flat-button color="primary" (click)="openCreate()">New warehouse</button>
+      }
+    </div>
+  </header>
+
+  <section class="panel">
+    <section class="filters" aria-label="Warehouse filters">
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Name</mat-label>
+        <input matInput [formControl]="form.controls.name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Country</mat-label>
+        <mat-select [formControl]="form.controls.countryCode">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let c of countries" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>City</mat-label>
+        <mat-select [formControl]="form.controls.cityCode">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let c of cities" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Status</mat-label>
+        <mat-select [formControl]="form.controls.online">
+          <mat-option [value]="null">All</mat-option>
+          <mat-option [value]="true">Online</mat-option>
+          <mat-option [value]="false">Offline</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </section>
+
+    <section class="results">
+      <div class="table-wrap" *ngIf="items.length > 0">
+        <table class="table" aria-label="Warehouses list">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Address</th>
+              <th>Sectors</th>
+              <th>Status</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row" *ngFor="let w of items; trackBy: trackById">
+              <td class="name-cell">
+                <span class="name">{{ w.name }}</span>
+              </td>
+              <td class="muted">{{ w.address }}</td>
+              <td>{{ w.sectors.length }}</td>
+              <td>
+                <span class="badge" [class.online]="w.online" [class.off]="!w.online">
+                  {{ w.online ? 'Online' : 'Offline' }}
+                </span>
+              </td>
+              <td class="actions actions-col">
+                <button mat-stroked-button color="primary" (click)="goToDetail(w)">Details</button>
+                @if (canManage()) {
+                  <button mat-stroked-button (click)="openEdit(w)">Edit</button>
+                  <button mat-stroked-button color="warn" (click)="delete(w)">Delete</button>
+                }
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer" *ngIf="!loading && !last && items.length > 0">
+        <button mat-button (click)="loadMore()" [disabled]="loadingMore">
+          {{ loadingMore ? 'Loading…' : 'Load more' }}
+        </button>
+      </div>
+
+      <div class="empty" *ngIf="!loading && items.length === 0">
+        No warehouses found.
+      </div>
+
+      <div class="loading-hint" *ngIf="loading">
+        Loading…
+      </div>
+    </section>
+  </section>
+</section>

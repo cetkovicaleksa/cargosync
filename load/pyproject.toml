@@ -1,0 +1,9 @@
+[project]
+name = "cargosync-load"
+version = "2026.1.0"
+description = "CargoSync load tests with LOCUST."
+requires-python = ">=3.12"
+readme = "README.md"
+dependencies = [
+    "locust>=2.43.1",
+]

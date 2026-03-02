@@ -1,0 +1,16 @@
+@use '@angular/material' as mat;
+@use "styles/theme" as theme;
+@use "styles/colors" as colors;
+@import 'leaflet/dist/leaflet.css';
+
+body {
+  margin: 0;
+  padding: 0;
+  background: mat.get-theme-color(theme.$my-theme, surface);
+  background-color: colors.$surface;
+  color: mat.get-theme-color(theme.$my-theme, on-surface);
+  font-family: Inter, "Helvetica Neue", sans-serif;
+
+  @include mat.all-component-themes(theme.$my-theme);
+  @include mat.color-variants-backwards-compatibility(theme.$my-theme);
+}
