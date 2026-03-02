@@ -11,6 +11,6 @@ import java.util.UUID;
 
 public interface WarehouseRepository extends JpaRepository<Warehouse, UUID>, JpaSpecificationExecutor<Warehouse> {
 
-    @Query("SELECT w FROM Warehouse w LEFT JOIN FETCH w.sectors WHERE w.id = :id")
+    @Query("SELECT w FROM Warehouse w LEFT JOIN FETCH w.sectors LEFT JOIN FETCH w.city c LEFT JOIN FETCH c.country WHERE w.id = :id")
     Optional<Warehouse> findByIdWithSectors(@Param("id") UUID id);
 }

@@ -28,7 +28,7 @@ public class WarehouseService {
     List<String> saveWarehouseImages(Warehouse warehouse, List<MultipartFile> images) {
         return images.stream()
                 .map(img -> {
-                    String path = "images/warehouses/" + warehouse.getId() + "-" + img.getOriginalFilename();
+                    String path = "warehouses/" + warehouse.getId() + "-" + img.getOriginalFilename();
                     content.save(path, img);
                     return path;
                 })
