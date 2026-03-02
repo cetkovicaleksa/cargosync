@@ -44,6 +44,14 @@ public class RedisConfig {
     public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(RedisCacheConfiguration cacheConfiguration) {
         return builder -> builder
                 .withCacheConfiguration("productAnalytics",
-                        cacheConfiguration.entryTtl(Duration.ofMinutes(5)));
+                        cacheConfiguration.entryTtl(Duration.ofMinutes(5)))
+                .withCacheConfiguration("catalogue",
+                        cacheConfiguration.entryTtl(Duration.ofMinutes(5)))
+                .withCacheConfiguration("temperatureChart",
+                        cacheConfiguration.entryTtl(Duration.ofMinutes(5)))
+                .withCacheConfiguration("warehouseList",
+                        cacheConfiguration.entryTtl(Duration.ofSeconds(30)))
+                .withCacheConfiguration("warehouseDetail",
+                        cacheConfiguration.entryTtl(Duration.ofSeconds(30)));
     }
 }
