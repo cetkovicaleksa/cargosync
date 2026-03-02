@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -9,12 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryAvailabilitySeriesDto;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryDto;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryLookupDto;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryProductionSeriesDto;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactorySearchFilter;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.SaveFactoryRequest;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.service.FactoryAnalyticsService;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.service.FactoryService;
@@ -46,6 +42,7 @@ public class FactoryController {
     private final CityRepository cityRepository;
     private final ProductService productService;
 
+    @Operation(summary = "Create factory", description = "Creates a new factory with optional images. Requires MANAGER role.")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
     @ResponseStatus(HttpStatus.CREATED)
@@ -53,9 +50,10 @@ public class FactoryController {
             @RequestPart("data") @Valid SaveFactoryRequest request,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
-        return mapToDto(factoryService.createFactory(request, images));
+        return factoryService.createFactory(request, images);
     }
 
+    @Operation(summary = "Update factory", description = "Updates an existing factory with optional images. Requires MANAGER role.")
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")
     public FactoryDto updateFactory(
@@ -63,45 +61,52 @@ public class FactoryController {
             @RequestPart("data") @Valid SaveFactoryRequest request,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
-        return mapToDto(factoryService.updateFactory(id, request, images));
+        return factoryService.updateFactory(id, request, images);
     }
 
+    @Operation(summary = "Search factories", description = "Searches for factories based on filter criteria. Requires MANAGER role.")
     @GetMapping
     @PreAuthorize("hasRole('MANAGER')")
     public Page<FactoryDto> searchFactories(FactorySearchFilter filter, Pageable pageable) {
-        return factoryService.searchFactories(filter, pageable).map(this::mapToDto);
+        return factoryService.searchFactories(filter, pageable).map(f -> FactoryMapper.mapToDto(f, cityRepository));
     }
 
+    @Operation(summary = "Search factories (lookup)", description = "Searches for factories based on filter criteria. Requires MANAGER role.")
     @GetMapping("/lookup")
     @PreAuthorize("hasRole('MANAGER')")
     public Page<FactoryLookupDto> searchFactoriesLookup(FactorySearchFilter filter, Pageable pageable) {
-        return factoryService.searchFactories(filter, pageable).map(this::mapToLookupDto);
+        return factoryService.searchFactories(filter, pageable).map(f -> FactoryMapper.mapToLookupDto(f, cityRepository));
     }
 
+    @Operation(summary = "Get factories by ids", description = "Retrieves a list of factories by their IDs. Requires MANAGER role.")
     @GetMapping("/by-ids")
     @PreAuthorize("hasRole('MANAGER')")
     public List<FactoryDto> getFactoriesByIds(@RequestParam List<UUID> ids) {
-        return factoryService.getFactoriesByIds(ids).stream().map(this::mapToDto).toList();
+        return factoryService.getFactoriesByIds(ids).stream().map(f -> FactoryMapper.mapToDto(f, cityRepository)).toList();
     }
 
+    @Operation(summary = "Get factories by ids (lookup)", description = "Retrieves a list of factories by their IDs. Requires MANAGER role.")
     @GetMapping("/by-ids/lookup")
     @PreAuthorize("hasRole('MANAGER')")
     public List<FactoryLookupDto> getFactoriesByIdsLookup(@RequestParam List<UUID> ids) {
-        return factoryService.getFactoriesByIds(ids).stream().map(this::mapToLookupDto).toList();
+        return factoryService.getFactoriesByIds(ids).stream().map(f -> FactoryMapper.mapToLookupDto(f, cityRepository)).toList();
     }
 
+    @Operation(summary = "Get factory by id", description = "Retrieves a factory by its ID. Requires MANAGER role.")
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER')")
     public FactoryDto getFactoryById(@PathVariable UUID id) {
-        return mapToDto(factoryService.getFactoryById(id));
+        return factoryService.getFactoryById(id);
     }
 
+    @Operation(summary = "Get factory products", description = "Retrieves a list of products for a factory. Requires MANAGER role.")
     @GetMapping("/{id}/products")
     @PreAuthorize("hasRole('MANAGER')")
     public List<ProductSummaryDto> getFactoryProducts(@PathVariable UUID id) {
         return productService.getProductsByFactoryId(id);
     }
 
+    @Operation(summary = "Get factory product production", description = "Retrieves production information for a factory product. Requires MANAGER role.")
     @GetMapping("/{id}/products/{productId}/production")
     @PreAuthorize("hasRole('MANAGER')")
     public FactoryProductionSeriesDto getFactoryProductProduction(
@@ -118,6 +123,17 @@ public class FactoryController {
         );
     }
 
+    @Operation(summary = "Get factory product inventory", description = "Retrieves inventory information for a factory product. Requires MANAGER role.")
+    @GetMapping("/{id}/production/{productId}/inventory")
+    @PreAuthorize("hasRole('MANAGER')")
+    public FactoryInventoryDto getFactoryProductInventory(
+            @PathVariable UUID id,
+            @PathVariable UUID productId
+    ) {
+        return factoryService.getFactoryProductInventory(id, productId);
+    }
+
+    @Operation(summary = "Get factory availability", description = "Retrieves availability information for a factory. Requires MANAGER role.")
     @GetMapping("/{id}/availability")
     @PreAuthorize("hasRole('MANAGER')")
     public FactoryAvailabilitySeriesDto getFactoryAvailability(
@@ -130,6 +146,13 @@ public class FactoryController {
                 parseToInstant(from, false),
                 parseToInstant(to, true)
         );
+    }
+
+    @Operation(summary = "Get factory status", description = "Retrieves current status of a factory. Requires MANAGER role.")
+    @GetMapping("/{id}/status")
+    @PreAuthorize("hasRole('MANAGER')")
+    public FactoryStatusDto getFactoryStatus(@PathVariable UUID id) {
+        return factoryService.getFactoryStatus(id);
     }
 
     private Instant parseToInstant(String value, boolean endOfDayForDateOnly) {
@@ -159,41 +182,5 @@ public class FactoryController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFactory(@PathVariable UUID id) {
         factoryService.deleteFactory(id);
-    }
-
-    private FactoryDto mapToDto(Factory factory) {
-        City city = cityRepository.findByCountryCodeAndCode(factory.getCountryCode(), factory.getCityCode())
-                .orElseThrow(() -> new IllegalStateException("City missing"));
-        GeoLocationDto geoDto = new GeoLocationDto();
-        geoDto.setLatitude(factory.getLocation().getLatitude());
-        geoDto.setLongitude(factory.getLocation().getLongitude());
-
-        return new FactoryDto(
-                factory.getId(),
-                factory.getName(),
-                geoDto,
-                factory.getStreet(),
-                city.getCode(),
-                city.getName(),
-                city.getCountry().getCode(),
-                city.getCountry().getName(),
-                factory.getImageUrls(),
-                factory.getVersion()
-        );
-    }
-
-
-    private FactoryLookupDto mapToLookupDto(Factory factory) {
-        City city = cityRepository.findByCountryCodeAndCode(factory.getCountryCode(), factory.getCityCode())
-                .orElseThrow(() -> new IllegalStateException("City missing"));
-
-        return new FactoryLookupDto(
-                factory.getId(),
-                factory.getName(),
-                factory.getStreet(),
-                city.getName(),
-                city.getCountry().getName(),
-                city.getCountry().getCode()
-        );
     }
 }

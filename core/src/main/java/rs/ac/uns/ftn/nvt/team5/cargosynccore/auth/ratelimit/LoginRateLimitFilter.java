@@ -9,6 +9,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,9 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
     private static final String LOGIN_PATH = "/auth/login";
     private static final String LOGIN_METHOD = "POST";
 
+    @Value("${app.login-rate-limit:10}")
+    private int loginRateLimit;
+
     private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -40,7 +44,7 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
         }
 
         String ip = resolveClientIp(request);
-        Bucket bucket = buckets.computeIfAbsent(ip, k -> newBucket());
+        Bucket bucket = buckets.computeIfAbsent(ip, k -> newBucket(loginRateLimit));
 
         if (bucket.tryConsume(1)) {
             filterChain.doFilter(request, response);
@@ -54,8 +58,8 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
         }
     }
 
-    private static Bucket newBucket() {
-        Bandwidth limit = Bandwidth.classic(10, Refill.intervally(10, Duration.ofMinutes(1)));
+    private static Bucket newBucket(int requestsPerMinute) {
+        Bandwidth limit = Bandwidth.classic(requestsPerMinute, Refill.intervally(requestsPerMinute, Duration.ofMinutes(1)));
         return Bucket.builder().addLimit(limit).build();
     }
 

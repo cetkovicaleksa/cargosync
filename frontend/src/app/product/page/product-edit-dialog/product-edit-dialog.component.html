@@ -56,18 +56,10 @@
         {{ category }}
       </mat-option>
     </mat-autocomplete>
-
+    
+    <mat-slide-toggle formControlName="isForSale" color="primary">For sale</mat-slide-toggle>
+  
     <section class="factory-picker">
-      <div class="selected" *ngIf="selectedFactories.length > 0">
-        <div class="selected-title">Selected factories</div>
-        <mat-chip-set aria-label="Selected factories">
-          <mat-chip-row *ngFor="let sf of selectedFactories" removable="true" (removed)="removeFactory(sf.id)">
-            {{ sf.name }}<span *ngIf="sf.cityName || sf.countryCode"> ({{ sf.cityName }}{{ sf.cityName && sf.countryCode ? ', ' : '' }}{{ sf.countryCode }})</span>
-            <button matChipRemove type="button" aria-label="Remove factory">x</button>
-          </mat-chip-row>
-        </mat-chip-set>
-      </div>
-
       <div class="results" *ngIf="factoryQuery.trim().length >= 2">
         <button
           type="button"
@@ -88,9 +80,18 @@
           </button>
         </div>
       </div>
+      
+      <div class="selected" *ngIf="selectedFactories.length > 0">
+        <div class="selected-title">Selected factories</div>
+        <mat-chip-set aria-label="Selected factories">
+          <mat-chip-row *ngFor="let sf of selectedFactories" removable="true" (removed)="removeFactory(sf.id)">
+            {{ sf.name }}<span *ngIf="sf.cityName || sf.countryCode"> ({{ sf.cityName }}{{ sf.cityName && sf.countryCode ? ', ' : '' }}{{ sf.countryCode }})</span>
+            <button matChipRemove type="button" aria-label="Remove factory">x</button>
+          </mat-chip-row>
+        </mat-chip-set>
+      </div>
     </section>
 
-    <mat-slide-toggle formControlName="isForSale" color="primary">For sale</mat-slide-toggle>
   </form>
 </div>
 

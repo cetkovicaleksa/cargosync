@@ -12,7 +12,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
-import { Subject, Subscription, debounceTime, distinctUntilChanged, finalize, takeUntil } from 'rxjs';
+import { Subject, Subscription, debounceTime, distinctUntilChanged, finalize, interval, takeUntil } from 'rxjs';
 
 import { FactoryService } from '../../service/factory.service';
 import { FactoryAnalyticsService } from '../../service/factory-analytics.service';
@@ -29,6 +29,8 @@ import { ImagePreviewDialogComponent } from '../../../shared/dialog/image-previe
 import { CountryService } from '../../../shared/service/country.service';
 import { FactoryLookupDto } from '../../dto/factory-lookup.dto';
 import { ProductSummaryDto } from '../../../product/dto/product-summary.dto';
+import { FactoryStatusDto } from '../../dto/factory-status.dto';
+import { FactoryInventoryDto } from '../../dto/factory-inventory.dto';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const REALTIME_EVENT_SECONDS = 5;
@@ -76,6 +78,7 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   private realtimeSub?: Subscription;
+  private liveTrackingSub?: Subscription;
 
   countries: CountryOptionDto[] = [];
   cities: CityOptionDto[] = [];
@@ -87,6 +90,9 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
   availabilitySeries: FactoryAvailabilitySeriesDto | null = null;
   realtimeActive = false;
 
+  factoryStatus: FactoryStatusDto | null = null;
+  selectedProductInventory: FactoryInventoryDto | null = null;
+
   selectedFactory: FactoryDto | null = null;
   selectedProduct: ProductSummaryDto | null = null;
 
@@ -94,6 +100,14 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
   loadingProducts = false;
   loadingProduction = false;
   loadingAvailability = false;
+  refreshingInventory = false;
+  loadingFactoryStatus = false;
+  refreshingFactoryStatus = false;
+  loadingInventory = false;
+  nowTs = Date.now();
+  liveTrackingEnabled = this.loadLiveTrackingPreference();
+
+  factorySearchCollapsed = false;
 
   productionChartMax = 1;
 
@@ -163,9 +177,16 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
     this.applyAvailabilityPreset('24h');
     this.loadFactories();
 
+    interval(1000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.nowTs = Date.now();
+      });
+
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const factoryId = params.get('factoryId');
       if (!factoryId) return;
+      this.factorySearchCollapsed = true;
       this.selectFactory(factoryId);
     });
   }
@@ -233,13 +254,18 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
 
   chooseFactory(factory: FactoryDto) {
     this.selectedFactory = factory;
+    this.factorySearchCollapsed = true;
     this.selectedProduct = null;
     this.products = [];
     this.productionSeries = null;
     this.availabilitySeries = null;
+    this.factoryStatus = null;
+    this.selectedProductInventory = null;
     this.stopRealtime();
     this.loadProductsForFactory(factory.id);
     this.loadFactoryAvailability();
+    this.loadFactoryStatus(factory.id, true);
+    this.refreshLiveTrackingSubscription();
   }
 
   openFactoryImage(imageUrl: string) {
@@ -272,7 +298,95 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
 
   chooseProduct(product: ProductSummaryDto) {
     this.selectedProduct = product;
+    this.selectedProductInventory = null;
     this.loadProductionSeries();
+    this.loadSelectedProductInventory();
+    this.refreshLiveTrackingSubscription();
+  }
+
+  toggleLiveTracking() {
+    this.liveTrackingEnabled = !this.liveTrackingEnabled;
+    this.saveLiveTrackingPreference(this.liveTrackingEnabled);
+
+    if (!this.liveTrackingEnabled) {
+      this.stopLiveTracking();
+      return;
+    }
+
+    if (!this.selectedFactory) {
+      this.snack.open('Select a factory to enable live tracking.', 'Close', { duration: 2600 });
+      return;
+    }
+
+    this.refreshLiveTrackingSubscription();
+  }
+
+  private refreshLiveTrackingSubscription() {
+    this.stopLiveTracking();
+    if (!this.liveTrackingEnabled || !this.selectedFactory) return;
+
+    this.liveTrackingSub = interval(5000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (!this.selectedFactory) return;
+        this.loadFactoryStatus(this.selectedFactory.id, true);
+        if (this.selectedProduct) {
+          this.loadSelectedProductInventory(true);
+        }
+      });
+  }
+
+  private stopLiveTracking() {
+    this.liveTrackingSub?.unsubscribe();
+    this.liveTrackingSub = undefined;
+  }
+
+  private loadFactoryStatus(factoryId: string, refresh: boolean) {
+    if (refresh) {
+      this.refreshingFactoryStatus = true;
+    } else {
+      this.loadingFactoryStatus = true;
+    }
+    this.factories
+      .getStatus(factoryId)
+      .pipe(finalize(() => {
+        this.loadingFactoryStatus = false;
+        this.refreshingFactoryStatus = false;
+      }))
+      .subscribe({
+        next: (status) => {
+          this.factoryStatus = status;
+        },
+        error: () => {
+          this.factoryStatus = null;
+          this.snack.open('Failed to load factory status.', 'Close', { duration: 3000 });
+        },
+      });
+  }
+
+  private loadSelectedProductInventory(refresh: boolean = false) {
+    if (!this.selectedFactory || !this.selectedProduct) return;
+
+    if (refresh) {
+      this.refreshingInventory = true;
+    } else {
+      this.loadingInventory = true;
+    }
+    this.factories
+      .getProductInventory(this.selectedFactory.id, this.selectedProduct.id)
+      .pipe(finalize(() => {
+        this.loadingInventory = false;
+        this.refreshingInventory = false;
+      }))
+      .subscribe({
+        next: (inventory) => {
+          this.selectedProductInventory = inventory;
+        },
+        error: () => {
+          this.selectedProductInventory = null;
+          this.snack.open('Failed to load selected product totals.', 'Close', { duration: 3000 });
+        },
+      });
   }
 
   private applyProductionPreset(preset: ProductionPeriodPreset) {
@@ -439,6 +553,11 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
   }
 
   get canUseRealtime(): boolean {
+    const preset = this.availabilityPeriodForm.controls.preset.value;
+    if (preset !== '1h' && preset !== '3h') {
+      return false;
+    }
+
     const range = this.getAvailabilityRange();
     if (!range) return false;
 
@@ -493,12 +612,14 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
     const bucketEnd = new Date(bucketStart);
     bucketEnd.setHours(bucketEnd.getHours() + 1);
 
-    const key = bucketStart.toISOString();
-    let point = this.availabilitySeries.points.find((entry) => entry.periodStart === key);
+    const bucketStartTs = bucketStart.getTime();
+    let point = this.availabilitySeries.points.find(
+      (entry) => new Date(entry.periodStart).getTime() === bucketStartTs,
+    );
 
     if (!point) {
       point = {
-        periodStart: key,
+        periodStart: bucketStart.toISOString(),
         periodEnd: bucketEnd.toISOString(),
         onlineSeconds: 0,
         offlineSeconds: 0,
@@ -696,7 +817,44 @@ export class FactoryOverviewComponent implements OnInit, OnDestroy {
     return `${hours}h ${minutes}m`;
   }
 
+  formatTimeAgo(iso: string | null | undefined): string {
+    if (!iso) return 'updated recently';
+
+    const timestamp = this.parseBackendUtcTimestamp(iso);
+    if (Number.isNaN(timestamp)) return 'updated recently';
+
+    const diffSeconds = Math.max(0, Math.floor((this.nowTs - timestamp) / 1000));
+
+    if (diffSeconds < 60) return `updated ${diffSeconds}s ago`;
+
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    if (diffMinutes < 60) return `updated ${diffMinutes}m ago`;
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `updated ${diffHours}h ago`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    return `updated ${diffDays}d ago`;
+  }
+
+  private parseBackendUtcTimestamp(value: string): number {
+    const hasExplicitZone = /(?:Z|[+\-]\d{2}:\d{2})$/i.test(value);
+    const normalized = hasExplicitZone ? value : `${value}Z`;
+    return new Date(normalized).getTime();
+  }
+
+  private loadLiveTrackingPreference(): boolean {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('factory.liveTrackingEnabled') === 'true';
+  }
+
+  private saveLiveTrackingPreference(value: boolean) {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('factory.liveTrackingEnabled', String(value));
+  }
+
   ngOnDestroy(): void {
+    this.stopLiveTracking();
     this.stopRealtime();
     this.destroy$.next();
     this.destroy$.complete();

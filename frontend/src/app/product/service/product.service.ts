@@ -6,6 +6,8 @@ import { PageDto } from '../../shared/dto/page.dto';
 import { ProductDto } from '../dto/product.dto';
 import { ProductSearchFilterDto } from '../dto/product-search-filter.dto';
 import { SaveProductRequestDto } from '../dto/save-product-request.dto';
+import { FactoryDto } from '../../factory/dto/factory.dto';
+import { FactoryLookupDto } from '../../factory/dto/factory-lookup.dto';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -65,5 +67,12 @@ export class ProductService {
     if (filter.maxPrice != null) params = params.set('maxPrice', filter.maxPrice);
 
     return this.http.get<PageDto<ProductDto>>(`${this.apiUrl}/catalogue`, { params });
+  }
+
+  getFactories(id: string): Observable<FactoryDto[]> {
+    return this.http.get<FactoryDto[]>(`${this.apiUrl}/${encodeURIComponent(id)}/factories`);
+  }
+  getFactoriesLookup(id: string): Observable<FactoryLookupDto[]> {
+    return this.http.get<FactoryLookupDto[]>(`${this.apiUrl}/${encodeURIComponent(id)}/factories/lookup`);
   }
 }

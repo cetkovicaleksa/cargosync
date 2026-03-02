@@ -18,7 +18,14 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "factories")
+@Table(
+    name = "factories",
+    indexes = {
+        @Index(name = "idx_factories_name", columnList = "name"),
+        @Index(name = "idx_factories_country_city", columnList = "country_code,city_code"),
+        @Index(name = "idx_factories_country_code", columnList = "country_code"),
+    }
+)
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Factory extends AbstractPersistable implements Serializable {
 

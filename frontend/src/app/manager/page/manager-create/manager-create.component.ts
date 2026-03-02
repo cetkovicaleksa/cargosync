@@ -8,8 +8,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 
 import { ManagerService } from '../../service/manager.service';
+import { SavePasswordComponent } from '../save-password/save-password.component';
 
 type ManagerCreateData = { mode: 'create' };
 
@@ -34,6 +36,7 @@ export class ManagerCreateComponent {
   private readonly managers = inject(ManagerService);
   private readonly router = inject(Router);
   private readonly snack = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
   readonly dialogRef = inject(MatDialogRef<ManagerCreateComponent>, { optional: true });
   readonly dialogData = inject<ManagerCreateData | null>(MAT_DIALOG_DATA, { optional: true });
 
@@ -71,15 +74,21 @@ export class ManagerCreateComponent {
     this.managers.createManager({ email, username }, this.avatarFile)
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
-        next: () => {
+        next: (tempPassword) => {
           this.snack.open('Manager created successfully.', 'Close', { duration: 3000 });
           if (this.dialogRef) {
-            this.dialogRef.close(true);
+            this.dialogRef.close(tempPassword.temporaryPassword);
             return;
           }
           this.router.navigate(['/managers']);
         },
-        error: () => this.snack.open('Failed to create manager.', 'Close', { duration: 3500 }),
+        error: (e) => {
+          if (e.error?.message) {
+            this.snack.open(`Failed to create manager: ${e.error.message}`, 'Close', { duration: 3500 });
+          } else {
+            this.snack.open('Failed to create manager.', 'Close', { duration: 3500 });
+          }
+        }
       });
   }
 }

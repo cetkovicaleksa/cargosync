@@ -1,7 +1,11 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.product.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
@@ -29,6 +33,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.ProductCategoryRe
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseInventoryRepository;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -146,28 +151,71 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Page<Product> searchProducts(ProductSearchFilter filter, Pageable pageable) {
-        Specification<Product> spec = (root, query, cb) -> cb.isTrue(cb.literal(true));
+        Specification<Product> spec = (root, query, cb) -> {
 
-        if (filter.name() != null && !filter.name().isBlank()) {
-            spec = spec.and((root, query, cb) ->
-                    cb.like(cb.lower(root.get("name")), "%" + filter.name().toLowerCase() + "%"));
-        }
-        if (filter.categoryName() != null && !filter.categoryName().isBlank()) {
-            spec = spec.and((root, query, cb) ->
-                    cb.like(cb.lower(root.get("category").get("name")), "%" + filter.categoryName().toLowerCase() + "%"));
-        }
-        if (filter.minPrice() != null) {
-            spec = spec.and((root, query, cb) ->
-                    cb.greaterThanOrEqualTo(root.get("price"), filter.minPrice()));
-        }
-        if (filter.maxPrice() != null) {
-            spec = spec.and((root, query, cb) ->
-                    cb.lessThanOrEqualTo(root.get("price"), filter.maxPrice()));
-        }
-        if (filter.isForSale() != null) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("isForSale"), filter.isForSale()));
-        }
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (filter.name() != null && !filter.name().isBlank()) {
+                String lowerName = filter.name().toLowerCase();
+                predicates.add(
+                    cb.like(cb.lower(root.get("name")), "%" + lowerName + "%")
+                );
+            }
+
+            if (filter.categoryName() != null && !filter.categoryName().isBlank()) {
+                predicates.add(
+                    cb.like(cb.lower(root.get("category").get("name")),
+                            "%" + filter.categoryName().toLowerCase() + "%")
+                );
+            }
+
+            if (filter.minPrice() != null) {
+                predicates.add(
+                    cb.greaterThanOrEqualTo(root.get("price"), filter.minPrice())
+                );
+            }
+
+            if (filter.maxPrice() != null) {
+                predicates.add(
+                    cb.lessThanOrEqualTo(root.get("price"), filter.maxPrice())
+                );
+            }
+
+            if (filter.isForSale() != null) {
+                predicates.add(
+                    cb.equal(root.get("isForSale"), filter.isForSale())
+                );
+            }
+
+            List<Order> orders = new ArrayList<>();
+
+            if (filter.name() != null && !filter.name().isBlank()) {
+
+                String lowerName = filter.name().toLowerCase();
+                Expression<String> nameLower = cb.lower(root.get("name"));
+
+                Expression<Object> priority = cb.selectCase()
+                        .when(cb.equal(nameLower, lowerName), 0)
+                        .when(cb.like(nameLower, lowerName + "%"), 1)
+                        .otherwise(2);
+
+                orders.add(cb.asc(priority));
+            }
+
+
+            pageable.getSort().forEach(sortOrder -> {
+                Path<Object> path = root.get(sortOrder.getProperty());
+                orders.add(sortOrder.isAscending()
+                        ? cb.asc(path)
+                        : cb.desc(path));
+            });
+
+            if (!orders.isEmpty()) {
+                query.orderBy(orders);
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
 
         return productRepository.findAll(spec, pageable);
     }
@@ -232,6 +280,13 @@ public class ProductService {
         return productRepository.findAll(spec).stream()
                 .map(this::mapToSummaryDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Factory> getProductFactories(UUID id) {
+        Product product = productRepository.findById(id).orElse(null);
+        if (product == null) return List.of();
+        return product.getFactories().stream().toList();
     }
 
     @Caching(evict = {

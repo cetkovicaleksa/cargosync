@@ -1,6 +1,8 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.manager.service;
 
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,40 +48,44 @@ public class ManagerService {
     private String managerPasswordFile;
 
     @Transactional
-    public Account createManager(CreateManagerRequest request, MultipartFile avatar) {
+    public String createManager(CreateManagerRequest request, MultipartFile avatar) {
         return createManger(request.email(), request.username(), avatar);
     }
 
     @Transactional
-    public Account createManger(String email, String username, MultipartFile avatarFile) {
+    public String createManger(String email, String username, MultipartFile avatarFile) {
         if (accountRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
+        }
+        if (accountRepository.findByEmail(email).isPresent()) {
+            throw new IllegalArgumentException("Email already exists");
         }
 
         validateAvatar(avatarFile);
         String avatar = saveAvatar(avatarFile);
 
-        return createManagerAccount(email, username, avatar);
+        return createManagerAccount(email, username, avatar, false);
     }
 
     @Transactional
-    public Account createManger(String email, String username, String avatarClasspathPath) {
+    public String createManger(String email, String username, String avatarClasspathPath, boolean superManager) {
         if (accountRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
 
         String avatar = saveAvatarFromClasspath(avatarClasspathPath);
 
-        return createManagerAccount(email, username, avatar);
+        return createManagerAccount(email, username, avatar, superManager);
     }
 
-    private Account createManagerAccount(String email, String username, String avatar) {
+    private String createManagerAccount(String email, String username, String avatar, boolean superManager) {
 
         Manager manager = new Manager(email, avatar);
 
         String rawPassword = generateRandomPassword();
 
-        logPasswordToFile(email, username, rawPassword);
+        if (superManager)
+            logPasswordToFile(email, username, rawPassword);
 
         Account account = new Account();
         account.setUsername(username);
@@ -90,7 +96,11 @@ public class ManagerService {
         account.setAccountNonLocked(true);
         account.setCredentialsNonExpired(false);
 
-        return accountRepository.save(account);
+        accountRepository.save(account);
+        if (superManager)
+            return "";
+        else
+            return rawPassword;
     }
 
     @Transactional
@@ -114,12 +124,28 @@ public class ManagerService {
                 return rolePredicate;
             }
 
-            String likePattern = "%" + query.toLowerCase() + "%";
-            var usernamePredicate = cb.like(cb.lower(root.get("username")), likePattern);
-            Join<Account, User> userJoin = root.join("owner");
-            var emailPredicate = cb.like(cb.lower(userJoin.get("email")), likePattern);
+            String lowerQuery = query.toLowerCase();
+            String likePattern = "%" + lowerQuery + "%";
 
-            return cb.and(rolePredicate, cb.or(usernamePredicate, emailPredicate));
+            Join<Account, User> userJoin = root.join("owner");
+            
+            var usernameLower = cb.lower(root.get("username"));
+            var emailLower = cb.lower(userJoin.get("email"));
+
+            var usernamePredicate = cb.like(usernameLower, likePattern);
+            var emailPredicate = cb.like(emailLower, likePattern);
+
+            Predicate filter = cb.and(rolePredicate, cb.or(usernamePredicate, emailPredicate));
+            
+            Expression<Object> priority = cb.selectCase()
+                .when(cb.equal(usernameLower, lowerQuery), 0)
+                .when(cb.equal(emailLower, lowerQuery), 0)
+                .when(cb.like(usernameLower, lowerQuery + "%"), 1)
+                .when(cb.like(emailLower, lowerQuery + "%"), 1)
+                .otherwise(2);
+            q.orderBy(cb.asc(priority), cb.asc(usernameLower));
+
+            return filter;
         };
 
         return accountRepository.findAll(spec, pageable);

@@ -19,7 +19,15 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "products")
+@Table(
+    name = "products",
+    indexes = {
+        @Index(name = "idx_products_name", columnList = "name"),
+        @Index(name = "idx_products_category_id", columnList = "category_id"),
+        @Index(name = "idx_products_price", columnList = "price"),
+        @Index(name = "idx_products_is_for_sale_price", columnList = "is_for_sale,price")
+    }
+)
 public class Product extends AbstractPersistable implements Serializable {
 
     @NotBlank
@@ -55,7 +63,11 @@ public class Product extends AbstractPersistable implements Serializable {
     @JoinTable(
             name = "product_factories",
             joinColumns = @JoinColumn(name = "product_id"),
-            inverseJoinColumns = @JoinColumn(name = "factory_id")
+            inverseJoinColumns = @JoinColumn(name = "factory_id"),
+            indexes = {
+                @Index(name = "idx_product_factories_product_id", columnList = "product_id"),
+                @Index(name = "idx_product_factories_factory_id", columnList = "factory_id")
+            }
     )
     private Set<Factory> factories = new HashSet<>();
 }

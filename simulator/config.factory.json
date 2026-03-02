@@ -1,0 +1,33 @@
+{
+  "mode": "factory",
+  "factory_id": "006fdeee-ed51-5bc5-8287-60064323f3ae",
+  "rabbitmq_url": "amqp://admin:adminpass@localhost:5672/",
+  "heartbeat_interval": "30s",
+  "production_interval": "12s",
+  "products": [
+    {
+      "product_id": "02460199-ca90-5cb5-a3b0-ebf1d605f52c",
+      "product_name": "Peach Classic 4L",
+      "min_amount": 100,
+      "max_amount": 350
+    },
+    {
+      "product_id": "1ccd01be-7337-5021-afa2-c5528b078eae",
+      "product_name": "Peach Blast 3L",
+      "min_amount": 80,
+      "max_amount": 260
+    },
+    {
+      "product_id": "347eb305-2872-56a4-95dd-34753afbcc5f",
+      "product_name": "Water Cool 3L",
+      "min_amount": 120,
+      "max_amount": 420
+    },
+    {
+      "product_id": "36d6ea8d-75a6-5367-b7f2-f0dac63aff31",
+      "product_name": "Lemon Zero 3L",
+      "min_amount": 70,
+      "max_amount": 210
+    }
+  ]
+}

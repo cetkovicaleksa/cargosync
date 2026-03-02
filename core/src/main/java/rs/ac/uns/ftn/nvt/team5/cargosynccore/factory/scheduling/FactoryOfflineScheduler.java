@@ -22,7 +22,7 @@ public class FactoryOfflineScheduler {
     @Scheduled(fixedDelay = 30_000)
     public void markOfflineFactories() {
         LocalDateTime threshold = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(60);
-        var stale = statuses.findByOnlineTrueAndLastHeartbeatBefore(threshold);
+        var stale = statuses.findStaleOnlineFactories(threshold);
 
         for (var status : stale) {
             log.info("Marking factory {} offline (last heartbeat: {})",

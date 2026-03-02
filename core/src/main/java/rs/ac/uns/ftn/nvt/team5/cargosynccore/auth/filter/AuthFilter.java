@@ -47,6 +47,11 @@ public class AuthFilter extends OncePerRequestFilter {
             }
         }
 
+        if (token.isEmpty()) {
+            token = Optional.ofNullable(request.getParameter("token"))
+                    .filter(t -> !t.isBlank());
+        }
+
         token.filter(jwtUtil::isTokenValid)
                 .filter(t -> !tokenBlacklist.isBlacklisted(t))
                 .map(jwtUtil::extractUsername)

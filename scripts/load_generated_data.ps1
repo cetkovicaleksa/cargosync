@@ -326,6 +326,7 @@ $csvLoads = @(
     @{ table = "warehouses"; columns = "id,created_by,created_date,last_modified_by,last_modified_date,name,address,city_country_code,city_code,latitude,longitude,version"; file = "warehouses.csv" },
     @{ table = "warehouse_status"; columns = "id,warehouse_id,online,last_heartbeat,version"; file = "warehouse_status.csv" },
     @{ table = "warehouse_sectors"; columns = "id,warehouse_id,name,climate_zone,last_temperature,last_temperature_at"; file = "warehouse_sectors.csv" },
+    @{ table = "warehouse_inventory"; columns = "id,warehouse_id,product_id,quantity,version"; file = "warehouse_inventory.csv" },
     @{ table = "vans"; columns = "vi,wmi,vd,registration_number,max_payload_kg,revision"; file = "vans.csv" }
 )
 
@@ -382,6 +383,7 @@ TRUNCATE TABLE
   factory_statuses,
   warehouse_sectors,
   warehouse_status,
+  warehouse_inventory,
   companies,
   company_requests,
   factories,

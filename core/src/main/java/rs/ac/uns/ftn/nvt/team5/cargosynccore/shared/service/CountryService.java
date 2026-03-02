@@ -35,8 +35,7 @@ public class CountryService {
 
     @Cacheable(value = "cities", key = "#countryCode")
     public List<CityOptionDto> findAllCitiesByCountrySorted(String countryCode) {
-        Sort sort = Sort.by(Sort.Order.asc("name").ignoreCase());
-        return cityRepository.findAll(sort)
+        return cityRepository.findByCountryCodeOrderByNameAsc(countryCode)
                 .stream()
                 .map(c -> new CityOptionDto(c.getCode(), c.getName()))
                 .collect(Collectors.toList());

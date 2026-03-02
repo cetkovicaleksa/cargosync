@@ -4,6 +4,7 @@ import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 import { PageDto } from '../../shared/dto/page.dto';
 import { AccountDto } from '../../auth/dto/account.dto';
+import { TemporaryPasswordDto } from '../dto/temporary-password.dto';
 
 @Injectable({ providedIn: 'root' })
 export class ManagerService {
@@ -28,10 +29,10 @@ export class ManagerService {
     return this.http.put<void>(`${this.apiUrl}/${encodeURIComponent(username)}/toggle-block`, {});
   }
 
-  createManager(payload: { email: string; username: string }, avatar: File): Observable<AccountDto> {
+  createManager(payload: { email: string; username: string }, avatar: File): Observable<TemporaryPasswordDto> {
     const formData = new FormData();
     formData.append('data', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
     formData.append('avatar', avatar);
-    return this.http.post<AccountDto>(this.apiUrl, formData);
+    return this.http.post<TemporaryPasswordDto>(this.apiUrl, formData);
   }
 }

@@ -27,8 +27,6 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final ManagerService managerService;
     @Value("${app.supermanager-email}")
     private String superManagerEmail;
-    @Value("${app.supermanager-username}")
-    private String superManagerUsername;
 
     @Transactional
     @Override
@@ -37,7 +35,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (!accounts.existsByUsername("admin")) {
             // Initial super manager
             try {
-                managerService.createManger(superManagerEmail, superManagerUsername, DEFAULT_SUPER_MANAGER_AVATAR_CLASSPATH);
+                managerService.createManger(superManagerEmail, "admin", DEFAULT_SUPER_MANAGER_AVATAR_CLASSPATH, true);
             } catch (Exception e) {
                 log.error("Failed to create super manager", e);
             }

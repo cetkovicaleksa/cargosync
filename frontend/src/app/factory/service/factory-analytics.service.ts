@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { catchError, defer, interval, map, Observable, of } from 'rxjs';
+import { catchError, defer, interval, map, Observable, of, throwError } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
 import { environment } from '../../../environments/environment';
 import { ProductionBucket, ProductionSeriesDto } from '../dto/production-series.dto';
@@ -11,10 +11,12 @@ import {
   FactoryAvailabilitySeriesDto,
 } from '../dto/factory-availability.dto';
 import { ProductSummaryDto } from '../../product/dto/product-summary.dto';
+import { AuthService } from '../../auth/service/auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class FactoryAnalyticsService {
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
 
   private readonly apiBase = environment.apiHost;
 
@@ -45,14 +47,16 @@ export class FactoryAnalyticsService {
   }
 
   subscribeFactoryAvailabilityRealtime(factoryId: string): Observable<FactoryAvailabilityRealtimeEventDto> {
-    const wsUrl = this.toWsUrl(`${this.apiBase}factories/${encodeURIComponent(factoryId)}/availability/ws`);
+    const token = this.auth.getToken();
+    const tokenPart = token ? `?token=${encodeURIComponent(token)}` : '';
+    const wsUrl = this.toWsUrl(`${this.apiBase}factories/${encodeURIComponent(factoryId)}/availability/ws${tokenPart}`);
 
     return defer(() => webSocket<FactoryAvailabilityRealtimeEventDto>(wsUrl)).pipe(
       map((message) => ({
         timestamp: message?.timestamp || new Date().toISOString(),
         online: !!message?.online,
       })),
-      catchError(() => this.mockRealtimeEvents(factoryId)),
+      catchError((error) => throwError(() => error)),
     );
   }
 

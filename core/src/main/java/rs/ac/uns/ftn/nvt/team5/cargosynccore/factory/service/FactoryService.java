@@ -1,9 +1,7 @@
 package rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.cache.annotation.CacheEvict;
@@ -15,14 +13,20 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryDto;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryInventoryDto;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryMapper;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactorySearchFilter;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryStatusDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.SaveFactoryRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.BadRequestException;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.City;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.FactoryInventory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.FactoryStatus;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.GeoLocation;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.CityRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository.FactoryInventoryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository.FactoryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository.FactoryStatusRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;
@@ -45,23 +49,24 @@ public class FactoryService {
 
     private final FactoryRepository factoryRepository;
     private final FactoryStatusRepository factoryStatusRepository;
+    private final FactoryInventoryRepository inventoryRepository;
     private final CityRepository cityRepository;
     private final ContentStore contentStore;
 
     @Transactional
-    public Factory createFactory(SaveFactoryRequest request, List<MultipartFile> images) {
+    public FactoryDto createFactory(SaveFactoryRequest request, List<MultipartFile> images) {
         Factory factory = new Factory();
         Factory savedFactory = saveOrUpdate(factory, request, images);
 
         FactoryStatus status = new FactoryStatus(savedFactory);
         factoryStatusRepository.save(status);
 
-        return savedFactory;
+        return FactoryMapper.mapToDto(savedFactory, cityRepository);
     }
 
     @CachePut(value = "factories", key = "#id")
     @Transactional
-    public Factory updateFactory(UUID id, SaveFactoryRequest request, List<MultipartFile> images) {
+    public FactoryDto updateFactory(UUID id, SaveFactoryRequest request, List<MultipartFile> images) {
         if (request.version() == null) {
             throw new BadRequestException("Version is required for factory updates");
         }
@@ -71,17 +76,16 @@ public class FactoryService {
 
         factory.setVersion(request.version());
 
-        return saveOrUpdate(factory, request, images);
+        return FactoryMapper.mapToDto(saveOrUpdate(factory, request, images), cityRepository);
     }
 
     @Cacheable(value = "factories", key = "#id")
     @Transactional(readOnly = true)
-    public Factory getFactoryById(UUID id) {
+    public FactoryDto getFactoryById(UUID id) {
         Factory factory = factoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Factory not found"));
 
-        factory.setImageUrls(new HashSet<>(factory.getImageUrls()));
-        return factory;
+        return FactoryMapper.mapToDto(factory, cityRepository);
     }
 
     @Transactional(readOnly = true)
@@ -94,19 +98,54 @@ public class FactoryService {
 
     @Transactional(readOnly = true)
     public Page<Factory> searchFactories(FactorySearchFilter filter, Pageable pageable) {
-        Specification<Factory> spec = (root, query, cb) -> cb.isTrue(cb.literal(true));
 
-        if (filter.name() != null && !filter.name().isBlank()) {
-            spec = spec.and((root, query, cb) ->
-                    cb.like(cb.lower(root.get("name")), "%" + filter.name().toLowerCase() + "%"));
-        }
+        Specification<Factory> spec = (root, query, cb) -> {
 
-        if (filter.countryCode() != null && !filter.countryCode().isBlank()) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("countryCode"), filter.countryCode()));
-        }
-        if (filter.cityCode() != null && !filter.cityCode().isBlank()) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("cityCode"), filter.cityCode()));
-        }
+            List<Predicate> predicates = new ArrayList<>();
+            List<Order> orders = new ArrayList<>();
+
+            if (filter.name() != null && !filter.name().isBlank()) {
+                String lowerName = filter.name().toLowerCase();
+
+                predicates.add(
+                        cb.like(cb.lower(root.get("name")), "%" + lowerName + "%")
+                );
+
+                Expression<String> nameLower = cb.lower(root.get("name"));
+
+                Expression<Object> priority = cb.selectCase()
+                        .when(cb.equal(nameLower, lowerName), 0)
+                        .when(cb.like(nameLower, lowerName + "%"), 1)
+                        .otherwise(2);
+
+                orders.add(cb.asc(priority));
+            }
+
+            if (filter.countryCode() != null && !filter.countryCode().isBlank()) {
+                predicates.add(
+                        cb.equal(root.get("countryCode"), filter.countryCode())
+                );
+            }
+
+            if (filter.cityCode() != null && !filter.cityCode().isBlank()) {
+                predicates.add(
+                        cb.equal(root.get("cityCode"), filter.cityCode())
+                );
+            }
+
+            pageable.getSort().forEach(sortOrder -> {
+                Path<Object> path = root.get(sortOrder.getProperty());
+                orders.add(sortOrder.isAscending()
+                        ? cb.asc(path)
+                        : cb.desc(path));
+            });
+
+            if (!orders.isEmpty()) {
+                query.orderBy(orders);
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
 
         return factoryRepository.findAll(spec, pageable);
     }
@@ -116,6 +155,28 @@ public class FactoryService {
     public void deleteFactory(UUID id) {
         factoryStatusRepository.deleteFactoryStatusByFactoryId(id);
         factoryRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public FactoryInventoryDto getFactoryProductInventory(UUID factoryId, UUID productId) {
+        FactoryInventory inventory = inventoryRepository.findByFactoryIdAndProductId(factoryId, productId)
+                .orElseThrow(() -> new EntityNotFoundException("Factory inventory not found for factory " + factoryId + " and product " + productId));
+
+        return new FactoryInventoryDto(
+                inventory.getTotalProduced(),
+                inventory.getLastProductionTime()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public FactoryStatusDto getFactoryStatus(UUID factoryId) {
+        FactoryStatus status = factoryStatusRepository.findByFactoryId(factoryId)
+                .orElseThrow(() -> new EntityNotFoundException("Factory status not found for factory " + factoryId));
+
+        return new FactoryStatusDto(
+                status.isOnline(),
+                status.getLastHeartbeat()
+        );
     }
 
     private Factory saveOrUpdate(Factory factory, SaveFactoryRequest request, List<MultipartFile> images) {
@@ -133,9 +194,7 @@ public class FactoryService {
         mergedImageUrls.addAll(saveImages(images));
         factory.setImageUrls(mergedImageUrls);
 
-        Factory newFactory = factoryRepository.save(factory);
-        newFactory.setImageUrls(new HashSet<>(newFactory.getImageUrls()));
-        return newFactory;
+        return factoryRepository.save(factory);
     }
 
     private List<String> saveImages(List<MultipartFile> images) {

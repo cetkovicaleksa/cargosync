@@ -5,6 +5,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.model.VanStatus;
 
 import java.util.UUID;
 
-public interface VanStatusRepository {
-    default void imUseless() {}
+//public interface VanStatusRepository extends JpaRepository<VanStatus, UUID> {
+//}
+public interface VanStatusRepository{
 }

@@ -9,6 +9,13 @@
   font-size: 24px;
 }
 
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .page-header p {
   margin: 4px 0 0;
   opacity: 0.75;
@@ -31,6 +38,13 @@
 .panel h2,
 .panel h3 {
   margin: 0;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .filters {
@@ -349,6 +363,53 @@
   width: 100%;
 }
 
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-label {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.status-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.status-badge.online {
+  color: #2e7d32;
+  background: rgba(46, 125, 50, 0.1);
+  border-color: rgba(46, 125, 50, 0.3);
+}
+
+.status-badge.offline {
+  color: #d32f2f;
+  background: rgba(211, 47, 47, 0.1);
+  border-color: rgba(211, 47, 47, 0.3);
+}
+
+.product-total {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.meta-text {
+  font-size: 11px;
+  opacity: 0.68;
+}
+
 @media (max-width: 980px) {
   .filters {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
@@ -368,6 +429,11 @@
 }
 
 @media (max-width: 720px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .filters {
     grid-template-columns: 1fr;
   }

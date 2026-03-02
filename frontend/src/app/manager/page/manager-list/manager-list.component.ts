@@ -12,6 +12,7 @@ import { AccountDto } from '../../../auth/dto/account.dto';
 import { NgFor, NgIf } from '@angular/common';
 import { ManagerCreateComponent } from '../manager-create/manager-create.component';
 import { ProtectedImageComponent } from "../../../shared/util/protected-image.component";
+import { SavePasswordComponent } from '../save-password/save-password.component';
 
 type ManagerVm = AccountDto & { _locallyBlocked?: boolean };
 
@@ -110,8 +111,16 @@ export class ManagerListComponent implements OnDestroy {
       data: { mode: 'create' },
     })
       .afterClosed()
-      .subscribe((created: boolean | null | undefined) => {
-        if (created) this.reload();
+      .subscribe((tempPass: string | null | undefined) => {
+        if (tempPass) {
+          this.dialog.open(SavePasswordComponent, {
+            width: '520px',
+            maxWidth: '94vw',
+            disableClose: true,
+            autoFocus: false,
+            data: { password: tempPass },
+          }).afterClosed().subscribe(() => this.reload());
+        }
       });
   }
 

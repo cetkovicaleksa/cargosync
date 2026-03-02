@@ -10,7 +10,12 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "factory_statuses")
+@Table(
+    name = "factory_statuses",
+    indexes = {
+        @Index(name = "idx_factory_status_online_heartbeat", columnList = "is_online,last_heartbeat")
+    }
+)
 public class FactoryStatus {
 
     @Id

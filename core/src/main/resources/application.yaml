@@ -62,9 +62,9 @@ spring:
 app:
   frontend-url: ${CARGOSYNC_FRONTEND_URL:http://localhost:4200}
   activation-token-ttl: 24h
+  login-rate-limit: 10
   manager-password-file: ${CARGOSYNC_MANAGER_PASSWORD_FILE:manager_passwords.txt}
   supermanager-email: ${CARGOSYNC_SUPERMANAGER_EMAIL:admin@cargosync.rs}
-  supermanager-username: ${CARGOSYNC_SUPERMANAGER_USERNAME:admin}
   influx:
     url: ${CARGOSYNC_INFLUX_URL:${DOCKER_INFLUXDB_INIT_URL:http://localhost:8086}}
     token: ${CARGOSYNC_INFLUX_TOKEN:${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN:}}

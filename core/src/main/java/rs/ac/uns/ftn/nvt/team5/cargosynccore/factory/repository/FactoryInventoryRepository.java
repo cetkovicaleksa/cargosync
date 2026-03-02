@@ -23,4 +23,5 @@ public interface FactoryInventoryRepository extends JpaRepository<FactoryInvento
             @Param("factoryId") UUID factoryId,
             @Param("productId") UUID productId
     );
+    Optional<FactoryInventory> findByFactoryIdAndProductId(UUID factoryId, UUID productId);
 }

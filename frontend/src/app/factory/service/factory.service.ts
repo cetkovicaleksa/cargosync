@@ -9,6 +9,8 @@ import { SaveFactoryRequestDto } from '../dto/save-factory-request.dto';
 import { CountryOptionDto } from '../dto/country-option.dto';
 import { CityOptionDto } from '../dto/city-option.dto';
 import { FactoryLookupDto } from '../dto/factory-lookup.dto';
+import { FactoryStatusDto } from '../dto/factory-status.dto';
+import { FactoryInventoryDto } from '../dto/factory-inventory.dto';
 
 @Injectable({ providedIn: 'root' })
 export class FactoryService {
@@ -77,6 +79,16 @@ export class FactoryService {
 
   getById(id: string): Observable<FactoryDto | null> {
     return this.http.get<FactoryDto>(`${this.apiUrl}/${encodeURIComponent(id)}`);
+  }
+
+  getStatus(id: string): Observable<FactoryStatusDto> {
+    return this.http.get<FactoryStatusDto>(`${this.apiUrl}/${encodeURIComponent(id)}/status`);
+  }
+
+  getProductInventory(factoryId: string, productId: string): Observable<FactoryInventoryDto> {
+    return this.http.get<FactoryInventoryDto>(
+      `${this.apiUrl}/${encodeURIComponent(factoryId)}/production/${encodeURIComponent(productId)}/inventory`,
+    );
   }
 
   create(request: SaveFactoryRequestDto, images: File[] = []): Observable<FactoryDto> {

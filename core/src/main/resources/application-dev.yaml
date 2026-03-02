@@ -7,13 +7,13 @@ spring:
       simple:
         auto-startup: true
   jpa:
-    show-sql: true
+    show-sql: false
     generate-ddl: true
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         hbm2ddl:
-          auto: update # alias for spring.jpa.hibernate.ddl-auto
+          auto: update
           create_output: ddl.sql
   mail:
     host: ${CARGOSYNC_MAIL_HOST:localhost}
@@ -27,8 +27,8 @@ logging:
   level:
     root: INFO
     rs.ac.uns.ftn.nvt.team5.cargosynccore: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
     org.springframework.security: DEBUG
     org.springframework.cache: TRACE
 security:
@@ -41,3 +41,5 @@ security:
       access-token:
         ttl: 24h
   public-endpoints: ["/**"]
+app:
+  login-rate-limit: 600

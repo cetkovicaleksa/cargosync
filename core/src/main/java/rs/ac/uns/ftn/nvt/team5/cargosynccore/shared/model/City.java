@@ -76,7 +76,31 @@ public class City implements Comparable<City> {
         return code.compareToIgnoreCase(o.code);
     }
 
-    public record CityPK(Country country, String code) implements Serializable {}
+    public static class CityPK implements Serializable {
+        private Country country;
+        private String code;
+
+        public CityPK() {}
+
+        public CityPK(Country country, String code) {
+            this.country = country;
+            this.code = code;
+        }
+
+        public Country getCountry() { return country; }
+        public String getCode() { return code; }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof CityPK pk)) return false;
+            return Objects.equals(country, pk.country) && Objects.equals(code, pk.code);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(country, code);
+        }
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -4,10 +4,21 @@
       <h1>Factory Work Overview</h1>
       <p>Search factories, inspect products, and view production + factory availability analytics.</p>
     </div>
+
+    <button mat-stroked-button type="button" (click)="toggleLiveTracking()">
+      {{ liveTrackingEnabled ? 'Disable live tracking' : 'Enable live tracking' }}
+    </button>
   </header>
 
   <section class="panel">
-    <h2>Factory Search</h2>
+    <div class="section-head">
+      <h2>Factory Search</h2>
+      <button mat-stroked-button type="button" (click)="factorySearchCollapsed = !factorySearchCollapsed">
+        {{ factorySearchCollapsed ? 'Expand' : 'Collapse' }}
+      </button>
+    </div>
+
+    <ng-container *ngIf="!factorySearchCollapsed">
 
     <section class="filters">
       <mat-form-field appearance="outline" class="filter-item">
@@ -70,12 +81,21 @@
       </table>
     </div>
 
-    <div *ngIf="!loadingFactories && factoriesData.length === 0" class="empty">No factories found.</div>
+      <div *ngIf="!loadingFactories && factoriesData.length === 0" class="empty">No factories found.</div>
+    </ng-container>
   </section>
 
   <section class="panel" *ngIf="selectedFactory as factory">
     <h2>Selected Factory</h2>
     <p><strong>{{ factory.name }}</strong> — {{ factory.street }}, {{ factory.cityName }}, {{ factory.countryName }}</p>
+
+    <div class="status-row">
+      <span class="status-label">Status</span>
+      <span class="status-badge" [class.online]="factoryStatus?.isOnline" [class.offline]="factoryStatus && !factoryStatus.isOnline">
+        {{ loadingFactoryStatus && !refreshingFactoryStatus ? 'Loading…' : (factoryStatus ? (factoryStatus.isOnline ? 'Online' : 'Offline') : 'Unknown') }}
+      </span>
+      <small class="meta-text" *ngIf="!loadingFactoryStatus && factoryStatus">{{ formatTimeAgo(factoryStatus.lastHeartbeat) }}</small>
+    </div>
 
     <div class="factory-images" *ngIf="factory.imageUrls.length > 0">
       <button class="image-btn" *ngFor="let imageUrl of factory.imageUrls" (click)="openFactoryImage(imageUrl)">
@@ -100,6 +120,12 @@
     </div>
 
     <div *ngIf="!loadingProducts && products.length === 0" class="empty">No products available for this factory.</div>
+
+    <div class="product-total" *ngIf="selectedProduct">
+      <span>Total produced for <strong>{{ selectedProduct.name }}</strong>:</span>
+      <strong>{{ loadingInventory && !refreshingInventory ? 'Loading…' : ((selectedProductInventory?.totalProduced ?? 0) | number:'1.0-0') }}</strong>
+      <small class="meta-text" *ngIf="!loadingInventory && selectedProductInventory">{{ formatTimeAgo(selectedProductInventory.lastProductionTime) }}</small>
+    </div>
   </section>
 
   <section class="panel" *ngIf="selectedFactory">
@@ -239,12 +265,12 @@
                 (click)="toggleRealtime()"
                 [disabled]="!canUseRealtime"
               >
-                {{ realtimeActive ? 'Stop realtime' : 'Start realtime (WS)' }}
+                {{ realtimeActive ? 'Stop realtime' : 'Start realtime' }}
               </button>
             </div>
           </section>
 
-          <div class="hint" *ngIf="!canUseRealtime">Realtime is available only for a period up to the last 3 hours.</div>
+          <div class="hint" *ngIf="!canUseRealtime">Realtime is available only for 1h and 3h presets in the most recent window.</div>
 
           <div *ngIf="availabilitySeries as a" class="availability-layout">
             <section class="availability-summary panel-block">

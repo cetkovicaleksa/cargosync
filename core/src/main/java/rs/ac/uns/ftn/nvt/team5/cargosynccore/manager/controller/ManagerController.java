@@ -13,6 +13,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.dto.AccountDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.repository.AccountRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.manager.dto.CreateManagerRequest;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.manager.dto.TemporaryPasswordDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.manager.service.ManagerService;
 
 @RestController
@@ -26,12 +27,12 @@ public class ManagerController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('MANAGE_MANAGERS')")
-    public AccountDto createManager(
+    public TemporaryPasswordDto createManager(
             @RequestPart("data") @Valid CreateManagerRequest request,
             @RequestPart("avatar") MultipartFile avatar
     ) {
-        Account account = managerService.createManager(request, avatar);
-        return modelMapper.map(account, AccountDto.class);
+        String tempPass = managerService.createManager(request, avatar);
+        return new TemporaryPasswordDto(tempPass);
     }
 
     @GetMapping

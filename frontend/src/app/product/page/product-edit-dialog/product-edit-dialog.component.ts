@@ -100,7 +100,7 @@ export class ProductEditDialogComponent implements OnDestroy {
       }));
 
       if ((p.factoryIds ?? []).length > 0) {
-        this.factories.getByIdsLookup(p.factoryIds).subscribe({
+        this.products.getFactoriesLookup(p.id).subscribe({
           next: (resolved) => {
             const byId = new Map(resolved.map((x) => [x.id, x]));
             this.selectedFactories = (p.factoryIds ?? []).map((id) => {
@@ -262,7 +262,10 @@ export class ProductEditDialogComponent implements OnDestroy {
     request$
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
-        next: (saved) => this.ref.close(saved),
+        next: (saved) => {
+          this.snack.open('Product saved.', 'Close', { duration: 2500 });
+          this.ref.close(saved);
+        },
         error: (err) => {
           const msg = err?.status === 409
             ? 'This product was updated by someone else. Please refresh and try again.'

@@ -22,6 +22,7 @@ import java.util.*;
         name = "accounts",
         indexes = {
                 @Index(name = "idx_accounts_role", columnList = "role"),
+        @Index(name = "idx_accounts_owner_id", columnList = "owner_id"),
         }
 )
 public class Account extends AbstractPersistable implements UserDetails {

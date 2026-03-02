@@ -10,15 +10,22 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryDto;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryLookupDto;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.dto.FactoryMapper;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductSearchFilter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.SaveProductRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.service.ProductService;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Product;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.CityRepository;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,6 +36,7 @@ import java.util.stream.Collectors;
 public class ProductController {
 
     private final ProductService productService;
+    private final CityRepository cityRepository;
 
     @Operation(summary = "Create product", description = "Creates a new product with optional image. Requires MANAGER role.")
     @ApiResponse(responseCode = "201", description = "Product created")
@@ -74,6 +82,24 @@ public class ProductController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(@PathVariable UUID id) {
         productService.deleteProduct(id);
+    }
+
+    @Operation(summary = "Get product factories", description = "Retrieves a list of factories that produce the specified product.")
+    @GetMapping("/{id}/factories")
+    @PreAuthorize("hasRole('MANAGER')")
+    public List<FactoryDto> getProductFactories(@PathVariable UUID id) {
+        return productService.getProductFactories(id)
+                .stream().map(f -> FactoryMapper.mapToDto(f, cityRepository))
+                .collect(Collectors.toList());
+    }
+
+    @Operation(summary = "Get product factories (lookup)", description = "Retrieves a list of factories that produce the specified product, with minimal information.")
+    @GetMapping("/{id}/factories/lookup")
+    @PreAuthorize("hasRole('MANAGER')")
+    public List<FactoryLookupDto> getProductFactoriesLookup(@PathVariable UUID id) {
+        return productService.getProductFactories(id)
+                .stream().map(f -> FactoryMapper.mapToLookupDto(f, cityRepository))
+                .collect(Collectors.toList());
     }
 
     private ProductDto mapToDto(Product product) {

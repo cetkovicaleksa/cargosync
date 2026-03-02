@@ -36,8 +36,8 @@ public class Van {
     @Id
     @ManyToOne(fetch = LAZY, cascade = {MERGE, REFRESH, DETACH})
     @JoinColumns({
-            @JoinColumn(name = "wmi", referencedColumnName = "world_manufacturer_identifier"),
-            @JoinColumn(name = "vd", referencedColumnName = "vehicle_descriptor")
+            @JoinColumn(name = "wmi", referencedColumnName = "world_manufacturer_identifier", updatable = false),
+            @JoinColumn(name = "vd", referencedColumnName = "vehicle_descriptor", updatable = false)
     })
     private Model model;
 
