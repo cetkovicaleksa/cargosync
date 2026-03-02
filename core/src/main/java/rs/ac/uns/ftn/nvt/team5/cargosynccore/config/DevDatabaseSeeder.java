@@ -104,47 +104,42 @@ public class DevDatabaseSeeder implements CommandLineRunner {
                     case "Sarajevo Warehouse" -> { w.setCity(sarajevo);  warehouseRepository.save(w); }
                 }
             });
-            return;
+        } else {
+            // ---- Product categories + products ----
+            ProductCategory electronics = categoryRepository.findByNameIgnoreCase("Electronics")
+                    .orElseGet(() -> { var c = new ProductCategory("Electronics"); return categoryRepository.save(c); });
+            ProductCategory machinery   = categoryRepository.findByNameIgnoreCase("Machinery")
+                    .orElseGet(() -> { var c = new ProductCategory("Machinery");   return categoryRepository.save(c); });
+
+            Product laptop   = createProduct("Laptop Pro 15",   electronics, new BigDecimal("1299.99"), 2.1);
+            Product monitor  = createProduct("4K Monitor 27\"",  electronics, new BigDecimal("499.99"),  6.5);
+            Product forklift = createProduct("Mini Forklift",    machinery,   new BigDecimal("8999.00"), 350.0);
+
+            // ---- Warehouses ----
+            Warehouse wh1 = createWarehouse("Novi Sad Warehouse", "Bulevar oslobodjenja 10", noviSad,
+                    new GeoLocation("45.2671", "19.8335"));
+            Warehouse wh2 = createWarehouse("Beograd Warehouse", "Kneza Milosa 50", beograd,
+                    new GeoLocation("44.8176", "20.4569"));
+            Warehouse wh3 = createWarehouse("Sarajevo Warehouse", "Titova 20", sarajevo,
+                    new GeoLocation("43.8519", "18.3866"));
+
+            // ---- Inventory ----
+            inventoryRepository.save(new WarehouseInventory(wh1, laptop,    500L));
+            inventoryRepository.save(new WarehouseInventory(wh2, laptop,    300L));
+            inventoryRepository.save(new WarehouseInventory(wh1, monitor,   200L));
+            inventoryRepository.save(new WarehouseInventory(wh3, monitor,   150L));
+            inventoryRepository.save(new WarehouseInventory(wh2, forklift,   20L));
+            inventoryRepository.save(new WarehouseInventory(wh3, forklift,   10L));
         }
 
-        // ---- Product categories + products ----
-        ProductCategory electronics = categoryRepository.findByNameIgnoreCase("Electronics")
-                .orElseGet(() -> { var c = new ProductCategory("Electronics"); return categoryRepository.save(c); });
-        ProductCategory machinery   = categoryRepository.findByNameIgnoreCase("Machinery")
-                .orElseGet(() -> { var c = new ProductCategory("Machinery");   return categoryRepository.save(c); });
-
-        Product laptop  = createProduct("Laptop Pro 15", electronics,  new BigDecimal("1299.99"), 2.1);
-        Product monitor = createProduct("4K Monitor 27\"", electronics, new BigDecimal("499.99"),  6.5);
-        Product forklift = createProduct("Mini Forklift", machinery,   new BigDecimal("8999.00"), 350.0);
-
-        // ---- Warehouses ----
-        Warehouse wh1 = createWarehouse("Novi Sad Warehouse", "Bulevar oslobodjenja 10", noviSad,
-                new GeoLocation("45.2671", "19.8335"));
-        Warehouse wh2 = createWarehouse("Beograd Warehouse", "Kneza Milosa 50", beograd,
-                new GeoLocation("44.8176", "20.4569"));
-        Warehouse wh3 = createWarehouse("Sarajevo Warehouse", "Titova 20", sarajevo,
-                new GeoLocation("43.8519", "18.3866"));
-
-        // ---- Inventory ----
-        inventoryRepository.save(new WarehouseInventory(wh1, laptop,   500L));
-        inventoryRepository.save(new WarehouseInventory(wh2, laptop,   300L));
-        inventoryRepository.save(new WarehouseInventory(wh1, monitor,  200L));
-        inventoryRepository.save(new WarehouseInventory(wh3, monitor,  150L));
-        inventoryRepository.save(new WarehouseInventory(wh2, forklift,  20L));
-        inventoryRepository.save(new WarehouseInventory(wh3, forklift,  10L));
-
-        // ---- Stub company for testing orders ----
+        // ---- Companies (always ensure these exist) ----
         Customer devCustomer = customerRepository.findAll().stream()
                 .filter(c -> "customer@cargosync.rs".equals(c.getEmail()))
                 .findFirst().orElse(null);
-        if (devCustomer != null && companyRepository.count() == 0) {
-            Company company = new Company();
-            company.setOwner(devCustomer);
-            company.setName("Dev Corp d.o.o.");
-            company.setAddress("Futoška 10");
-            company.setCity(noviSad);
-            company.getImages().add("https://picsum.photos/seed/devcorp/800/600");
-            companyRepository.save(company);
+        if (devCustomer != null) {
+            createCompany(devCustomer, "Dev Corp d.o.o.",      "Futoška 10",      noviSad,  "https://picsum.photos/seed/devcorp/800/600");
+            createCompany(devCustomer, "TechLogistics d.o.o.", "Kneza Miloša 12", beograd,  "https://picsum.photos/seed/techlog/800/600");
+            createCompany(devCustomer, "BalkaTrade d.o.o.",    "Titova 5",        sarajevo, "https://picsum.photos/seed/balkatrade/800/600");
         }
     }
 
@@ -162,6 +157,19 @@ public class DevDatabaseSeeder implements CommandLineRunner {
                     p.setImageUrl("https://picsum.photos/seed/" + name.hashCode() + "/400/300");
                     return productRepository.save(p);
                 });
+    }
+
+    private void createCompany(Customer owner, String name, String address, City city, String imageUrl) {
+        boolean exists = companyRepository.findAll().stream()
+                .anyMatch(c -> name.equals(c.getName()));
+        if (exists) return;
+        Company company = new Company();
+        company.setOwner(owner);
+        company.setName(name);
+        company.setAddress(address);
+        company.setCity(city);
+        company.getImages().add(imageUrl);
+        companyRepository.save(company);
     }
 
     private Warehouse createWarehouse(String name, String address, City city, GeoLocation location) {
