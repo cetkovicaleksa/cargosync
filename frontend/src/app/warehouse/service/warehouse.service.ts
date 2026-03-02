@@ -5,6 +5,9 @@ import { environment } from '../../../environments/environment';
 import { PageDto } from '../../shared/dto/page.dto';
 import { WarehouseDto } from '../dto/warehouse.dto';
 
+export interface CountryOptionDto { code: string; name: string; }
+export interface CityOptionDto { code: string; name: string; }
+
 export interface WarehouseFilterParams {
   name?: string | null;
   countryCode?: string | null;
@@ -44,5 +47,14 @@ export class WarehouseService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getCountries(): Observable<CountryOptionDto[]> {
+    return this.http.get<CountryOptionDto[]>(`${this.apiUrl}/countries`);
+  }
+
+  getCities(countryCode: string): Observable<CityOptionDto[]> {
+    const params = new HttpParams().set('countryCode', countryCode);
+    return this.http.get<CityOptionDto[]>(`${this.apiUrl}/cities`, { params });
   }
 }
