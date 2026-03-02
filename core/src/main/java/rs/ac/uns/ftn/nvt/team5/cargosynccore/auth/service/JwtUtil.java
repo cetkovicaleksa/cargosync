@@ -62,6 +62,15 @@ public class JwtUtil {
         }
     }
 
+    @Nullable
+    public Date extractExpiration(String jwt) {
+        try {
+            return extractClaims(jwt).getExpiration();
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     public boolean isTokenValid(String jwt) {
         try {
             var claims = extractClaims(jwt);

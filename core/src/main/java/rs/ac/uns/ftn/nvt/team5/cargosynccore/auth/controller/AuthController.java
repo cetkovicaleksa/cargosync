@@ -13,6 +13,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.dto.LoginRequestDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.dto.TokenResponseDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.service.AuthService;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.service.TokenBlacklistService;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.manager.dto.PasswordChangeRequest;
 
 import static org.springframework.http.MediaType.*;
@@ -23,6 +24,7 @@ import static org.springframework.http.MediaType.*;
 class AuthController {
 
     private final AuthService authService;
+    private final TokenBlacklistService tokenBlacklist;
     private final ModelMapper modelMapper;
 
     @PostMapping("/login")
@@ -44,11 +46,13 @@ class AuthController {
         return new TokenResponseDto(accessToken);
     }
 
-    @Operation(summary = "Logout (client-side token invalidation)")
+    @Operation(summary = "Logout — blacklists the JWT token in Redis")
     @PostMapping("/logout")
     @PreAuthorize("isAuthenticated()")
-    ResponseEntity<Void> logout() {
-        //TODO: add JWT blacklist when Redis is configured
+    ResponseEntity<Void> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            tokenBlacklist.blacklist(authHeader.substring("Bearer ".length()));
+        }
         return ResponseEntity.ok().build();
     }
 }

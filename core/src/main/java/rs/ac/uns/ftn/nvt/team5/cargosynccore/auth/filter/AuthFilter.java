@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.service.JwtUtil;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.service.TokenBlacklistService;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -24,6 +25,7 @@ public class AuthFilter extends OncePerRequestFilter {
 
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklist;
 
     @Override
     protected void doFilterInternal(
@@ -46,6 +48,7 @@ public class AuthFilter extends OncePerRequestFilter {
         }
 
         token.filter(jwtUtil::isTokenValid)
+                .filter(t -> !tokenBlacklist.isBlacklisted(t))
                 .map(jwtUtil::extractUsername)
                 .map(userDetailsService::loadUserByUsername)
                 .ifPresent(userDetails -> {
