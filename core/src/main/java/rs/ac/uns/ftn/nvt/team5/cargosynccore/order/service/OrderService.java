@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.nvt.team5.cargosynccore.order.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -58,6 +59,7 @@ public class OrderService {
      * 5. Persist Order + OrderItems
      * 6. Generate PDF invoice + send email (best-effort)
      */
+    @CacheEvict(cacheNames = "catalogue", allEntries = true)
     @Transactional
     public Order createOrder(Account account, CreateOrderRequest request) {
         Customer customer = resolveCustomer(account);

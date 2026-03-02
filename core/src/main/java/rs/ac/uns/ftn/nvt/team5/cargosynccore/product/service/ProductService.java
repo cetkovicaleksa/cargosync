@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,20 +14,24 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductSearchFilter;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.ProductSummaryDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.dto.SaveProductRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.repository.ProductRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.model.Factory;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.dto.PageResult;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.BadRequestException;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.Product;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.ProductCategory;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.factory.repository.FactoryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.ProductCategoryRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.repository.WarehouseInventoryRepository;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,17 +48,22 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductCategoryRepository categoryRepository;
     private final FactoryRepository factoryRepository;
+    private final WarehouseInventoryRepository inventoryRepository;
     private final ContentStore contentStore;
     private final ModelMapper modelMapper;
 
-    @CacheEvict(cacheNames = {"productCategories", "factoryProducts"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(cacheNames = {"productCategories", "factoryProducts", "catalogue"}, allEntries = true)
+    })
     @Transactional
     public Product createProduct(SaveProductRequest request, MultipartFile image) {
         Product product = new Product();
         return saveOrUpdate(product, request, image);
     }
 
-    @CacheEvict(cacheNames = {"productCategories", "factoryProducts"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(cacheNames = {"productCategories", "factoryProducts", "catalogue"}, allEntries = true)
+    })
     @Transactional
     public Product updateProduct(UUID id, SaveProductRequest request, MultipartFile image) {
         Product product = productRepository.findById(id)
@@ -160,6 +170,47 @@ public class ProductService {
         return productRepository.findAll(spec, pageable);
     }
 
+    /**
+     * Customer catalogue: only isForSale products enriched with total stock.
+     * Cached per unique filter+page combination (TTL: 5 min).
+     * Evicted on any product write or order placement (stock change).
+     */
+    @Cacheable(
+            cacheNames = "catalogue",
+            key = "#filter.name + ':' + #filter.categoryName + ':' + #filter.minPrice + ':' + #filter.maxPrice + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort"
+    )
+    @Transactional(readOnly = true)
+    public PageResult<ProductDto> getCatalogue(ProductSearchFilter filter, Pageable pageable) {
+        ProductSearchFilter forSaleFilter = new ProductSearchFilter(
+                filter.name(), filter.categoryName(), filter.minPrice(), filter.maxPrice(), true
+        );
+        Page<Product> page = searchProducts(forSaleFilter, pageable);
+
+        List<UUID> ids = page.getContent().stream().map(Product::getId).toList();
+        Map<UUID, Long> stockMap = ids.isEmpty() ? Map.of() : inventoryRepository
+                .findTotalStockByProductIds(ids).stream()
+                .collect(Collectors.toMap(r -> (UUID) r[0], r -> ((Number) r[1]).longValue()));
+
+        Page<ProductDto> dtoPage = page.map(p -> mapToCatalogueDto(p, stockMap.getOrDefault(p.getId(), 0L)));
+        return PageResult.of(dtoPage);
+    }
+
+    private ProductDto mapToCatalogueDto(Product product, Long totalStock) {
+        return new ProductDto(
+                product.getId(),
+                product.getName(),
+                product.getImageUrl(),
+                product.getPrice(),
+                product.getWeight(),
+                product.isForSale(),
+                product.getCategory().getId(),
+                product.getCategory().getName(),
+                product.getFactories().stream().map(Factory::getId).collect(Collectors.toSet()),
+                product.getVersion(),
+                totalStock
+        );
+    }
+
     @Cacheable(cacheNames = "productCategories", key = "'all'")
     @Transactional(readOnly = true)
     public List<String> getAllCategoryNames() {
@@ -181,7 +232,9 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
-    @CacheEvict(cacheNames = {"productCategories"}, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(cacheNames = {"productCategories", "catalogue"}, allEntries = true)
+    })
     @Transactional
     public void deleteProduct(UUID id) {
         productRepository.deleteById(id);

@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface CompanyRepository extends JpaRepository<Company, UUID> {
     List<Company> findByOwner_Id(UUID ownerId);
+    boolean existsByName(String name);
 }
