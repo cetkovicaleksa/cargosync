@@ -531,6 +531,26 @@ def generate_factory_availability_lp(cfg: Config) -> int:
     return total_rows
 
 
+def generate_warehouse_inventory_csv(cfg: Config, product_ids: list[str]) -> int:
+    """Generate warehouse_inventory.csv: each product stocked in 5 warehouses with 100,000 units."""
+    out_path = cfg.output_dir / "warehouse_inventory.csv"
+    warehouses_per_product = 5
+    quantity = 100_000
+    total_rows = 0
+
+    with out_path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.writer(fh)
+        writer.writerow(["id", "warehouse_id", "product_id", "quantity", "version"])
+        for pi, product_id in enumerate(product_ids):
+            for wi in range(warehouses_per_product):
+                warehouse_id = deterministic_uuid("warehouse", wi)
+                inv_id = deterministic_uuid("warehouse-inventory", pi * warehouses_per_product + wi)
+                writer.writerow([inv_id, warehouse_id, product_id, quantity, 0])
+                total_rows += 1
+
+    return total_rows
+
+
 def generate_warehouse_temperature_lp(cfg: Config) -> int:
     out_path = cfg.output_dir / "warehouse_temperature.lp"
     rng = random.Random(cfg.seed + 2)
@@ -565,7 +585,7 @@ def generate_warehouse_temperature_lp(cfg: Config) -> int:
                         temp = base + seasonal * 4.0 + daily * 1.6 + noise
 
                     fh.write(
-                        f"temperature,warehouse_id={warehouse_id},sector={sector_name} value={temp:.2f} {ts}\n"
+                        f"warehouse_temperature,warehouse_id={warehouse_id},sector_name={sector_name} temperature={temp:.2f} {ts}\n"
                     )
                     total_rows += 1
 
@@ -661,6 +681,7 @@ def parse_args() -> Config:
         choices=[
             "all",
             "relational",
+            "warehouse_inventory",
             "factory_production",
             "factory_availability",
             "warehouse_temperature",
@@ -693,6 +714,7 @@ def main() -> None:
     if "all" in requested:
         requested = {
             "relational",
+            "warehouse_inventory",
             "factory_production",
             "factory_availability",
             "warehouse_temperature",
@@ -731,6 +753,12 @@ def main() -> None:
         print("Generating LP: warehouse temperatures (target 31,557,600 rows)...")
         temp_rows = generate_warehouse_temperature_lp(cfg)
         ts_summary["warehouse_temperature.lp"] = temp_rows
+
+    if "warehouse_inventory" in requested:
+        print("Generating CSV: warehouse inventory...")
+        inv_rows = generate_warehouse_inventory_csv(cfg, product_ids)
+        relational_summary["warehouse_inventory"] = inv_rows
+        print(f"Warehouse inventory rows: {inv_rows:,}")
 
     if "van_distance" in requested:
         print("Generating LP: van distance (target 26,298,000 rows)...")
