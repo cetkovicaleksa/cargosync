@@ -13,22 +13,22 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Entity
-@Table(
-        name = "van_statuses"
-)
+//@AllArgsConstructor
+//@Entity
+//@Table(
+//        name = "van_statuses"
+//)
 public class VanStatus {
 
     private static final Duration ONLINE_THRESHOLD = Duration.ofMinutes(2);
 
-    @Id
-    private UUID vanId;
-
-    @MapsId
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "van_id", nullable = false, unique = true, updatable = false)
-    private Van van; // NOTE: Possibly bidirectional
+//    @Id
+//    private UUID vanId;
+//
+//    @MapsId
+//    @OneToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "van_id", nullable = false, unique = true, updatable = false)
+//    private Van van;
 
     @Valid
     @Embedded
