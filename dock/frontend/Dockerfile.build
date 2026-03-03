@@ -11,6 +11,6 @@ RUN echo "Successfully built to: ${OUT_DIR}"
 # Healthcheck: directory exists and is not empty
 HEALTHCHECK --interval=5s --timeout=3s --retries=3 --start-period=2s \
   CMD sh -c 'test -d "${OUT_DIR}" && [ "$(ls -A ${OUT_DIR})" ]'
-CMD ["sleep", "infinity"]
+CMD ["sh", "-c", "cp -r /dist/cargo-sync/browser/. /app/dist/cargo-sync/browser/ && sleep infinity"]
 # NOTE: There is probably a way to make this execute build on command instead
 # NOTE!!!: This makes a 600Mb+ image, is it manly bc of the node_modules (dependencies)?
