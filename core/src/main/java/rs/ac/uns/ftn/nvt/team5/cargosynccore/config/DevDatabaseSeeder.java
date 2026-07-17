@@ -6,11 +6,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.Account;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.model.AccountRole;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.auth.repository.AccountRepository;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.model.CompanyRequest;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.repository.CompanyRequestRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.model.Company;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.repository.CompanyRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.product.repository.ProductRepository;
@@ -33,6 +39,7 @@ import java.util.List;
 @Profile("dev")
 @RequiredArgsConstructor
 @Component
+@Order(3)
 public class DevDatabaseSeeder implements CommandLineRunner {
 
     private static final List<Country> builtinCountries = List.of(
@@ -61,6 +68,7 @@ public class DevDatabaseSeeder implements CommandLineRunner {
     private final CityRepository cityRepository;
     private final PasswordEncoder passwordEncoder;
     private final CompanyRepository companyRepository;
+    private final CompanyRequestRepository companyRequestRepository;
     private final WarehouseRepository warehouseRepository;
     private final WarehouseStatusRepository warehouseStatusRepository;
     private final WarehouseSectorRepository warehouseSectorRepository;
@@ -149,8 +157,74 @@ public class DevDatabaseSeeder implements CommandLineRunner {
             createCompany(devCustomer, "Dev Corp d.o.o.",      "Futoška 10",      noviSad,  "https://picsum.photos/seed/devcorp/800/600");
             createCompany(devCustomer, "TechLogistics d.o.o.", "Kneza Miloša 12", beograd,  "https://picsum.photos/seed/techlog/800/600");
             createCompany(devCustomer, "BalkaTrade d.o.o.",    "Titova 5",        sarajevo, "https://picsum.photos/seed/balkatrade/800/600");
+
+            seedCompanyRequests(noviSad, beograd, sarajevo);
         }
     }
+
+        private void seedCompanyRequests(City noviSad, City beograd, City sarajevo) {
+            Authentication previousAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        try {
+            SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("customer", null, List.of())
+            );
+
+            seedCompanyRequest(
+                "Demo Freight d.o.o.",
+                "Bulevar kralja Petra I 25",
+                noviSad,
+                "https://picsum.photos/seed/company-request-freight/800/600",
+                List.of(
+                    "https://picsum.photos/seed/company-request-freight-proof-1/1200/1600",
+                    "https://picsum.photos/seed/company-request-freight-proof-2/1200/1600"
+                ),
+                CompanyRequest.Status.PENDING
+            );
+
+            seedCompanyRequest(
+                "Demo Cargo d.o.o.",
+                "Knez Mihailova 18",
+                beograd,
+                "https://picsum.photos/seed/company-request-cargo/800/600",
+                List.of("https://picsum.photos/seed/company-request-cargo-proof/1200/1600"),
+                CompanyRequest.Status.REJECTED
+            );
+
+            seedCompanyRequest(
+                "Demo Balkan Trade d.o.o.",
+                "Obala Kulina bana 7",
+                sarajevo,
+                "https://picsum.photos/seed/company-request-balkan/800/600",
+                List.of("https://picsum.photos/seed/company-request-balkan-proof/1200/1600"),
+                CompanyRequest.Status.APPROVED
+            );
+        } finally {
+            SecurityContextHolder.getContext().setAuthentication(previousAuthentication);
+        }
+        }
+
+        private void seedCompanyRequest(
+            String name,
+            String address,
+            City city,
+            String imageUrl,
+            List<String> proofUrls,
+            CompanyRequest.Status status
+        ) {
+        boolean exists = companyRequestRepository.findAll().stream().anyMatch(request -> name.equals(request.getName()));
+        if (exists) return;
+
+        CompanyRequest request = new CompanyRequest();
+        request.setName(name);
+        request.setAddress(address);
+        request.setCity(city);
+        request.setLocation(new GeoLocation("45.2671", "19.8335"));
+        request.setImages(List.of(imageUrl));
+        request.setProofs(proofUrls);
+        request.setStatus(status);
+
+        companyRequestRepository.save(request);
+        }
 
     private Product createProduct(String name, ProductCategory category, BigDecimal price, double weight) {
         return productRepository.findAll().stream()

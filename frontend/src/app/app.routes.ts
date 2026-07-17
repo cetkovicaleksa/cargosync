@@ -11,6 +11,9 @@ import { ProductListComponent } from './product/page/product-list/product-list.c
 import { CatalogueComponent } from './order/page/catalogue/catalogue.component';
 import { OrderListComponent } from './order/page/order-list/order-list.component';
 import { WarehouseListComponent } from './warehouse/page/warehouse-list/warehouse-list.component';
+import { CompanyRequestCreateComponent } from './company-request/page/company-request-create/company-request-create.component';
+import { CompanyRequestManagementComponent } from './company-request/page/company-request-management/company-request-management.component';
+import { VanListComponent } from './van/page/van-list/van-list.component';
 import { rootRedirectGuard } from './root-redirect.guard';
 
 // paramaters:
@@ -20,7 +23,7 @@ import { rootRedirectGuard } from './root-redirect.guard';
 //   data: {roles: [list of roles]} - roles allowed to access the route
 export const routes: Routes = [
     {
-      path: '', 
+      path: '',
       pathMatch: 'full',
       canActivate: [rootRedirectGuard],
       children: []
@@ -64,8 +67,37 @@ export const routes: Routes = [
     },
 
     {
+      path: 'company-requests/new',
+      component: CompanyRequestCreateComponent,
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_CUSTOMER'] },
+    },
+
+    {
+      path: 'company-requests',
+      component: CompanyRequestManagementComponent,
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_MANAGER'] },
+    },
+
+    {
       path: 'warehouses',
       component: WarehouseListComponent,
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_MANAGER'] },
+    },
+
+    {
+      path: 'vans',
+      component: VanListComponent,
+      canActivate: [AuthGuard, RoleGuard],
+      data: { authorities: ['ROLE_MANAGER'] },
+    },
+
+    {
+      path: 'vans/:vin',
+      loadComponent: () =>
+        import('./van/page/van-overview/van-overview.component').then((m) => m.VanOverviewComponent),
       canActivate: [AuthGuard, RoleGuard],
       data: { authorities: ['ROLE_MANAGER'] },
     },

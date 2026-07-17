@@ -60,8 +60,23 @@ export class NavBar {
       visible: () => this.loggedIn() && this.isCustomer(),
     },
     {
+      key: '/company-requests/new',
+      label: 'Register Company',
+      visible: () => this.loggedIn() && this.isCustomer(),
+    },
+    {
       key: '/warehouses',
       label: 'Warehouses',
+      visible: () => this.loggedIn() && this.isManager(),
+    },
+    {
+      key: '/vans',
+      label: 'Vans',
+      visible: () => this.loggedIn() && this.isManager(),
+    },
+    {
+      key: '/company-requests',
+      label: 'Company Requests',
       visible: () => this.loggedIn() && this.isManager(),
     },
     {

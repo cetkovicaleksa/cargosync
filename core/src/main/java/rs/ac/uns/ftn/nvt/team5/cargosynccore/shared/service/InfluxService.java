@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.config.properties.InfluxProperties;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.dto.VanDistancePointDto;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.warehouse.dto.TemperatureDataPointDto;
 
 import java.time.Instant;
@@ -94,6 +95,51 @@ public class InfluxService {
             writeApi.writePoint(point);
         } catch (Exception e) {
             log.error("Failed to write factory production event to InfluxDB", e);
+        }
+    }
+
+    public void writeVanAvailabilityEvent(String vanVin, String status, Instant time) {
+        if (writeApi == null) return;
+        try {
+            var point = Point.measurement("van_availability")
+                    .addTag("van_id", vanVin)
+                    .addField("status", status)
+                    .time(time, WritePrecision.MS);
+            writeApi.writePoint(point);
+        } catch (Exception e) {
+            log.error("Failed to write van availability event to InfluxDB", e);
+        }
+    }
+
+    public void writeVanDistance(String vanVin, double distance, Instant time) {
+        if (writeApi == null) return;
+        try {
+            var point = Point.measurement("van_distance")
+                    .addTag("van_id", vanVin)
+                    .addField("distance", distance)
+                    .time(time, WritePrecision.MS);
+            writeApi.writePoint(point);
+        } catch (Exception e) {
+            log.error("Failed to write van distance event to InfluxDB", e);
+        }
+    }
+
+    public List<VanDistancePointDto> queryVanDistance(String vanVin, Instant start, Instant stop, String windowPeriod) {
+        if (client == null) return List.of();
+
+        String flux = buildVanDistanceFlux(vanVin, start, stop, windowPeriod);
+        try {
+            QueryApi queryApi = client.getQueryApi();
+            return queryApi.query(flux).stream()
+                    .flatMap(table -> table.getRecords().stream())
+                    .map(record -> new VanDistancePointDto(
+                            record.getTime(),
+                            record.getTime(),
+                            record.getValue() instanceof Number n ? n.doubleValue() : 0.0))
+                    .toList();
+        } catch (Exception e) {
+            log.error("InfluxDB van distance query failed for van={}", vanVin, e);
+            return List.of();
         }
     }
 
@@ -275,6 +321,23 @@ public class InfluxService {
                                     |> tail(n: 1)
                                 """, safeBucket, stopStr, safeFactoryId);
         }
+
+    private String buildVanDistanceFlux(String vanVin, Instant start, Instant stop, String windowPeriod) {
+        String startStr = DateTimeFormatter.ISO_INSTANT.format(start);
+        String stopStr = DateTimeFormatter.ISO_INSTANT.format(stop);
+        String safeVanVin = vanVin.replace("'", "\\'");
+        String safeBucket = props.bucket().replace("\"", "\\\"");
+
+        return String.format("""
+                        from(bucket: "%s")
+                            |> range(start: %s, stop: %s)
+                            |> filter(fn: (r) => r["_measurement"] == "van_distance")
+                            |> filter(fn: (r) => r["van_id"] == "%s")
+                            |> filter(fn: (r) => r["_field"] == "distance")
+                            |> aggregateWindow(every: %s, fn: sum, createEmpty: false)
+                            |> sort(columns: ["_time"])
+                        """, safeBucket, startStr, stopStr, safeVanVin, windowPeriod);
+    }
 
     private TemperatureDataPointDto toDataPoint(FluxRecord record) {
         Instant time = record.getTime();

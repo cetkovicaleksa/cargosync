@@ -17,7 +17,7 @@ import static rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.model.Van.VanPK;
 
 @RequiredArgsConstructor
 @Service
-class VanService {
+public class VanService {
 
     private final VanRepository vans;
     private final ContentStore content;

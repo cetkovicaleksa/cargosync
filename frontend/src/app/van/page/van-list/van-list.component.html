@@ -1,0 +1,123 @@
+<section class="page">
+  <header class="page-header">
+    <div class="title">
+      <h1>Delivery Vans</h1>
+      <p>Search, manage, and inspect delivery vehicles.</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-button (click)="reload()">Refresh</button>
+      @if (canManage()) {
+        <button mat-flat-button color="primary" (click)="openCreate()">New van</button>
+      }
+    </div>
+  </header>
+
+  <section class="panel">
+    <section class="filters">
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Search</mat-label>
+        <input matInput [formControl]="form.controls.q" placeholder="Registration, make, or model" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Make</mat-label>
+        <mat-select [formControl]="form.controls.make">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let make of makes" [value]="make.wmi">{{ make.name }} ({{ make.wmi }})</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Model</mat-label>
+        <mat-select [formControl]="form.controls.model" [disabled]="!form.controls.make.value">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let model of models" [value]="model.vd">{{ model.name }} ({{ model.vd }})</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Can carry at least (kg)</mat-label>
+        <input matInput type="number" [formControl]="form.controls.canCarryKg" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Not larger than (kg)</mat-label>
+        <input matInput type="number" [formControl]="form.controls.tooBigIfCanCarryKg" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Sort by</mat-label>
+        <mat-select [formControl]="form.controls.sortBy">
+          <mat-option value="registrationNumber">Registration</mat-option>
+          <mat-option value="maxPayload">Payload</mat-option>
+          <mat-option value="model.name">Model</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Direction</mat-label>
+        <mat-select [formControl]="form.controls.sortDirection">
+          <mat-option value="asc">Ascending</mat-option>
+          <mat-option value="desc">Descending</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </section>
+
+    <section class="results">
+      <div class="table-wrap" *ngIf="items.length > 0">
+        <table class="table" aria-label="Vans list">
+          <thead>
+            <tr>
+              <th>Registration</th>
+              <th>Model</th>
+              <th>Payload</th>
+              <th>Images</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row" *ngFor="let van of items; trackBy: trackByVin">
+              <td class="name-cell">
+                <div class="name">{{ van.registrationNumber }}</div>
+                <div class="muted">VIN: {{ van.vin }}</div>
+              </td>
+              <td>{{ modelLabel(van) }}</td>
+              <td>{{ van.maxPayload | number:'1.0-0' }} kg</td>
+              <td>
+                <div class="image-cell" *ngIf="imageUrl(van); else noImage">
+                  <app-protected-image class="thumb" [src]="imageUrl(van)!" [alt]="van.registrationNumber" (click)="openImagePreview(imageUrl(van)!)" />
+                  <span class="extra-count" *ngIf="imageCount(van) > 1">+{{ imageCount(van) - 1 }}</span>
+                </div>
+                <ng-template #noImage>
+                  <span class="no-image">No image</span>
+                </ng-template>
+              </td>
+              <td class="actions actions-col">
+                <button mat-stroked-button (click)="openOverview(van)">Overview</button>
+                @if (canManage()) {
+                  <button mat-stroked-button (click)="openEdit(van)">Edit</button>
+                  <button mat-stroked-button color="warn" (click)="delete(van)">Delete</button>
+                }
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer" *ngIf="!loading && !last && items.length > 0">
+        <button mat-button (click)="loadMore()" [disabled]="loadingMore">
+          {{ loadingMore ? 'Loading…' : 'Load more' }}
+        </button>
+      </div>
+
+      <div class="empty" *ngIf="!loading && items.length === 0">
+        No vans found.
+      </div>
+
+      <div class="loading-hint" *ngIf="loading">
+        Loading…
+      </div>
+    </section>
+  </section>
+</section>

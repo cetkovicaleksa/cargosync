@@ -13,6 +13,7 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.dto.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.service.*;
 
 import java.net.URI;
+import java.time.Instant;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.*;
@@ -26,6 +27,7 @@ class VanController {
     private final NewVanUC newVanUC;
     private final QueryVansUC queryVansUc;
     private final DeleteVanUC deleteVanUc;
+        private final VanAnalyticsService vanAnalyticsService;
     private final ModelMapper modelMapper;
     private final HttpUtil httpUtil;
 
@@ -52,6 +54,20 @@ class VanController {
                 // NOTE: Not sure what cache properties
                 .body(modelMapper.map(van, VanDto.class));
     }
+
+        @GetMapping("/{vin}/status")
+        VanStatusDto getVanStatus(@PathVariable String vin) {
+                return vanAnalyticsService.getStatus(vin);
+        }
+
+        @GetMapping("/{vin}/distance")
+        VanDistanceSeriesDto getVanDistanceSeries(
+                        @PathVariable String vin,
+                        @RequestParam Instant from,
+                        @RequestParam Instant to
+        ) {
+                return vanAnalyticsService.getDistanceSeries(vin, from, to);
+        }
 
     @PostMapping(consumes = MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MANAGER')")

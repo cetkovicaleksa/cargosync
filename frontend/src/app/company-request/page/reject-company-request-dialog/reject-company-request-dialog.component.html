@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>Reject Request</h2>
+
+<mat-dialog-content>
+  <p class="description">
+    Provide a short explanation why <strong>{{ data.companyName }}</strong> is being rejected.
+  </p>
+
+  <form [formGroup]="form" class="form">
+    <mat-form-field appearance="outline" class="field-full">
+      <mat-label>Reason</mat-label>
+      <textarea matInput rows="4" formControlName="reason"></textarea>
+      @if (form.controls.reason.hasError('required')) {
+        <mat-error>Reason is required.</mat-error>
+      }
+      @if (form.controls.reason.hasError('minlength')) {
+        <mat-error>Reason must be at least 5 characters long.</mat-error>
+      }
+      @if (form.controls.reason.hasError('maxlength')) {
+        <mat-error>Reason must be at most 500 characters long.</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-flat-button color="warn" (click)="submit()">Reject</button>
+</mat-dialog-actions>

@@ -1,0 +1,128 @@
+<section class="page">
+  <header class="page-header">
+    <div class="title">
+      <h1>{{ van?.registrationNumber || 'Van Overview' }}</h1>
+      <p>{{ van?.model?.name || 'Vehicle telemetry and status' }}</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-button (click)="back()">Back</button>
+      <button mat-button (click)="refresh()">Refresh</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <div class="overview-grid">
+      <div class="hero-card">
+        <div class="hero-meta">
+          <div class="hero-line">VIN: {{ van?.vin || vin }}</div>
+          <div class="hero-line">Model: {{ van?.model?.name || '—' }}</div>
+          <div class="hero-line">Payload: {{ van?.maxPayload | number:'1.0-0' }} kg</div>
+          <div class="hero-line">Registration: {{ van?.registrationNumber || '—' }}</div>
+        </div>
+
+        <div class="status-row">
+          <span class="status-label">Status</span>
+          <span class="status-badge" [class.online]="status?.online" [class.offline]="status && !status.online">
+            {{ loadingStatus ? 'Loading…' : (status ? (status.online ? 'Online' : 'Offline') : 'Unknown') }}
+          </span>
+        </div>
+
+        <div class="hero-lines">
+          <div><strong>Last heartbeat:</strong> {{ formatTime(status?.lastHeartbeat) }}</div>
+          <div><strong>Last seen location:</strong> {{ formatLocation() }}</div>
+        </div>
+      </div>
+
+      <div class="images-card">
+        <h2>Images</h2>
+        <div class="image-grid" *ngIf="van?.images?.length; else noImages">
+          <button class="image-btn" *ngFor="let image of van?.images; let i = index; trackBy: trackByIndex" (click)="openPreviewFromVan(i)">
+            <app-protected-image class="image-thumb" [src]="image" [alt]="van?.registrationNumber || 'Van image'" />
+          </button>
+        </div>
+        <ng-template #noImages>
+          <div class="empty-inline">No images available.</div>
+        </ng-template>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="section-head">
+      <h2>Distance Analytics</h2>
+      <button mat-stroked-button type="button" (click)="loadDistanceSeries()">Load chart</button>
+    </div>
+
+    <section class="filters narrow-filters">
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Period preset</mat-label>
+        <mat-select [formControl]="periodForm.controls.preset">
+          <mat-option *ngFor="let option of timeOptions" [value]="option.key">{{ option.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>From</mat-label>
+        <input matInput [matDatepicker]="fromPicker" [formControl]="periodForm.controls.fromDate" readonly />
+        <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
+        <mat-datepicker #fromPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>To</mat-label>
+        <input matInput [matDatepicker]="toPicker" [formControl]="periodForm.controls.toDate" readonly />
+        <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
+        <mat-datepicker #toPicker></mat-datepicker>
+      </mat-form-field>
+    </section>
+
+    <div class="summary-row" *ngIf="distanceSeries as s">
+      <div>
+        Bucket: <strong>{{ s.bucket }}</strong>
+      </div>
+      <div>
+        Total distance: <strong>{{ s.totalDistance | number:'1.0-1' }} km</strong>
+      </div>
+      <div>
+        Points: <strong>{{ s.points.length }}</strong>
+      </div>
+    </div>
+
+    <div class="chart-wrap" *ngIf="distanceSeries?.points?.length; else noDistanceData">
+      <div class="chart" [style.width.px]="840" [style.height.px]="260">
+        <div class="bar-wrap" *ngFor="let point of distanceSeries!.points; let i = index">
+          <div class="bar" [style.height.px]="distanceBarHeight(point.distance)" [title]="distancePointLabel(i) + ': ' + point.distance"></div>
+          <div class="bar-value">{{ point.distance | number:'1.0-1' }}</div>
+        </div>
+      </div>
+
+      <div class="x-ticks">
+        <span class="tick-label" *ngFor="let i of distanceTickIndices()">{{ distancePointLabel(i) }}</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table compact">
+          <thead>
+            <tr>
+              <th>Period</th>
+              <th>Distance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let point of distanceSeries!.points">
+              <td>{{ point.periodStart | date:'mediumDate' }} → {{ point.periodEnd | date:'mediumDate' }}</td>
+              <td>{{ point.distance | number:'1.0-1' }} km</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <ng-template #noDistanceData>
+      <div class="empty-inline">
+        {{ loadingDistance ? 'Loading…' : 'No distance telemetry found for the selected period.' }}
+      </div>
+    </ng-template>
+  </section>
+</section>
