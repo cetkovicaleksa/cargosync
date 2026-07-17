@@ -5,8 +5,8 @@ services:
     image: rabbitmq:4-alpine
     expose: ["5672"]
     environment:
-      RABBITMQ_DEFAULT_USER: ${CARGOSYNC_RABBITMQ_USERNAME}
-      RABBITMQ_DEFAULT_PASS: ${CARGOSYNC_RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_USER: ${CARGOSYNC_RABBITMQ_USERNAME:-admin}
+      RABBITMQ_DEFAULT_PASS: ${CARGOSYNC_RABBITMQ_PASSWORD:-adminpass}
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq:rw
     networks:
@@ -16,7 +16,7 @@ services:
     image: postgres:18-alpine
     expose: ["5432"]
     volumes:
-      - postgres-data:/var/lib/postgresql/data:rw
+      - postgres-data:/var/lib/postgresql:rw
     networks:
       - cargo-net
 

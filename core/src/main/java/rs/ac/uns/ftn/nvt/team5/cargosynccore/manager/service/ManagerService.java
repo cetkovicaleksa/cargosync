@@ -82,7 +82,7 @@ public class ManagerService {
 
         Manager manager = new Manager(email, avatar);
 
-        String rawPassword = generateRandomPassword();
+        String rawPassword = "1234";// generateRandomPassword();
 
         if (superManager)
             logPasswordToFile(email, username, rawPassword);

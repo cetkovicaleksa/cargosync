@@ -14,11 +14,14 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.model.CompanyRequest;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.company.repository.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.exception.*;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.*;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.repository.CityRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.EmailService;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 import static rs.ac.uns.ftn.nvt.team5.cargosynccore.company.model.CompanyRequest.Status;
@@ -29,6 +32,7 @@ public class CompanyService {
 
     private final CompanyRepository companies;
     private final CompanyRequestRepository requests;
+    private final CityRepository cities;
     private final UserDetailsService userDetailsService;
     private final ContentStore content;
     private final EmailService email;
@@ -55,10 +59,10 @@ public class CompanyService {
     public void requestCompany(CompanyRequestForm form) {
         var request = _requestCompany(form);
 
-        var docnames = request.getImages();
+        var docnames = new ArrayList<String>(request.getImages());
         docnames.addAll(request.getProofs());
 
-        var docs = form.getImages();
+        var docs = new ArrayList<>(form.getImages());
         docs.addAll(form.getProofs());
 
         for (int i = 0; i < docnames.size(); i++) {
@@ -69,15 +73,18 @@ public class CompanyService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected CompanyRequest _requestCompany(CompanyRequestForm form) {
-        var city = new City(form.getCity().getCountryCode(), form.getCity().getCode());
+        var city = cities.findByCountryCodeAndCode(form.getCity().getCountryCode(), form.getCity().getCode())
+            .orElseThrow(() -> new BadRequestException(
+                "Unknown city: " + form.getCity().getCountryCode() + "-" + form.getCity().getCode()
+            ));
         var location = new GeoLocation(form.getLocation().getLatitude(), form.getLocation().getLongitude());
 
         var images = form.getImages().stream()
                 .map(img -> "attachments/companies/" + UUID.randomUUID() + "-" + img.getOriginalFilename())
-                .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
         var proofs = form.getProofs().stream()
                 .map(doc -> "attachments/companies/" + UUID.randomUUID() + "-" + doc.getOriginalFilename())
-                .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
 
         var request = new CompanyRequest();
         request.setName(form.getName());

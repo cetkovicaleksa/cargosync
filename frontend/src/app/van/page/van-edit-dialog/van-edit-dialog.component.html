@@ -1,0 +1,66 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<div mat-dialog-content>
+  <form [formGroup]="form" class="form">
+    <div class="grid two">
+      <mat-form-field appearance="outline">
+        <mat-label>Registration number</mat-label>
+        <input matInput formControlName="registrationNumber" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Max payload (kg)</mat-label>
+        <input matInput type="number" formControlName="maxPayload" />
+      </mat-form-field>
+    </div>
+
+    <div class="grid two">
+      <mat-form-field appearance="outline">
+        <mat-label>Make</mat-label>
+        <mat-select formControlName="makeCode">
+          <mat-option *ngFor="let make of makes" [value]="make.wmi">{{ make.name }} ({{ make.wmi }})</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Model</mat-label>
+        <mat-select formControlName="modelCode" [disabled]="!form.controls.makeCode.value">
+          <mat-option *ngFor="let model of models" [value]="model.vd">{{ model.name }} ({{ model.vd }})</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <section class="upload-block">
+      <div class="upload-head">
+        <h3>Images</h3>
+        <label class="upload-label" for="van-image-input">Add images</label>
+        <input id="van-image-input" type="file" accept="image/*" multiple (change)="onPickFiles($event)" />
+      </div>
+
+      <div class="upload-grid" *ngIf="existingImageUrls.length > 0 || selectedImagePreviews.length > 0">
+        <article class="upload-item" *ngFor="let image of existingImageUrls; let i = index">
+          <app-protected-image class="thumb" [src]="image" alt="Van image" (click)="openPreview(image)" />
+          <div class="meta">Existing image</div>
+          <button mat-icon-button type="button" class="remove-btn" (click)="removeExistingImage(i)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </article>
+
+        <article class="upload-item" *ngFor="let item of selectedImagePreviews; let i = index">
+          <img class="thumb" [src]="item.url" [alt]="item.file.name" (click)="openPreview(item.url)" />
+          <div class="meta">{{ item.file.name }}</div>
+          <button mat-icon-button type="button" class="remove-btn" (click)="removeSelectedFile(i)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </article>
+      </div>
+    </section>
+  </form>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="submitting">Cancel</button>
+  <button mat-flat-button color="primary" (click)="submit()" [disabled]="submitting">
+    {{ submitting ? 'Saving…' : modeLabel }}
+  </button>
+</div>

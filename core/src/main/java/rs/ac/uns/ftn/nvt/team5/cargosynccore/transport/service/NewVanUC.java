@@ -6,8 +6,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.service.ContentStore;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.dto.VanForm;
-import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.model.Model;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.model.Van;
+import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.repository.MakeRepository;
 import rs.ac.uns.ftn.nvt.team5.cargosynccore.transport.repository.VanRepository;
 
 import java.util.UUID;
@@ -16,6 +16,7 @@ import java.util.UUID;
 @Service
 public class NewVanUC {
     private final VanRepository vans;
+    private final MakeRepository makes;
     private final ContentStore content;
 
     @Transactional
@@ -34,7 +35,12 @@ public class NewVanUC {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected Van _createVan(VanForm form) {
-        var model = new Model(form.getWmi(), form.getVi());
+        var make = makes.findById(form.getWmi())
+            .orElseThrow(() -> new IllegalArgumentException("Unknown van make: " + form.getWmi()));
+        var model = make.getModels().stream()
+            .filter(m -> form.getVi().equals(m.getVd()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown van model: " + form.getWmi() + " " + form.getVi()));
 
         var images = form.getImages().stream()
                 .map(img -> "attachments/vans/" + UUID.randomUUID() + "-" + img.getOriginalFilename())

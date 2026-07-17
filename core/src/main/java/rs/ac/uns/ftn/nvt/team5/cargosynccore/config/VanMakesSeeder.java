@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.nvt.team5.cargosynccore.config;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.Nullable;
@@ -21,6 +22,7 @@ import java.util.stream.StreamSupport;
 @Slf4j
 @RequiredArgsConstructor
 @Component
+@Order(2)
 public class VanMakesSeeder implements CommandLineRunner {
 
     private final MakeRepository makes;
