@@ -1,0 +1,113 @@
+<section class="page">
+  <header class="page-header">
+    <div class="title">
+      <h1>Register Company Request</h1>
+      <p>Submit your company details, map location, and ownership proofs.</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-flat-button color="primary" (click)="submit()" [disabled]="submitting">
+        {{ submitting ? 'Submitting…' : 'Submit request' }}
+      </button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <form [formGroup]="form" class="form" (ngSubmit)="submit()">
+      <div class="grid two">
+        <mat-form-field appearance="outline">
+          <mat-label>Company name</mat-label>
+          <input matInput formControlName="name" />
+          @if (form.controls.name.hasError('required')) {
+            <mat-error>Name is required.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Address</mat-label>
+          <input matInput formControlName="address" />
+          @if (form.controls.address.hasError('required')) {
+            <mat-error>Address is required.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="grid two">
+        <mat-form-field appearance="outline">
+          <mat-label>Country</mat-label>
+          <mat-select formControlName="countryCode">
+            <mat-option *ngFor="let c of countries" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+          </mat-select>
+          @if (form.controls.countryCode.hasError('required')) {
+            <mat-error>Country is required.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>City</mat-label>
+          <mat-select formControlName="cityCode" [disabled]="!form.controls.countryCode.value">
+            <mat-option *ngFor="let c of cities" [value]="c.code">{{ c.name }} ({{ c.code }})</mat-option>
+          </mat-select>
+          @if (form.controls.cityCode.hasError('required')) {
+            <mat-error>City is required.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="grid two">
+        <mat-form-field appearance="outline">
+          <mat-label>Latitude</mat-label>
+          <input matInput type="number" step="0.000001" formControlName="latitude" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Longitude</mat-label>
+          <input matInput type="number" step="0.000001" formControlName="longitude" />
+        </mat-form-field>
+      </div>
+
+      <div class="map" #mapHost aria-label="Company location map"></div>
+      <p class="hint">Click the map to set company location.</p>
+
+      <section class="upload-block">
+        <div class="upload-head">
+          <h2>Company images</h2>
+          <label class="upload-label" for="company-images">Add images</label>
+          <input id="company-images" type="file" accept="image/*" multiple (change)="onPickImages($event)" />
+        </div>
+
+        <div class="upload-grid" *ngIf="images.length > 0">
+          <article class="upload-item" *ngFor="let item of images; let i = index; trackBy: trackByFileName">
+            <img class="thumb" [src]="item.previewUrl" [alt]="item.file.name" />
+            <div class="meta">{{ item.file.name }}</div>
+            <button mat-icon-button type="button" class="remove-btn" (click)="removeImage(i)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <section class="upload-block">
+        <div class="upload-head">
+          <h2>Ownership proofs</h2>
+          <label class="upload-label" for="company-proofs">Add proofs</label>
+          <input id="company-proofs" type="file" accept="image/*,.pdf,application/pdf" multiple (change)="onPickProofs($event)" />
+        </div>
+
+        <div class="upload-grid" *ngIf="proofs.length > 0">
+          <article class="upload-item" *ngFor="let item of proofs; let i = index; trackBy: trackByFileName">
+            @if (item.isImage) {
+              <img class="thumb" [src]="item.previewUrl" [alt]="item.file.name" />
+            } @else {
+              <div class="pdf-placeholder">PDF</div>
+            }
+            <div class="meta">{{ item.file.name }}</div>
+            <button mat-icon-button type="button" class="remove-btn" (click)="removeProof(i)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </article>
+        </div>
+      </section>
+    </form>
+  </section>
+</section>

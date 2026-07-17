@@ -8,27 +8,19 @@ import rs.ac.uns.ftn.nvt.team5.cargosynccore.shared.model.GeoLocation;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
-import java.util.UUID;
 
 @Getter
 @Setter
+@Entity
 @NoArgsConstructor
-//@AllArgsConstructor
-//@Entity
-//@Table(
-//        name = "van_statuses"
-//)
+@Table(name = "van_statuses")
 public class VanStatus {
 
     private static final Duration ONLINE_THRESHOLD = Duration.ofMinutes(2);
 
-//    @Id
-//    private UUID vanId;
-//
-//    @MapsId
-//    @OneToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "van_id", nullable = false, unique = true, updatable = false)
-//    private Van van;
+    @Id
+    @Column(name = "vin", nullable = false, length = 64)
+    private String vin;
 
     @Valid
     @Embedded
@@ -42,11 +34,19 @@ public class VanStatus {
     private Instant lastHeartBeat;
 
     @Column(name = "is_online", nullable = false)
-    private Boolean online;
+    private boolean online;
+
+    @Version
+    private Long version;
+
+    public VanStatus(String vin) {
+        this.vin = vin;
+    }
 
     @PostLoad
     @PostPersist
     @PostUpdate
+    @PrePersist
     private void computeOnline() {
         online = Optional.ofNullable(lastHeartBeat)
                 .map(Instant.now().minus(ONLINE_THRESHOLD)::isBefore)

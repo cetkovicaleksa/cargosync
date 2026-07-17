@@ -1,0 +1,86 @@
+<section class="page">
+  <header class="page-header">
+    <div class="title">
+      <h1>Company Registration Requests</h1>
+      <p>Review submitted companies and approve or reject pending requests.</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-button (click)="reload()">Refresh</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <section class="filters" aria-label="Request filters">
+      <mat-form-field appearance="outline" class="filter-item">
+        <mat-label>Status</mat-label>
+        <mat-select [formControl]="form.controls.status">
+          <mat-option value="PENDING">Pending</mat-option>
+          <mat-option value="APPROVED">Approved</mat-option>
+          <mat-option value="REJECTED">Rejected</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </section>
+
+    <section class="results">
+      <div class="cards" *ngIf="items.length > 0">
+        <article class="card" *ngFor="let request of items; trackBy: trackById">
+          <header class="card-head">
+            <div>
+              <h2>{{ request.name }}</h2>
+              <p>{{ request.address }} | {{ cityLabel(request) }}</p>
+            </div>
+            <span class="badge" [class.pending]="request.status === 'PENDING'" [class.approved]="request.status === 'APPROVED'" [class.rejected]="request.status === 'REJECTED'">
+              {{ request.status }}
+            </span>
+          </header>
+
+          <div class="location">
+            Location: {{ request.location.latitude | number:'1.4-6' }}, {{ request.location.longitude | number:'1.4-6' }}
+          </div>
+
+          <section class="attachments" *ngIf="request.images?.length">
+            <h3>Company images</h3>
+            <div class="thumb-row">
+              <button
+                type="button"
+                class="thumb-btn"
+                *ngFor="let image of request.images"
+                (click)="openImage(image)">
+                <app-protected-image [src]="image" alt="Company image" />
+              </button>
+            </div>
+          </section>
+
+          <section class="attachments" *ngIf="request.proofs?.length">
+            <h3>Proof documents</h3>
+            <div class="proof-row">
+              <button mat-stroked-button type="button" *ngFor="let proof of request.proofs; let i = index" (click)="openProof(proof)">
+                {{ isImage(proof) ? 'Image proof' : 'PDF proof' }} {{ i + 1 }}
+              </button>
+            </div>
+          </section>
+
+          <div class="actions" *ngIf="request.status === 'PENDING'">
+            <button mat-flat-button color="primary" (click)="approve(request)">Approve</button>
+            <button mat-stroked-button color="warn" (click)="reject(request)">Reject</button>
+          </div>
+        </article>
+      </div>
+
+      <div class="footer" *ngIf="!loading && !last && items.length > 0">
+        <button mat-button (click)="loadMore()" [disabled]="loadingMore">
+          {{ loadingMore ? 'Loading…' : 'Load more' }}
+        </button>
+      </div>
+
+      <div class="empty" *ngIf="!loading && items.length === 0">
+        No requests found for selected status.
+      </div>
+
+      <div class="loading-hint" *ngIf="loading">
+        Loading…
+      </div>
+    </section>
+  </section>
+</section>

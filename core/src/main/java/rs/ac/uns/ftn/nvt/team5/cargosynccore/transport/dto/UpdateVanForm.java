@@ -11,6 +11,9 @@ import java.util.Set;
 @Data
 public class UpdateVanForm {
 
+    @Nullable
+    private ModelForm model;
+
     @Null
     private transient String vin; // not sure how to ignore this with form data
 
@@ -31,5 +34,19 @@ public class UpdateVanForm {
 
     @Null
     private transient Integer version;
+
+    @Data
+    public static class ModelForm {
+        private String wmi;
+        private String vd;
+    }
+
+    public String getWmi() {
+        return model != null ? model.getWmi() : null;
+    }
+
+    public String getVi() {
+        return model != null ? model.getVd() : null;
+    }
 
 }
