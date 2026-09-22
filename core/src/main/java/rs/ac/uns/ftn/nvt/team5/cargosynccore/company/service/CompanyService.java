@@ -121,7 +121,7 @@ public class CompanyService {
                 request.getCity(),
                 request.getAddress(),
                 request.getLocation(),
-                request.getImages()
+                new ArrayList<>(request.getImages())
         );
         companies.save(company);
         return request;

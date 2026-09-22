@@ -2,6 +2,12 @@
   width: min(760px, 88vw);
 }
 
+.dialog-intro {
+  margin: 0 0 16px;
+  color: rgba(0, 0, 0, 0.68);
+  font-size: 14px;
+}
+
 .grid {
   display: grid;
   gap: 12px;
@@ -27,6 +33,17 @@
 .upload-head h3 {
   margin: 0;
   font-size: 15px;
+}
+
+.upload-hint {
+  color: rgba(0, 0, 0, 0.58);
+  font-size: 12px;
+}
+
+.upload-error {
+  margin: 8px 0 0;
+  color: #b3261e;
+  font-size: 12px;
 }
 
 .upload-head input[type='file'] {

@@ -43,7 +43,9 @@ export class VanService {
   }
 
   getMakes(): Observable<MakeDto[]> {
-    return this.http.get<MakeDto[]>(this.makesUrl);
+    return this.http.get<PageDto<MakeDto>>(this.makesUrl).pipe(
+      map((page) => page.content ?? []),
+    );
   }
 
   create(request: SaveVanRequestDto, images: File[]): Observable<VanDto> {

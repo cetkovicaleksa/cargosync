@@ -14,6 +14,9 @@ func main() {
 	if cfg.Mode == "factory" {
 		log.Printf("starting simulator for factory %s with %d product(s)", cfg.FactoryID, len(cfg.Products))
 		log.Printf("heartbeat every %v, production every %v", cfg.HeartbeatInterval, cfg.ProductionInterval)
+	} else if cfg.Mode == "vehicle" {
+		log.Printf("starting simulator for van %s", cfg.VanID)
+		log.Printf("heartbeat and distance every %v", cfg.HeartbeatInterval)
 	} else {
 		log.Printf("starting simulator for warehouse %s with %d sector(s)", cfg.WarehouseID, len(cfg.Sectors))
 		log.Printf("heartbeat every %v, temperature every %v", cfg.HeartbeatInterval, cfg.TemperatureInterval)
@@ -26,6 +29,9 @@ func main() {
 	if cfg.Mode == "factory" {
 		go runFactoryHeartbeat(pub, cfg, done)
 		go runFactoryProduction(pub, cfg, done)
+	} else if cfg.Mode == "vehicle" {
+		go runVanHeartbeat(pub, cfg, done)
+		go runVanDistance(pub, cfg, done)
 	} else {
 		go runHeartbeat(pub, cfg, done)
 		go runTemperature(pub, cfg, done)
@@ -33,6 +39,56 @@ func main() {
 
 	// Block forever (Ctrl-C to stop).
 	<-done
+}
+
+func runVanHeartbeat(pub *Publisher, cfg *Config, done chan struct{}) {
+	ticker := time.NewTicker(cfg.HeartbeatInterval)
+	defer ticker.Stop()
+	sendVanHeartbeat(pub, cfg)
+	for {
+		select {
+		case <-ticker.C:
+			sendVanHeartbeat(pub, cfg)
+		case <-done:
+			return
+		}
+	}
+}
+
+func sendVanHeartbeat(pub *Publisher, cfg *Config) {
+	msg := VanHeartbeatMessage{VanID: cfg.VanID, Type: "heartbeat", Timestamp: time.Now().UTC().Format(time.RFC3339)}
+	if err := pub.publish(vanExchange, vanHeartbeatKey, msg); err != nil {
+		log.Printf("van heartbeat publish error: %v", err)
+	}
+}
+
+func runVanDistance(pub *Publisher, cfg *Config, done chan struct{}) {
+	ticker := time.NewTicker(cfg.HeartbeatInterval)
+	defer ticker.Stop()
+	latitude, longitude := cfg.StartLatitude, cfg.StartLongitude
+	distance := 0.0
+	sendVanDistance(pub, cfg, latitude, longitude, distance)
+	for {
+		select {
+		case <-ticker.C:
+			latitude += (rand.Float64() - 0.5) * 0.002
+			longitude += (rand.Float64() - 0.5) * 0.002
+			distance += 0.5 + rand.Float64()*4.5
+			sendVanDistance(pub, cfg, latitude, longitude, distance)
+		case <-done:
+			return
+		}
+	}
+}
+
+func sendVanDistance(pub *Publisher, cfg *Config, latitude, longitude, distance float64) {
+	msg := VanDistanceMessage{
+		VanID: cfg.VanID, Type: "distance", Timestamp: time.Now().UTC().Format(time.RFC3339),
+		Location: VanLocation{Latitude: latitude, Longitude: longitude}, Distance: round1(distance),
+	}
+	if err := pub.publish(vanExchange, vanDataKey, msg); err != nil {
+		log.Printf("van distance publish error: %v", err)
+	}
 }
 
 // runHeartbeat publishes a heartbeat on every HeartbeatInterval tick.

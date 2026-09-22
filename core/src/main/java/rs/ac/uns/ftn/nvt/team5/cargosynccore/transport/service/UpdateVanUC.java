@@ -34,6 +34,12 @@ public class UpdateVanUC {
         Optional.ofNullable(vanRequest.getRemoveImages())
                 .ifPresent(van.getImages()::removeAll); //
 
+        Optional.ofNullable(vanRequest.getNewImages())
+                .ifPresent(images -> images.stream()
+                        .filter(image -> image != null && !image.isEmpty())
+                        .map(image -> vanService.saveVanImage(van, image))
+                        .forEach(van.getImages()::add));
+
         return vans.save(van);
     }
 

@@ -14,8 +14,7 @@ public class VanForm {
     private ModelForm model;
 
     @NotNull
-    @Min(5)
-    @Max(20)
+    @Size(min = 5, max = 20)
     private String registrationNumber;
 
     @NotNull

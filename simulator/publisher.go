@@ -11,10 +11,13 @@ import (
 )
 
 const (
-	heartbeatExchange = "warehouse.heartbeat"
-	dataExchange      = "warehouse.data"
+	heartbeatExchange        = "warehouse.heartbeat"
+	dataExchange             = "warehouse.data"
 	factoryHeartbeatExchange = "factory.heartbeat"
 	factoryDataExchange      = "factory.data"
+	vanExchange              = "van.exchange"
+	vanHeartbeatKey          = "van.hartbeat"
+	vanDataKey               = "van.data"
 )
 
 // HeartbeatMessage matches the spec format (snake_case JSON)
@@ -58,6 +61,25 @@ type FactoryProductionMessage struct {
 	Readings  []ProductReading `json:"readings"`
 }
 
+type VanHeartbeatMessage struct {
+	VanID     string `json:"van_id"`
+	Type      string `json:"type"`
+	Timestamp string `json:"timestamp"`
+}
+
+type VanLocation struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+type VanDistanceMessage struct {
+	VanID     string      `json:"van_id"`
+	Type      string      `json:"type"`
+	Timestamp string      `json:"timestamp"`
+	Location  VanLocation `json:"location"`
+	Distance  float64     `json:"distance"`
+}
+
 // Publisher wraps an AMQP connection and channel.
 // A mutex protects the channel so multiple goroutines can publish safely.
 type Publisher struct {
@@ -88,7 +110,7 @@ func (p *Publisher) connect() error {
 	}
 
 	// Declare both exchanges — idempotent, must match Spring Boot config
-	for _, ex := range []string{heartbeatExchange, dataExchange, factoryHeartbeatExchange, factoryDataExchange} {
+	for _, ex := range []string{heartbeatExchange, dataExchange, factoryHeartbeatExchange, factoryDataExchange, vanExchange} {
 		if err := ch.ExchangeDeclare(
 			ex, "topic",
 			true,  // durable

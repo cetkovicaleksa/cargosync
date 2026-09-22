@@ -75,6 +75,7 @@
           <label class="upload-label" for="company-images">Add images</label>
           <input id="company-images" type="file" accept="image/*" multiple (change)="onPickImages($event)" />
         </div>
+        <p class="upload-hint">Add one or more photos of the company. Each image can be up to 10 MB; all files together can be up to 64 MB.</p>
 
         <div class="upload-grid" *ngIf="images.length > 0">
           <article class="upload-item" *ngFor="let item of images; let i = index; trackBy: trackByFileName">
@@ -93,6 +94,7 @@
           <label class="upload-label" for="company-proofs">Add proofs</label>
           <input id="company-proofs" type="file" accept="image/*,.pdf,application/pdf" multiple (change)="onPickProofs($event)" />
         </div>
+        <p class="upload-hint">Add ownership documents as images or PDF files. Each proof can be up to 15 MB.</p>
 
         <div class="upload-grid" *ngIf="proofs.length > 0">
           <article class="upload-item" *ngFor="let item of proofs; let i = index; trackBy: trackByFileName">

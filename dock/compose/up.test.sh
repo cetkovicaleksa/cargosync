@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
-# set -e
+set -e
 docker compose -f compose.yaml -f compose.test.yaml up -d --build

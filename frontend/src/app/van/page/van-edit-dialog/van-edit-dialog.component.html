@@ -1,16 +1,22 @@
 <h2 mat-dialog-title>{{ title }}</h2>
 
 <div mat-dialog-content>
+  <p class="dialog-intro">Enter the vehicle registration, carrying capacity, make, model, and vehicle photos.</p>
   <form [formGroup]="form" class="form">
     <div class="grid two">
       <mat-form-field appearance="outline">
         <mat-label>Registration number</mat-label>
-        <input matInput formControlName="registrationNumber" />
+        <input matInput formControlName="registrationNumber" placeholder="NS-123-AB" />
+        <mat-hint>5 to 20 characters</mat-hint>
+        <mat-error *ngIf="form.controls.registrationNumber.hasError('required')">Registration number is required.</mat-error>
+        <mat-error *ngIf="form.controls.registrationNumber.hasError('minlength')">Use at least 5 characters.</mat-error>
+        <mat-error *ngIf="form.controls.registrationNumber.hasError('maxlength')">Use at most 20 characters.</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Max payload (kg)</mat-label>
         <input matInput type="number" formControlName="maxPayload" />
+        <mat-error *ngIf="form.controls.maxPayload.hasError('required') || form.controls.maxPayload.hasError('min')">Enter a payload greater than 0 kg.</mat-error>
       </mat-form-field>
     </div>
 
@@ -20,6 +26,7 @@
         <mat-select formControlName="makeCode">
           <mat-option *ngFor="let make of makes" [value]="make.wmi">{{ make.name }} ({{ make.wmi }})</mat-option>
         </mat-select>
+        <mat-error *ngIf="form.controls.makeCode.hasError('required')">Select a make.</mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
@@ -27,6 +34,7 @@
         <mat-select formControlName="modelCode" [disabled]="!form.controls.makeCode.value">
           <mat-option *ngFor="let model of models" [value]="model.vd">{{ model.name }} ({{ model.vd }})</mat-option>
         </mat-select>
+        <mat-error *ngIf="form.controls.modelCode.hasError('required')">Select a model.</mat-error>
       </mat-form-field>
     </div>
 
@@ -34,8 +42,10 @@
       <div class="upload-head">
         <h3>Images</h3>
         <label class="upload-label" for="van-image-input">Add images</label>
-        <input id="van-image-input" type="file" accept="image/*" multiple (change)="onPickFiles($event)" />
+        <input id="van-image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple (change)="onPickFiles($event)" />
+        <span class="upload-hint">At least one image, up to 10 MB each</span>
       </div>
+      <p class="upload-hint">Vehicle photos are required when creating a van. Select JPG, PNG, or WebP files.</p>
 
       <div class="upload-grid" *ngIf="existingImageUrls.length > 0 || selectedImagePreviews.length > 0">
         <article class="upload-item" *ngFor="let image of existingImageUrls; let i = index">
@@ -54,6 +64,7 @@
           </button>
         </article>
       </div>
+      <p class="upload-error" *ngIf="imageErrorVisible">Add at least one van image to create the vehicle.</p>
     </section>
   </form>
 </div>

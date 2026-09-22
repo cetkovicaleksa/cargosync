@@ -9,12 +9,15 @@ import (
 )
 
 type Config struct {
-	Mode                string         `json:"mode"`
-	WarehouseID         string         `json:"warehouse_id"`
-	FactoryID           string         `json:"factory_id"`
-	RabbitMQURL         string         `json:"rabbitmq_url"`
-	Sectors             []SectorConfig `json:"sectors"`
+	Mode                string          `json:"mode"`
+	WarehouseID         string          `json:"warehouse_id"`
+	FactoryID           string          `json:"factory_id"`
+	VanID               string          `json:"van_id"`
+	RabbitMQURL         string          `json:"rabbitmq_url"`
+	Sectors             []SectorConfig  `json:"sectors"`
 	Products            []ProductConfig `json:"products"`
+	StartLatitude       float64
+	StartLongitude      float64
 	HeartbeatInterval   time.Duration
 	TemperatureInterval time.Duration
 	ProductionInterval  time.Duration
@@ -36,15 +39,18 @@ type ProductConfig struct {
 
 // rawConfig is used for JSON parsing — durations come in as strings (e.g. "30s", "10m")
 type rawConfig struct {
-	Mode                string         `json:"mode"`
-	WarehouseID         string         `json:"warehouse_id"`
-	FactoryID           string         `json:"factory_id"`
-	RabbitMQURL         string         `json:"rabbitmq_url"`
-	Sectors             []SectorConfig `json:"sectors"`
+	Mode                string          `json:"mode"`
+	WarehouseID         string          `json:"warehouse_id"`
+	FactoryID           string          `json:"factory_id"`
+	VanID               string          `json:"van_id"`
+	RabbitMQURL         string          `json:"rabbitmq_url"`
+	Sectors             []SectorConfig  `json:"sectors"`
 	Products            []ProductConfig `json:"products"`
-	HeartbeatInterval   string         `json:"heartbeat_interval"`
-	TemperatureInterval string         `json:"temperature_interval"`
-	ProductionInterval  string         `json:"production_interval"`
+	StartLatitude       float64         `json:"start_latitude"`
+	StartLongitude      float64         `json:"start_longitude"`
+	HeartbeatInterval   string          `json:"heartbeat_interval"`
+	TemperatureInterval string          `json:"temperature_interval"`
+	ProductionInterval  string          `json:"production_interval"`
 }
 
 func loadConfig() *Config {
@@ -75,8 +81,8 @@ func loadConfig() *Config {
 		}
 	}
 
-	if mode != "warehouse" && mode != "factory" {
-		log.Fatalf("mode must be one of: warehouse, factory (got %q)", mode)
+	if mode != "warehouse" && mode != "factory" && mode != "vehicle" {
+		log.Fatalf("mode must be one of: warehouse, factory, vehicle (got %q)", mode)
 	}
 
 	if mode == "warehouse" {
@@ -115,6 +121,10 @@ func loadConfig() *Config {
 		}
 	}
 
+	if mode == "vehicle" && raw.VanID == "" {
+		log.Fatal("van_id is required for vehicle mode")
+	}
+
 	heartbeat := parseDurationOrDefault(raw.HeartbeatInterval, 30*time.Second)
 	tempInterval := parseDurationOrDefault(raw.TemperatureInterval, 10*time.Minute)
 	productionInterval := parseDurationOrDefault(raw.ProductionInterval, 12*time.Hour)
@@ -123,9 +133,12 @@ func loadConfig() *Config {
 		Mode:                mode,
 		WarehouseID:         raw.WarehouseID,
 		FactoryID:           raw.FactoryID,
+		VanID:               raw.VanID,
 		RabbitMQURL:         raw.RabbitMQURL,
 		Sectors:             raw.Sectors,
 		Products:            raw.Products,
+		StartLatitude:       raw.StartLatitude,
+		StartLongitude:      raw.StartLongitude,
 		HeartbeatInterval:   heartbeat,
 		TemperatureInterval: tempInterval,
 		ProductionInterval:  productionInterval,

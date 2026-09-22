@@ -57,6 +57,7 @@ type LocalFilePreview = {
   styleUrl: './company-request-create.component.scss',
 })
 export class CompanyRequestCreateComponent implements AfterViewInit, OnDestroy {
+  private static readonly MAX_REQUEST_SIZE = 64 * 1024 * 1024;
   private readonly fb = inject(FormBuilder);
   private readonly countryService = inject(CountryService);
   private readonly companyRequests = inject(CompanyRequestService);
@@ -157,6 +158,13 @@ export class CompanyRequestCreateComponent implements AfterViewInit, OnDestroy {
       this.snack.open('Only image files up to 10 MB are allowed.', 'Close', { duration: 3500 });
     }
 
+    const next = [...this.images.map((item) => item.file), ...valid];
+    if (this.totalUploadSize(next, this.proofs.map((item) => item.file)) > CompanyRequestCreateComponent.MAX_REQUEST_SIZE) {
+      this.snack.open('The selected files exceed the 64 MB request limit.', 'Close', { duration: 3500 });
+      input.value = '';
+      return;
+    }
+
     this.images = [...this.images, ...valid.map((file) => this.toPreview(file))].slice(0, 32);
     input.value = '';
   }
@@ -171,6 +179,13 @@ export class CompanyRequestCreateComponent implements AfterViewInit, OnDestroy {
     );
     if (valid.length !== files.length) {
       this.snack.open('Proofs must be images or PDF documents up to 15 MB.', 'Close', { duration: 3500 });
+    }
+
+    const next = [...this.images.map((item) => item.file), ...this.proofs.map((item) => item.file), ...valid];
+    if (this.totalUploadSize(next, []) > CompanyRequestCreateComponent.MAX_REQUEST_SIZE) {
+      this.snack.open('The selected files exceed the 64 MB request limit.', 'Close', { duration: 3500 });
+      input.value = '';
+      return;
     }
 
     this.proofs = [...this.proofs, ...valid.map((file) => this.toPreview(file))].slice(0, 32);
@@ -266,6 +281,10 @@ export class CompanyRequestCreateComponent implements AfterViewInit, OnDestroy {
     [...this.images, ...this.proofs].forEach((item) => {
       if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
     });
+  }
+
+  totalUploadSize(images: File[], proofs: File[]): number {
+    return [...images, ...proofs].reduce((total, file) => total + file.size, 0);
   }
 
   trackByFileName = (_: number, item: LocalFilePreview) => item.file.name;

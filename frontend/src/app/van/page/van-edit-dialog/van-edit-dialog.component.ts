@@ -60,6 +60,7 @@ export class VanEditDialogComponent implements OnDestroy {
   selectedImagePreviews: SelectedImagePreview[] = [];
 
   submitting = false;
+  imageErrorVisible = false;
 
   form = this.fb.nonNullable.group({
     registrationNumber: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(20)]],
@@ -164,12 +165,15 @@ export class VanEditDialogComponent implements OnDestroy {
     if (this.submitting) return;
 
     this.form.markAllAsTouched();
+    this.imageErrorVisible = this.data.mode === 'create' && this.selectedImagePreviews.length === 0;
     if (this.form.invalid) return;
 
     if (this.data.mode === 'create' && this.selectedImagePreviews.length === 0) {
       this.snack.open('Please upload at least one van image.', 'Close', { duration: 3500 });
       return;
     }
+
+    this.imageErrorVisible = false;
 
     const value = this.form.getRawValue();
     const request: SaveVanRequestDto = {

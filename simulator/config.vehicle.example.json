@@ -1,0 +1,8 @@
+{
+  "mode": "vehicle",
+  "van_id": "NS-123-AB",
+  "rabbitmq_url": "amqp://admin:adminpass@localhost:5672/",
+  "heartbeat_interval": "30s",
+  "start_latitude": 45.2671,
+  "start_longitude": 19.8335
+}

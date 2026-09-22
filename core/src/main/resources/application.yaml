@@ -49,7 +49,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 10MB
-      max-request-size: 20MB
+      max-request-size: 64MB
   mail:
     host: ${CARGOSYNC_MAIL_HOST:smtp.gmail.com}
     port: ${CARGOSYNC_MAIL_PORT:587}
